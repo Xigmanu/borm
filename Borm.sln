@@ -1,0 +1,59 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36202.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm", "src\Borm\Borm.csproj", "{823F0BBA-7CC2-E7D3-9E98-2F6CF74427F3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Providers", "Providers", "{101AF233-85AE-430A-A946-19F076D92931}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm.Data.Sql.Sqlite", "src\Borm.Providers\Borm.Data.Sql.Sqlite\Borm.Data.Sql.Sqlite.csproj", "{8E70E0A2-AE16-44EE-8850-3520BE563B47}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{8C4AF561-F3A7-4BDA-9939-6DFC45E62DD8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm.Data.Sql.Sqlite.Test", "tests\Borm.Provider\Borm.Data.Sql.Sqlite.Test\Borm.Data.Sql.Sqlite.Test.csproj", "{450CD1C0-A9E0-4847-8A90-6267FAFF70F4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Debug", "Debug", "{24B6A659-E7B4-4195-9226-961114A64D6A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm.Debug", ".debug\Borm.Debug\Borm.Debug.csproj", "{073A2EF6-F9E7-40F4-A935-2D610A3077FB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{823F0BBA-7CC2-E7D3-9E98-2F6CF74427F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{823F0BBA-7CC2-E7D3-9E98-2F6CF74427F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{823F0BBA-7CC2-E7D3-9E98-2F6CF74427F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{823F0BBA-7CC2-E7D3-9E98-2F6CF74427F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E70E0A2-AE16-44EE-8850-3520BE563B47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E70E0A2-AE16-44EE-8850-3520BE563B47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E70E0A2-AE16-44EE-8850-3520BE563B47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E70E0A2-AE16-44EE-8850-3520BE563B47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{450CD1C0-A9E0-4847-8A90-6267FAFF70F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{450CD1C0-A9E0-4847-8A90-6267FAFF70F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{450CD1C0-A9E0-4847-8A90-6267FAFF70F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{450CD1C0-A9E0-4847-8A90-6267FAFF70F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{073A2EF6-F9E7-40F4-A935-2D610A3077FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{073A2EF6-F9E7-40F4-A935-2D610A3077FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{073A2EF6-F9E7-40F4-A935-2D610A3077FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{073A2EF6-F9E7-40F4-A935-2D610A3077FB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8E70E0A2-AE16-44EE-8850-3520BE563B47} = {101AF233-85AE-430A-A946-19F076D92931}
+		{450CD1C0-A9E0-4847-8A90-6267FAFF70F4} = {8C4AF561-F3A7-4BDA-9939-6DFC45E62DD8}
+		{073A2EF6-F9E7-40F4-A935-2D610A3077FB} = {24B6A659-E7B4-4195-9226-961114A64D6A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C0529543-5A4C-401A-8DFC-A8D05907E7AE}
+	EndGlobalSection
+EndGlobal
