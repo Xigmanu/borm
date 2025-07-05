@@ -1,22 +1,20 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
+﻿using System.Diagnostics.CodeAnalysis;
 using Borm.Extensions;
 
 namespace Borm.Schema;
 
-internal static class AssemblyEntityTypeResolver
+internal static class EntityTypeResolver
 {
-    public static IEnumerable<Type> GetTypes(Assembly assembly)
+    public static IEnumerable<Type> GetTypes(IEnumerable<Type> assemblyTypes)
     {
-        IEnumerable<Type> entityTypes = assembly
-            .GetExportedTypes()
-            .Where(type => type.HasAttribute<TableAttribute>());
+        IEnumerable<Type> entityTypes = assemblyTypes.Where(type =>
+            type.HasAttribute<TableAttribute>()
+        );
         if (!IsTypeEnumerableValid(entityTypes, out ArgumentException? exception))
         {
             throw exception;
         }
-        Debug.WriteLine($"Resolved {entityTypes.Count()} entity types");
+
         return entityTypes;
     }
 

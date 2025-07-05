@@ -59,7 +59,9 @@ public sealed class DataContext : IDisposable
     {
         try
         {
-            IEnumerable<Type> entityTypes = AssemblyEntityTypeResolver.GetTypes(entitySource);
+            IEnumerable<Type> entityTypes = EntityTypeResolver.GetTypes(
+                entitySource.GetExportedTypes()
+            );
             if (!entityTypes.Any())
             {
                 return;
