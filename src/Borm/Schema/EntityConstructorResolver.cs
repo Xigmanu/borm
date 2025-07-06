@@ -35,9 +35,7 @@ internal sealed class EntityConstructorResolver
 
         if (parameters.Count != _columns.Count())
         {
-            throw new MissingMethodException(
-                $"Type {_entityType.Name} does not have a public constructor that would initialize all columns"
-            );
+            return null;
         }
 
         if (!IsCtorParamListValid(parameters, out Exception? exception))

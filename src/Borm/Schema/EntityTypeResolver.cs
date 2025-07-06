@@ -33,13 +33,6 @@ internal static class EntityTypeResolver
                 );
                 return false;
             }
-            if (type.IsValueType)
-            {
-                exception = new ArgumentException(
-                    $"Entity types can only be reference types. Type: {type.FullName}"
-                );
-                return false;
-            }
         }
         return true;
     }
