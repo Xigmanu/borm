@@ -40,17 +40,29 @@ internal sealed class EntityConversionBinding
         return _materializeEntity(buffer);
     }
 
-    private static UnaryExpression CreateBufferPropertyBinding(
+    private static Expression CreateBufferPropertyBinding(
         ParameterExpression bufferParam,
         ColumnInfo column
     )
     {
-        IndexExpression boxedRowValue = Expression.Property(
+        IndexExpression bufferValue = Expression.Property(
             bufferParam,
             "Item",
             Expression.Constant(column)
         );
-        return Expression.Convert(boxedRowValue, column.DataType);
+
+        UnaryExpression convertValue = Expression.Convert(bufferValue, column.DataType);
+        if (!column.Constraints.HasFlag(Constraints.AllowDbNull))
+        {
+            return convertValue;
+        }
+
+        BinaryExpression isDbNull = Expression.Equal(
+            bufferValue,
+            Expression.Constant(DBNull.Value)
+        );
+        ConstantExpression nullValue = Expression.Constant(null, column.DataType);
+        return Expression.Condition(isDbNull, nullValue, convertValue);
     }
 
     private static Func<ValueBuffer, object> CreateConstructorMaterializer(
@@ -59,7 +71,7 @@ internal sealed class EntityConversionBinding
     {
         ParameterExpression bufferParam = Expression.Parameter(typeof(ValueBuffer), "buffer");
 
-        IEnumerable<UnaryExpression> args = bindingInfo
+        IEnumerable<Expression> args = bindingInfo
             .GetOrderedColumns()
             .Select(columnInfo => CreateBufferPropertyBinding(bufferParam, columnInfo));
         NewExpression ctorCall = Expression.New(bindingInfo.Constructor, args);
@@ -103,15 +115,28 @@ internal sealed class EntityConversionBinding
                 unboxedEntityVar,
                 columnInfo.Property.Name
             );
+            UnaryExpression boxedValue = Expression.Convert(value, typeof(object));
 
-            IndexExpression index = Expression.MakeIndex(
+            BinaryExpression isNullCheck = Expression.Equal(
+                boxedValue,
+                Expression.Constant(null, typeof(object))
+            );
+
+            IndexExpression indexer = Expression.MakeIndex(
                 valueBufferVar,
                 valueBufferType.GetProperty("Item"),
                 [key]
             );
-            blockExpressions.Add(
-                Expression.Assign(index, Expression.Convert(value, typeof(object)))
+
+            BinaryExpression conditionalAssign = Expression.Assign(
+                indexer,
+                Expression.Condition(
+                    isNullCheck,
+                    Expression.Constant(DBNull.Value, typeof(object)),
+                    boxedValue
+                )
             );
+            blockExpressions.Add(conditionalAssign);
         }
 
         blockExpressions.Add(valueBufferVar);
@@ -138,7 +163,7 @@ internal sealed class EntityConversionBinding
 
         foreach (ColumnInfo column in bindingInfo.GetOrderedColumns())
         {
-            UnaryExpression valueExpr = CreateBufferPropertyBinding(bufferParam, column);
+            Expression valueExpr = CreateBufferPropertyBinding(bufferParam, column);
             MemberExpression propertyExpr = Expression.Property(instanceVar, column.Property.Name);
             blockExpressions.Add(Expression.Assign(propertyExpr, valueExpr));
         }
