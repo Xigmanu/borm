@@ -3,10 +3,11 @@ using System.Diagnostics;
 using System.Reflection;
 using Borm.Data;
 using Borm.Schema;
+using Borm.Schema.Metadata;
 
 namespace Borm;
 
-public sealed class DataContext
+public sealed class DataContext : IDisposable
 {
     private const string DefaultDataStoreName = "borm_data";
 
@@ -28,6 +29,11 @@ public sealed class DataContext
     public Transaction BeginTransaction()
     {
         return new Transaction(this, _configuration.TransactionWriteOnCommit);
+    }
+
+    public void Dispose()
+    {
+        _dataSet.Dispose();
     }
 
     public IEntityRepository<T> GetRepository<T>()
@@ -54,7 +60,9 @@ public sealed class DataContext
     {
         try
         {
-            IEnumerable<Type> entityTypes = AssemblyEntityTypeResolver.GetTypes(entitySource);
+            IEnumerable<Type> entityTypes = EntityTypeResolver.GetTypes(
+                entitySource.GetExportedTypes()
+            );
             if (!entityTypes.Any())
             {
                 return;

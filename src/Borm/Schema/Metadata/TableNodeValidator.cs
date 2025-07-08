@@ -1,7 +1,8 @@
 ﻿using System.Data;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Borm.Schema;
+namespace Borm.Schema.Metadata;
 
 internal sealed class TableNodeValidator
 {
@@ -40,16 +41,29 @@ internal sealed class TableNodeValidator
         return true;
     }
 
+    private static Type UnwrapNullableType(Type type)
+    {
+        if (!type.IsValueType)
+        {
+            return type;
+        }
+
+        Type? underlying = Nullable.GetUnderlyingType(type);
+        Debug.Assert(underlying != null);
+
+        return underlying;
+    }
+
     private static InvalidOperationException? ValidateColumnIndex(
         TableNode node,
         ColumnInfo columnInfo
     )
     {
-        bool isIndexValid = node.Columns.Count() > columnInfo.Index && columnInfo.Index >= 0;
+        bool isIndexValid = node.Columns.Count > columnInfo.Index && columnInfo.Index >= 0;
         return isIndexValid
             ? null
             : new InvalidOperationException(
-                $"Invalid column index {columnInfo.Index} in entity {node.DataType.FullName}. Valid range is [0, {node.Columns.Count()})"
+                $"Invalid column index {columnInfo.Index} in entity {node.DataType.FullName}. Valid range is [0, {node.Columns.Count})"
             );
     }
 
@@ -87,7 +101,9 @@ internal sealed class TableNodeValidator
         ColumnInfo columnInfo
     )
     {
-        Type dataType = columnInfo.DataType;
+        Type dataType = columnInfo.Constraints.HasFlag(Constraints.AllowDbNull)
+            ? UnwrapNullableType(columnInfo.DataType)
+            : columnInfo.DataType;
 
         TableNode? successor = _nodes.Find(node =>
             node.DataType.Equals(columnInfo.ReferencedEntityType)

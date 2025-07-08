@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace Borm.Schema;
+namespace Borm.Schema.Metadata;
 
 internal sealed class ColumnInfo
 {
@@ -9,15 +9,12 @@ internal sealed class ColumnInfo
     private readonly int _index;
     private readonly string _name;
     private readonly Type? _referencedEntityType;
-    private readonly MethodInfo _valueGetter;
-    private readonly MethodInfo? _valueSetter;
 
     public ColumnInfo(
         int index,
         string name,
         Type dataType,
-        MethodInfo valueGetter,
-        MethodInfo? valueSetter,
+        PropertyInfo property,
         Constraints constraints,
         Type? referencedEntityType
     )
@@ -26,9 +23,8 @@ internal sealed class ColumnInfo
         _name = name;
         _referencedEntityType = referencedEntityType;
         _dataType = dataType;
-        _valueGetter = valueGetter;
-        _valueSetter = valueSetter;
         _constraints = constraints;
+        Property = property;
     }
 
     public Type DataType => _dataType;
@@ -37,17 +33,7 @@ internal sealed class ColumnInfo
 
     public string Name => _name;
 
+    public PropertyInfo Property { get; }
     public Type? ReferencedEntityType => _referencedEntityType;
-
     internal Constraints Constraints => _constraints;
-
-    public object? GetValue(object entityObj)
-    {
-        return _valueGetter.Invoke(entityObj, null);
-    }
-
-    public void SetValue(object entityObj, object? value)
-    {
-        _valueSetter?.Invoke(entityObj, [value]);
-    }
 }

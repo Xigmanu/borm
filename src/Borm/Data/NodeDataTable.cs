@@ -1,7 +1,7 @@
 ﻿using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Borm.Schema;
+using Borm.Schema.Metadata;
 
 namespace Borm.Data;
 
@@ -62,38 +62,6 @@ internal sealed class NodeDataTable : DataTable
             }
         }
         return null;
-    }
-
-    public ColumnInfo[] GetTableOrderedNodeColumns()
-    {
-        List<ColumnInfo> result = [];
-        foreach (DataColumn tableColumn in Columns)
-        {
-            ColumnInfo nodeColumn = _node.Columns.First(column =>
-                column.Name == tableColumn.ColumnName
-            );
-            result.Add(nodeColumn);
-        }
-        return [.. result];
-    }
-
-    public bool IsEntityTypeValid(
-        object entityObj,
-        [NotNullWhen(false)] out TypeMismatchException? exception
-    )
-    {
-        exception = null;
-        Type entityType = entityObj.GetType();
-        if (!entityType.Equals(_node.DataType))
-        {
-            exception = new TypeMismatchException(
-                "Provided entity type is not equal to node's data type",
-                _node.DataType,
-                entityType
-            );
-            return false;
-        }
-        return true;
     }
 
     [ExcludeFromCodeCoverage]

@@ -1,5 +1,5 @@
 ﻿using System.Data;
-using Borm.Schema;
+using Borm.Schema.Metadata;
 
 namespace Borm.Data;
 
@@ -18,20 +18,20 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
     public bool Delete(T entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
-        if (!_table.IsEntityTypeValid(entity, out TypeMismatchException? exception))
-        {
-            throw exception;
-        }
 
-        object primaryKey = _table.Node.GetPrimaryKeyValue(entity);
-        DataRow? row = _table.Rows.Find(primaryKey);
+        TableNode node = _table.Node;
+        ValueBuffer buffer = node.Binding.Convert(entity);
+        ColumnInfo primaryKey = node.GetPrimaryKey();
+
+        object primaryKeyValue = buffer[primaryKey];
+        DataRow? row = _table.Rows.Find(primaryKeyValue);
         if (row == null)
         {
             return false;
         }
-        row.Delete();
-        _table.EntityCache.Remove(primaryKey);
 
+        row.Delete();
+        _table.EntityCache.Remove(entity);
         return true;
     }
 
@@ -46,44 +46,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
     public bool Insert(T entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
-        if (!_table.IsEntityTypeValid(entity, out TypeMismatchException? exception))
-        {
-            throw exception;
-        }
-
-        object primaryKey = _table.Node.GetPrimaryKeyValue(entity);
-        if (_table.Rows.Find(primaryKey) != null)
-        {
-            return false;
-        }
-
-        ColumnInfo[] orderedColumns = _table.GetTableOrderedNodeColumns();
-        DataRow row = _table.NewRow();
-        for (int i = 0; i < orderedColumns.Length; i++)
-        {
-            ColumnInfo columnInfo = orderedColumns[i];
-            object columnValue = columnInfo.GetValue(entity) ?? DBNull.Value;
-
-            if (columnInfo.ReferencedEntityType == null)
-            {
-                row[i] = columnValue;
-                continue;
-            }
-
-            TableNode? parentNode = _nodeGraph[columnInfo.DataType];
-            if (parentNode == null || columnValue.Equals(DBNull.Value))
-            {
-                row[i] = columnValue;
-            }
-
-            NodeDataTable parentTable = (NodeDataTable)_table.DataSet!.Tables[parentNode!.Name]!;
-            new NodeDataTableRepository<object>(parentTable, _nodeGraph).Insert(columnValue);
-            row[i] = parentNode.GetPrimaryKeyValue(columnValue);
-        }
-
-        _table.Rows.Add(row);
-        _table.EntityCache.Add(primaryKey, entity);
-
+        _ = InsertRecursively(_table, entity);
         return true;
     }
 
@@ -107,11 +70,10 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
         {
             if (row.RowState != DataRowState.Deleted)
             {
-                T entity = (T)ReadRowRecursively(_table, row);
+                T entity = (T)ReadRowRecursively(_table.Node, row, out object primaryKeyValue);
                 entities.Add(entity);
 
-                object primaryKey = _table.Node.GetPrimaryKeyValue(entity);
-                _table.EntityCache.Add(primaryKey, entity);
+                _table.EntityCache.Add(primaryKeyValue, entity);
             }
         }
 
@@ -126,29 +88,42 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
     public bool Update(T entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
-        if (!_table.IsEntityTypeValid(entity, out TypeMismatchException? exception))
-        {
-            throw exception;
-        }
 
-        ColumnInfo[] orderedColumns = _table.GetTableOrderedNodeColumns();
-        object primaryKey = _table.Node.GetPrimaryKeyValue(entity);
-        DataRow? row = _table.Rows.Find(primaryKey);
+        TableNode node = _table.Node;
+        ValueBuffer buffer = node.Binding.Convert(entity);
+        ColumnInfo primaryKey = node.GetPrimaryKey();
+
+        object primaryKeyValue = buffer[primaryKey];
+        DataRow? row = _table.Rows.Find(primaryKeyValue);
         if (row == null)
         {
             return false;
         }
 
-        for (int i = 0; i < orderedColumns.Length; i++)
+        foreach (KeyValuePair<ColumnInfo, object> entryPair in buffer)
         {
-            ColumnInfo columnInfo = orderedColumns[i];
-            if (columnInfo.ReferencedEntityType == null)
-            {
-                row[i] = columnInfo.GetValue(entity) ?? DBNull.Value;
-            }
-        }
-        _table.EntityCache.Update(primaryKey, entity);
+            ColumnInfo column = entryPair.Key;
+            object newValue = entryPair.Value;
 
+            if (column.ReferencedEntityType == null)
+            {
+                row[column.Name] = newValue;
+                continue;
+            }
+
+            TableNode? parentNode = _nodeGraph[column.DataType];
+            if (parentNode == null)
+            {
+                row[column.Name] = entryPair.Value;
+                continue;
+            }
+
+            ColumnInfo parentPrimaryKey = parentNode.GetPrimaryKey();
+            ValueBuffer parentBuffer = parentNode.Binding.Convert(entryPair.Value);
+            row[column.Name] = parentBuffer[parentPrimaryKey];
+        }
+
+        _table.EntityCache.Update(primaryKeyValue, entity);
         return true;
     }
 
@@ -160,30 +135,26 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
         );
     }
 
-    private object ReadRowRecursively(NodeDataTable table, DataRow row)
+    private object InsertRecursively(NodeDataTable table, object entity)
     {
-        int columnCount = table.Rows.Count;
-        object?[] ctorArgs = new object?[columnCount];
-        ColumnInfo[] orderedColumns = _table.GetTableOrderedNodeColumns();
-        for (int i = 0; i < orderedColumns.Length; i++)
+        TableNode node = table.Node;
+        ValueBuffer buffer = node.Binding.Convert(entity);
+        ColumnInfo primaryKey = node.GetPrimaryKey();
+
+        object primaryKeyValue = buffer[primaryKey];
+        if (table.Rows.Contains(primaryKeyValue))
         {
-            ColumnInfo columnInfo = orderedColumns[i];
-            object? columnValue = row[columnInfo.Name];
-            if (columnValue.GetType().Equals(typeof(DBNull)))
-            {
-                columnValue = null;
-            }
+            return primaryKeyValue;
+        }
 
-            if (columnInfo.ReferencedEntityType == null)
-            {
-                ctorArgs[i] = columnValue;
-                continue;
-            }
-
-            TableNode? parentNode = _nodeGraph[columnInfo.DataType];
+        IEnumerable<ColumnInfo> foreignKeys = node.Columns.Where(column =>
+            column.ReferencedEntityType != null
+        );
+        foreach (ColumnInfo foreignKey in foreignKeys)
+        {
+            TableNode? parentNode = _nodeGraph[foreignKey.DataType];
             if (parentNode == null)
             {
-                ctorArgs[i] = columnValue;
                 continue;
             }
 
@@ -193,11 +164,46 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
                     $"No data relation exists even though two nodes have a relation. Child: {table.Node}, Parent: {parentNode}"
                 );
 
-            DataRow parentRow = row.GetParentRow(parentRelation)!;
-            object? parentRowValue = ReadRowRecursively((NodeDataTable)parentRow.Table, parentRow);
-            ctorArgs[i] = parentRowValue;
+            object parentEntity = buffer[foreignKey];
+            buffer[foreignKey] = InsertRecursively(
+                (NodeDataTable)parentRelation.ParentTable,
+                parentEntity
+            );
         }
 
-        return table.Node.CreateInstance(ctorArgs);
+        DataRow newRow = table.NewRow();
+        buffer.LoadIntoRow(newRow);
+        _table.Rows.Add(newRow);
+
+        return primaryKeyValue;
+    }
+
+    private object ReadRowRecursively(TableNode node, DataRow row, out object primaryKeyValue)
+    {
+        ValueBuffer buffer = ValueBuffer.FromDataRow(node, row);
+        primaryKeyValue = buffer[node.GetPrimaryKey()];
+
+        IEnumerable<ColumnInfo> foreignKeys = node.Columns.Where(column =>
+            column.ReferencedEntityType != null
+        );
+        foreach (ColumnInfo foreignKey in foreignKeys)
+        {
+            TableNode? parentNode = _nodeGraph[foreignKey.DataType];
+            if (parentNode == null)
+            {
+                continue;
+            }
+
+            DataRelation parentRelation =
+                _table.GetParentRelation(parentNode)
+                ?? throw new InvalidOperationException(
+                    $"No data relation exists even though two nodes have a relation. Child: {node}, Parent: {parentNode}"
+                );
+
+            DataRow parentRow = row.GetParentRow(parentRelation)!;
+            buffer[foreignKey] = ReadRowRecursively(parentNode, parentRow, out _);
+        }
+
+        return node.Binding.Materialize(buffer);
     }
 }
