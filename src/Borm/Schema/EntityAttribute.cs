@@ -3,14 +3,12 @@
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public sealed class EntityAttribute : Attribute
 {
-    private readonly string? _name;
-
     public EntityAttribute() { }
 
     public EntityAttribute(string name)
     {
-        _name = name;
+        Name = name;
     }
 
-    public string? Name => _name;
+    public string? Name { get; }
 }

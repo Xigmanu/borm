@@ -3,12 +3,9 @@
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
 public class ColumnAttribute : Attribute
 {
-    private readonly int _index;
-    private readonly string? _name;
-
     public ColumnAttribute(int index)
     {
-        _index =
+        Index =
             index < 0
                 ? throw new ArgumentException("Column index cannot be lesser than zero")
                 : index;
@@ -17,10 +14,10 @@ public class ColumnAttribute : Attribute
     public ColumnAttribute(int index, string name)
         : this(index)
     {
-        _name = name;
+        Name = name;
     }
 
-    public int Index => _index;
+    public int Index { get; }
 
-    public string? Name => _name;
+    public string? Name { get; }
 }
