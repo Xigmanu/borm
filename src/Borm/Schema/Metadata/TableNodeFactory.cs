@@ -47,9 +47,8 @@ internal sealed class TableNodeFactory
 
         string? columnName = columnAttribute.Name ?? CreateDefaultName(propertyInfo);
 
-        Type dataType = propertyInfo.UnwrapNullableType(out bool isNullable);
         Constraints constraints = GetConstraints(columnAttribute);
-        if (isNullable)
+        if (IsNullable(propertyInfo))
         {
             constraints |= Constraints.AllowDbNull;
         }
@@ -58,7 +57,7 @@ internal sealed class TableNodeFactory
         return new ColumnInfo(
             columnAttribute.Index,
             columnName,
-            dataType,
+            propertyInfo.PropertyType,
             propertyInfo,
             constraints,
             referencedEntityType
@@ -93,5 +92,11 @@ internal sealed class TableNodeFactory
             constraints |= Constraints.PrimaryKey;
         }
         return constraints;
+    }
+
+    private static bool IsNullable(PropertyInfo propertyInfo)
+    {
+        NullabilityInfo nullabilityInfo = new NullabilityInfoContext().Create(propertyInfo);
+        return nullabilityInfo.ReadState == NullabilityState.Nullable;
     }
 }

@@ -40,6 +40,19 @@ internal sealed class EntityConversionBinding
         return _materializeEntity(buffer);
     }
 
+    private static UnaryExpression CreateBufferPropertyBinding(
+        ParameterExpression bufferParam,
+        ColumnInfo column
+    )
+    {
+        IndexExpression boxedRowValue = Expression.Property(
+            bufferParam,
+            "Item",
+            Expression.Constant(column)
+        );
+        return Expression.Convert(boxedRowValue, column.DataType);
+    }
+
     private static Func<ValueBuffer, object> CreateConstructorMaterializer(
         EntityBindingInfo bindingInfo
     )
@@ -48,9 +61,7 @@ internal sealed class EntityConversionBinding
 
         IEnumerable<UnaryExpression> args = bindingInfo
             .GetOrderedColumns()
-            .Select(columnInfo =>
-                EntityBindingInfo.CreateBufferPropertyBinding(bufferParam, columnInfo)
-            );
+            .Select(columnInfo => CreateBufferPropertyBinding(bufferParam, columnInfo));
         NewExpression ctorCall = Expression.New(bindingInfo.Constructor, args);
 
         return Expression
@@ -127,10 +138,7 @@ internal sealed class EntityConversionBinding
 
         foreach (ColumnInfo column in bindingInfo.GetOrderedColumns())
         {
-            UnaryExpression valueExpr = EntityBindingInfo.CreateBufferPropertyBinding(
-                bufferParam,
-                column
-            );
+            UnaryExpression valueExpr = CreateBufferPropertyBinding(bufferParam, column);
             MemberExpression propertyExpr = Expression.Property(instanceVar, column.Property.Name);
             blockExpressions.Add(Expression.Assign(propertyExpr, valueExpr));
         }

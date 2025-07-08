@@ -24,19 +24,6 @@ internal sealed class EntityBindingInfo
     public Type EntityType => _entityType;
     internal ColumnInfoCollection Columns => _columns;
 
-    public static UnaryExpression CreateBufferPropertyBinding(
-        ParameterExpression bufferParam,
-        ColumnInfo column
-    )
-    {
-        IndexExpression boxedRowValue = Expression.Property(
-            bufferParam,
-            "Item",
-            Expression.Constant(column)
-        );
-        return Expression.Convert(boxedRowValue, column.DataType);
-    }
-
     public ColumnInfo[] GetOrderedColumns()
     {
         if (_constructor == _entityType.GetConstructor(Type.EmptyTypes))

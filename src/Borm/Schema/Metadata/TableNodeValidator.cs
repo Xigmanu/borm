@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Borm.Schema.Metadata;
@@ -38,6 +39,19 @@ internal sealed class TableNodeValidator
             }
         }
         return true;
+    }
+
+    private static Type UnwrapNullableType(Type type)
+    {
+        if (!type.IsValueType)
+        {
+            return type;
+        }
+
+        Type? underlying = Nullable.GetUnderlyingType(type);
+        Debug.Assert(underlying != null);
+
+        return underlying;
     }
 
     private static InvalidOperationException? ValidateColumnIndex(
@@ -87,7 +101,9 @@ internal sealed class TableNodeValidator
         ColumnInfo columnInfo
     )
     {
-        Type dataType = columnInfo.DataType;
+        Type dataType = columnInfo.Constraints.HasFlag(Constraints.AllowDbNull)
+            ? UnwrapNullableType(columnInfo.DataType)
+            : columnInfo.DataType;
 
         TableNode? successor = _nodes.Find(node =>
             node.DataType.Equals(columnInfo.ReferencedEntityType)
