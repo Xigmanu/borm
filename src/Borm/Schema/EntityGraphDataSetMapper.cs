@@ -8,13 +8,11 @@ internal sealed class EntityGraphDataSetMapper
 {
     private readonly EntityNodeGraph _nodeGraph;
     private readonly Dictionary<EntityNode, NodeDataTable> _nodeTableMap;
-    private readonly List<PendingDataRelation> _pendingRelations;
 
     public EntityGraphDataSetMapper(EntityNodeGraph nodeGraph)
     {
         _nodeGraph = nodeGraph;
         _nodeTableMap = [];
-        _pendingRelations = [];
     }
 
     public void LoadMapping(BormDataSet dataSet)
@@ -22,19 +20,47 @@ internal sealed class EntityGraphDataSetMapper
         EntityNode[] topSortedNodes = _nodeGraph.ReversedTopSort();
         for (int i = 0; i < topSortedNodes.Length; i++)
         {
-            EntityNode current = topSortedNodes[i];
-            CreateNodeTable(current);
-            CreatePendingRelations(current);
+            EntityNode node = topSortedNodes[i];
+            CreateNodeTable(node);
+            dataSet.Tables.Add(_nodeTableMap[node]);
         }
 
-        foreach (NodeDataTable dataTable in _nodeTableMap.Values)
+        foreach (NodeDataTable table in dataSet.Tables)
         {
-            dataSet.AddTable(dataTable);
+            DataRelation[] relations = CreateDataRelations(table);
+            if (relations.Length != 0)
+            {
+                dataSet.Relations.AddRange(relations);
+            }
+        }
+    }
+
+    private DataRelation[] CreateDataRelations(NodeDataTable table)
+    {
+        EntityNode node = table.Node;
+        EntityNode[] successors = _nodeGraph.GetSuccessors(node);
+        DataRelation[] relations = new DataRelation[successors.Length];
+        for (int i = 0; i < successors.Length; i++)
+        {
+            EntityNode successor = successors[i];
+
+            ColumnInfo nodeForeignKey = node.Columns.First(column =>
+                column.ReferencedEntityType == successor.DataType
+            );
+            NodeDataTable parentTable = _nodeTableMap[successor];
+            DataColumn parentPrimaryKey = parentTable.PrimaryKey[0];
+
+            DataColumn foreignKey = new($"{nodeForeignKey.Name}", parentPrimaryKey.DataType);
+            table.Columns.Add(foreignKey);
+
+            relations[i] = new DataRelation(
+                $"{table.TableName}_{parentTable.TableName}",
+                parentPrimaryKey,
+                foreignKey
+            );
         }
 
-        _pendingRelations.ForEach(pendingRelation =>
-            dataSet.Relations.Add(PendingDataRelation.ToDataRelation(pendingRelation))
-        );
+        return relations;
     }
 
     private void CreateNodeTable(EntityNode node)
@@ -64,45 +90,5 @@ internal sealed class EntityGraphDataSetMapper
         table.PrimaryKey = [primaryKey!];
 
         _nodeTableMap[node] = table;
-    }
-
-    private void CreatePendingRelations(EntityNode node)
-    {
-        NodeDataTable childTable = _nodeTableMap[node];
-        EntityNode[] successors = _nodeGraph.GetSuccessors(node);
-        for (int i = 0; i < successors.Length; i++)
-        {
-            EntityNode successor = successors[i];
-
-            ColumnInfo nodeForeignKey = node.Columns.First(column =>
-                column.ReferencedEntityType == successor.DataType
-            );
-            NodeDataTable parentTable = _nodeTableMap[successor];
-            DataColumn parentPrimaryKey = parentTable.PrimaryKey[0];
-
-            DataColumn tableForeignKey = new($"{nodeForeignKey.Name}", parentPrimaryKey.DataType);
-            childTable.Columns.Add(tableForeignKey);
-
-            PendingDataRelation pendingRelation = new(
-                $"{childTable.TableName}_{parentTable.TableName}",
-                parentPrimaryKey,
-                tableForeignKey
-            );
-            _pendingRelations.Add(pendingRelation);
-        }
-    }
-
-    private sealed record PendingDataRelation(
-        string RelationName,
-        DataColumn PKColumn,
-        DataColumn FKColumn
-    )
-    {
-        public static DataRelation ToDataRelation(PendingDataRelation pendingDataRelation) =>
-            new(
-                pendingDataRelation.RelationName,
-                pendingDataRelation.PKColumn,
-                pendingDataRelation.FKColumn
-            );
     }
 }
