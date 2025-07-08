@@ -1,4 +1,5 @@
 ﻿using Borm.Data;
+using Borm.Schema.Metadata;
 using System.Data;
 
 namespace Borm.Schema;
@@ -39,7 +40,7 @@ internal sealed class TableNodeGraphDataSetMapper
     private void CreateNodeTable(TableNode node)
     {
         NodeDataTable table = new(node.Name, node);
-        DataColumn[] columns = new DataColumn[node.Columns.Count()];
+        DataColumn[] columns = new DataColumn[node.Columns.Count];
         DataColumn? primaryKey = null;
 
         foreach (ColumnInfo columnInfo in node.Columns)

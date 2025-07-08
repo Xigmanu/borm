@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Reflection;
 using Borm.Data;
 using Borm.Schema;
+using Borm.Schema.Metadata;
 
 namespace Borm;
 

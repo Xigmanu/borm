@@ -1,8 +1,9 @@
-﻿using System.Diagnostics;
+﻿using System.Data;
+using System.Diagnostics;
 using System.Reflection;
 using Borm.Extensions;
 
-namespace Borm.Schema;
+namespace Borm.Schema.Metadata;
 
 internal sealed class TableNodeFactory
 {
@@ -25,13 +26,43 @@ internal sealed class TableNodeFactory
             .Where(property => property.HasAttribute<ColumnAttribute>())
             .Select(CreateColumnInfo)
             .OrderBy(columnInfo => columnInfo.Index);
+        ColumnInfoCollection columnCollection = new(columns);
 
-        ConstructorInfo? ctor = new EntityConstructorResolver(
-            columns,
+        ConstructorInfo ctor = new EntityConstructorResolver(
+            columnCollection,
             _entityType
-        ).GetAllColumnsConstructor();
+        ).GetAllColumnsConstructor(out bool isAutoConstructor);
 
-        return new TableNode(name, _entityType, columns, ctor);
+        EntityBindingInfo bindingInfo = new(_entityType, columnCollection, ctor);
+        EntityConversionBinding binding = isAutoConstructor
+            ? EntityConversionBinding.CreatePropertyBased(bindingInfo)
+            : EntityConversionBinding.CreateConstructorBased(bindingInfo);
+
+        return new TableNode(name, _entityType, columnCollection, binding);
+    }
+
+    private static ColumnInfo CreateColumnInfo(PropertyInfo propertyInfo)
+    {
+        ColumnAttribute columnAttribute = propertyInfo.GetAttributeOrThrow<ColumnAttribute>();
+
+        string? columnName = columnAttribute.Name ?? CreateDefaultName(propertyInfo);
+
+        Type dataType = propertyInfo.UnwrapNullableType(out bool isNullable);
+        Constraints constraints = GetConstraints(columnAttribute);
+        if (isNullable)
+        {
+            constraints |= Constraints.AllowDbNull;
+        }
+        Type? referencedEntityType = FindReferencedEntityType(columnAttribute);
+
+        return new ColumnInfo(
+            columnAttribute.Index,
+            columnName,
+            dataType,
+            propertyInfo,
+            constraints,
+            referencedEntityType
+        );
     }
 
     private static string CreateDefaultName(MemberInfo memberInfo)
@@ -62,36 +93,5 @@ internal sealed class TableNodeFactory
             constraints |= Constraints.PrimaryKey;
         }
         return constraints;
-    }
-
-    private ColumnInfo CreateColumnInfo(PropertyInfo propertyInfo)
-    {
-        ColumnAttribute columnAttribute = propertyInfo.GetAttributeOrThrow<ColumnAttribute>();
-
-        string? columnName = columnAttribute.Name ?? CreateDefaultName(propertyInfo);
-        MethodInfo valueGetter =
-            propertyInfo.GetGetMethod()
-            ?? throw new MissingMethodException(
-                $"Property must have a public getter. Type: {_entityType.FullName}, Property: {propertyInfo.Name}"
-            );
-        MethodInfo? valueSetter = propertyInfo.GetSetMethod();
-
-        Type dataType = propertyInfo.UnwrapNullableType(out bool isNullable);
-        Constraints constraints = GetConstraints(columnAttribute);
-        if (isNullable)
-        {
-            constraints |= Constraints.AllowDbNull;
-        }
-        Type? referencedEntityType = FindReferencedEntityType(columnAttribute);
-
-        return new ColumnInfo(
-            columnAttribute.Index,
-            columnName,
-            dataType,
-            valueGetter,
-            valueSetter,
-            constraints,
-            referencedEntityType
-        );
     }
 }

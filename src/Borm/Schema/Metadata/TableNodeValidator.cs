@@ -1,7 +1,7 @@
 ﻿using System.Data;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Borm.Schema;
+namespace Borm.Schema.Metadata;
 
 internal sealed class TableNodeValidator
 {

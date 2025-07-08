@@ -1,7 +1,7 @@
 ﻿using System.Data;
 using System.Diagnostics;
 using Borm.Data.Sql;
-using Borm.Schema;
+using Borm.Schema.Metadata;
 
 namespace Borm.Data;
 

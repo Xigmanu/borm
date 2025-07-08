@@ -1,4 +1,4 @@
-﻿namespace Borm.Schema;
+﻿namespace Borm.Schema.Metadata;
 
 internal sealed class TableNodeGraph
 {
