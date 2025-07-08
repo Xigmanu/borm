@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace Borm.Schema.Metadata;
+﻿namespace Borm.Schema.Metadata;
 
 internal sealed class ColumnInfo
 {
@@ -13,8 +11,8 @@ internal sealed class ColumnInfo
     public ColumnInfo(
         int index,
         string name,
+        string propertyName,
         Type dataType,
-        PropertyInfo property,
         Constraints constraints,
         Type? referencedEntityType
     )
@@ -24,7 +22,7 @@ internal sealed class ColumnInfo
         _referencedEntityType = referencedEntityType;
         _dataType = dataType;
         _constraints = constraints;
-        Property = property;
+        PropertyName = propertyName;
     }
 
     public Type DataType => _dataType;
@@ -33,7 +31,7 @@ internal sealed class ColumnInfo
 
     public string Name => _name;
 
-    public PropertyInfo Property { get; }
+    public string PropertyName { get; }
     public Type? ReferencedEntityType => _referencedEntityType;
     internal Constraints Constraints => _constraints;
 }

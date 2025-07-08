@@ -1,12 +1,12 @@
 ﻿namespace Borm.Schema.Metadata;
 
-internal sealed class TableNode
+internal sealed class EntityNode
 {
     private readonly ColumnInfoCollection _columns;
     private readonly Type _dataType;
     private readonly string _name;
 
-    public TableNode(
+    public EntityNode(
         string name,
         Type dataType,
         ColumnInfoCollection columns,

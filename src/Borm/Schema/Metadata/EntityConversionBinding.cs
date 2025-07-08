@@ -111,10 +111,7 @@ internal sealed class EntityConversionBinding
         foreach (ColumnInfo columnInfo in bindingInfo.Columns)
         {
             ConstantExpression key = Expression.Constant(columnInfo);
-            MemberExpression value = Expression.Property(
-                unboxedEntityVar,
-                columnInfo.Property.Name
-            );
+            MemberExpression value = Expression.Property(unboxedEntityVar, columnInfo.PropertyName);
             UnaryExpression boxedValue = Expression.Convert(value, typeof(object));
 
             BinaryExpression isNullCheck = Expression.Equal(
@@ -164,7 +161,7 @@ internal sealed class EntityConversionBinding
         foreach (ColumnInfo column in bindingInfo.GetOrderedColumns())
         {
             Expression valueExpr = CreateBufferPropertyBinding(bufferParam, column);
-            MemberExpression propertyExpr = Expression.Property(instanceVar, column.Property.Name);
+            MemberExpression propertyExpr = Expression.Property(instanceVar, column.PropertyName);
             blockExpressions.Add(Expression.Assign(propertyExpr, valueExpr));
         }
 

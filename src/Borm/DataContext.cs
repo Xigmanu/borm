@@ -13,7 +13,7 @@ public sealed class DataContext : IDisposable
 
     private readonly BormConfiguration _configuration;
     private readonly BormDataSet _dataSet;
-    private TableNodeGraph? _nodeGraph;
+    private EntityNodeGraph? _nodeGraph;
 
     public DataContext(BormConfiguration configuration)
     {
@@ -45,7 +45,7 @@ public sealed class DataContext : IDisposable
         }
 
         Type entityType = typeof(T);
-        TableNode node =
+        EntityNode node =
             _nodeGraph[entityType]
             ?? throw new ArgumentException(
                 $"No table with data type {entityType.FullName} exists in the data context"
@@ -58,6 +58,7 @@ public sealed class DataContext : IDisposable
 
     public void Initialize(Assembly entitySource)
     {
+        using IDbConnection connection = _configuration.DbConnectionSupplier();
         try
         {
             IEnumerable<Type> entityTypes = EntityTypeResolver.GetTypes(
@@ -68,10 +69,9 @@ public sealed class DataContext : IDisposable
                 return;
             }
 
-            _nodeGraph = new TableNodeGraphFactory(entityTypes).Create();
-            new TableNodeGraphDataSetMapper(_nodeGraph).LoadMapping(_dataSet);
+            _nodeGraph = new EntityNodeGraphFactory(entityTypes).Create();
+            new EntityGraphDataSetBuilder(_nodeGraph).LoadMapping(_dataSet);
 
-            using IDbConnection connection = _configuration.DbConnectionSupplier();
             connection.Open();
 
             BormDataAdapter dataAdapter = new(
@@ -80,12 +80,12 @@ public sealed class DataContext : IDisposable
                 _configuration.SqlStatementFactory
             );
             dataAdapter.CreateTables(_dataSet);
-            connection.Close();
 
             OnInitialized();
         }
         catch (Exception ex)
         {
+            connection.Close();
             throw new InvalidOperationException("Failed to initialize data context", ex);
         }
     }

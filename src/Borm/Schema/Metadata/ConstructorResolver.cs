@@ -3,12 +3,12 @@ using System.Reflection;
 
 namespace Borm.Schema.Metadata;
 
-internal sealed class EntityConstructorResolver
+internal sealed class ConstructorResolver
 {
     private readonly ColumnInfoCollection _columns;
     private readonly Type _entityType;
 
-    public EntityConstructorResolver(ColumnInfoCollection columns, Type entityType)
+    public ConstructorResolver(ColumnInfoCollection columns, Type entityType)
     {
         _columns = columns;
         _entityType = entityType;

@@ -16,7 +16,7 @@ internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object>
         set => _valueMap[column] = value;
     }
 
-    public static ValueBuffer FromDataRow(TableNode node, DataRow row)
+    public static ValueBuffer FromDataRow(EntityNode node, DataRow row)
     {
         ValueBuffer buffer = new();
         foreach (ColumnInfo column in node.Columns)

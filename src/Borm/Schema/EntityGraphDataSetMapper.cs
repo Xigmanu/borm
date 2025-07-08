@@ -4,13 +4,13 @@ using Borm.Schema.Metadata;
 
 namespace Borm.Schema;
 
-internal sealed class TableNodeGraphDataSetMapper
+internal sealed class EntityGraphDataSetBuilder
 {
-    private readonly TableNodeGraph _nodeGraph;
-    private readonly Dictionary<TableNode, NodeDataTable> _nodeTableMap;
+    private readonly EntityNodeGraph _nodeGraph;
+    private readonly Dictionary<EntityNode, NodeDataTable> _nodeTableMap;
     private readonly List<PendingDataRelation> _pendingRelations;
 
-    public TableNodeGraphDataSetMapper(TableNodeGraph nodeGraph)
+    public EntityGraphDataSetBuilder(EntityNodeGraph nodeGraph)
     {
         _nodeGraph = nodeGraph;
         _nodeTableMap = [];
@@ -19,10 +19,10 @@ internal sealed class TableNodeGraphDataSetMapper
 
     public void LoadMapping(BormDataSet dataSet)
     {
-        TableNode[] topSortedNodes = _nodeGraph.ReversedTopSort();
+        EntityNode[] topSortedNodes = _nodeGraph.ReversedTopSort();
         for (int i = 0; i < topSortedNodes.Length; i++)
         {
-            TableNode current = topSortedNodes[i];
+            EntityNode current = topSortedNodes[i];
             CreateNodeTable(current);
             CreatePendingRelations(current);
         }
@@ -37,7 +37,7 @@ internal sealed class TableNodeGraphDataSetMapper
         );
     }
 
-    private void CreateNodeTable(TableNode node)
+    private void CreateNodeTable(EntityNode node)
     {
         NodeDataTable table = new(node.Name, node);
         DataColumn[] columns = new DataColumn[node.Columns.Count];
@@ -66,13 +66,13 @@ internal sealed class TableNodeGraphDataSetMapper
         _nodeTableMap[node] = table;
     }
 
-    private void CreatePendingRelations(TableNode node)
+    private void CreatePendingRelations(EntityNode node)
     {
         NodeDataTable childTable = _nodeTableMap[node];
-        TableNode[] successors = _nodeGraph.GetSuccessors(node);
+        EntityNode[] successors = _nodeGraph.GetSuccessors(node);
         for (int i = 0; i < successors.Length; i++)
         {
-            TableNode successor = successors[i];
+            EntityNode successor = successors[i];
 
             ColumnInfo nodeForeignKey = node.Columns.First(column =>
                 column.ReferencedEntityType == successor.DataType

@@ -8,12 +8,12 @@ namespace Borm.Data;
 internal sealed class BormDataAdapter
 {
     private readonly IDbCommand _dbCommand;
-    private readonly TableNodeGraph _nodeGraph;
+    private readonly EntityNodeGraph _nodeGraph;
     private readonly ISqlStatementFactory _statementFactory;
 
     public BormDataAdapter(
         IDbCommand dbCommand,
-        TableNodeGraph nodeGraph,
+        EntityNodeGraph nodeGraph,
         ISqlStatementFactory statementFactory
     )
     {
@@ -24,7 +24,7 @@ internal sealed class BormDataAdapter
 
     public void CreateTables(DataSet dataSet)
     {
-        TableNode[] sorted = _nodeGraph.ReversedTopSort();
+        EntityNode[] sorted = _nodeGraph.ReversedTopSort();
         for (int i = 0; i < sorted.Length; i++)
         {
             DataTable table = dataSet.Tables[sorted[i].Name]!;
@@ -37,7 +37,7 @@ internal sealed class BormDataAdapter
 
     public void Load(DataSet dataSet)
     {
-        TableNode[] sorted = _nodeGraph.ReversedTopSort();
+        EntityNode[] sorted = _nodeGraph.ReversedTopSort();
         for (int i = 0; i < sorted.Length; i++)
         {
             DataTable table = dataSet.Tables[sorted[i].Name]!;
@@ -51,7 +51,7 @@ internal sealed class BormDataAdapter
 
     public void Update(DataSet dataSet)
     {
-        TableNode[] sorted = _nodeGraph.ReversedTopSort();
+        EntityNode[] sorted = _nodeGraph.ReversedTopSort();
         for (int i = 0; i < sorted.Length; i++)
         {
             DataTable table = dataSet.Tables[sorted[i].Name]!;

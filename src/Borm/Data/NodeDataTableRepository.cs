@@ -6,10 +6,10 @@ namespace Borm.Data;
 internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
     where T : class
 {
-    private readonly TableNodeGraph _nodeGraph;
+    private readonly EntityNodeGraph _nodeGraph;
     private readonly NodeDataTable _table;
 
-    public NodeDataTableRepository(NodeDataTable table, TableNodeGraph nodeGraph)
+    public NodeDataTableRepository(NodeDataTable table, EntityNodeGraph nodeGraph)
     {
         _table = table;
         _nodeGraph = nodeGraph;
@@ -19,7 +19,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        TableNode node = _table.Node;
+        EntityNode node = _table.Node;
         ValueBuffer buffer = node.Binding.Convert(entity);
         ColumnInfo primaryKey = node.GetPrimaryKey();
 
@@ -89,7 +89,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        TableNode node = _table.Node;
+        EntityNode node = _table.Node;
         ValueBuffer buffer = node.Binding.Convert(entity);
         ColumnInfo primaryKey = node.GetPrimaryKey();
 
@@ -111,7 +111,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
                 continue;
             }
 
-            TableNode? parentNode = _nodeGraph[column.DataType];
+            EntityNode? parentNode = _nodeGraph[column.DataType];
             if (parentNode == null)
             {
                 row[column.Name] = entryPair.Value;
@@ -137,7 +137,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
 
     private object InsertRecursively(NodeDataTable table, object entity)
     {
-        TableNode node = table.Node;
+        EntityNode node = table.Node;
         ValueBuffer buffer = node.Binding.Convert(entity);
         ColumnInfo primaryKey = node.GetPrimaryKey();
 
@@ -152,7 +152,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
         );
         foreach (ColumnInfo foreignKey in foreignKeys)
         {
-            TableNode? parentNode = _nodeGraph[foreignKey.DataType];
+            EntityNode? parentNode = _nodeGraph[foreignKey.DataType];
             if (parentNode == null)
             {
                 continue;
@@ -178,7 +178,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
         return primaryKeyValue;
     }
 
-    private object ReadRowRecursively(TableNode node, DataRow row, out object primaryKeyValue)
+    private object ReadRowRecursively(EntityNode node, DataRow row, out object primaryKeyValue)
     {
         ValueBuffer buffer = ValueBuffer.FromDataRow(node, row);
         primaryKeyValue = buffer[node.GetPrimaryKey()];
@@ -188,7 +188,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
         );
         foreach (ColumnInfo foreignKey in foreignKeys)
         {
-            TableNode? parentNode = _nodeGraph[foreignKey.DataType];
+            EntityNode? parentNode = _nodeGraph[foreignKey.DataType];
             if (parentNode == null)
             {
                 continue;

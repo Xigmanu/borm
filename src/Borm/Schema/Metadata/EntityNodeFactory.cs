@@ -5,21 +5,21 @@ using Borm.Extensions;
 
 namespace Borm.Schema.Metadata;
 
-internal sealed class TableNodeFactory
+internal sealed class EntityNodeFactory
 {
     private readonly Type _entityType;
 
-    public TableNodeFactory(Type entityType)
+    public EntityNodeFactory(Type entityType)
     {
         ArgumentNullException.ThrowIfNull(entityType);
         _entityType = entityType;
     }
 
-    public TableNode Create()
+    public EntityNode Create()
     {
-        TableAttribute tableAttribute = _entityType.GetAttributeOrThrow<TableAttribute>();
-        Debug.Assert(tableAttribute != null);
-        string name = tableAttribute.Name ?? CreateDefaultName(_entityType);
+        EntityAttribute entityAttribute = _entityType.GetAttributeOrThrow<EntityAttribute>();
+        Debug.Assert(entityAttribute != null);
+        string name = entityAttribute.Name ?? CreateDefaultName(_entityType);
 
         IEnumerable<ColumnInfo> columns = _entityType
             .GetProperties()
@@ -28,7 +28,7 @@ internal sealed class TableNodeFactory
             .OrderBy(columnInfo => columnInfo.Index);
         ColumnInfoCollection columnCollection = new(columns);
 
-        ConstructorInfo ctor = new EntityConstructorResolver(
+        ConstructorInfo ctor = new ConstructorResolver(
             columnCollection,
             _entityType
         ).GetAllColumnsConstructor(out bool isAutoConstructor);
@@ -38,7 +38,7 @@ internal sealed class TableNodeFactory
             ? EntityConversionBinding.CreatePropertyBased(bindingInfo)
             : EntityConversionBinding.CreateConstructorBased(bindingInfo);
 
-        return new TableNode(name, _entityType, columnCollection, binding);
+        return new EntityNode(name, _entityType, columnCollection, binding);
     }
 
     private static ColumnInfo CreateColumnInfo(PropertyInfo propertyInfo)
@@ -57,8 +57,8 @@ internal sealed class TableNodeFactory
         return new ColumnInfo(
             columnAttribute.Index,
             columnName,
+            propertyInfo.Name,
             propertyInfo.PropertyType,
-            propertyInfo,
             constraints,
             referencedEntityType
         );

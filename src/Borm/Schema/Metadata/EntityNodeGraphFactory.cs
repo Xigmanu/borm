@@ -1,27 +1,27 @@
 ﻿namespace Borm.Schema.Metadata;
 
-internal sealed class TableNodeGraphFactory
+internal sealed class EntityNodeGraphFactory
 {
     private readonly IEnumerable<Type> _entityTypes;
 
-    public TableNodeGraphFactory(IEnumerable<Type> entityTypes)
+    public EntityNodeGraphFactory(IEnumerable<Type> entityTypes)
     {
         _entityTypes = entityTypes;
     }
 
-    public TableNodeGraph Create()
+    public EntityNodeGraph Create()
     {
-        List<TableNode> nodes = [];
+        List<EntityNode> nodes = [];
 
         foreach (Type entityType in _entityTypes)
         {
-            TableNode node = new TableNodeFactory(entityType).Create();
+            EntityNode node = new EntityNodeFactory(entityType).Create();
             nodes.Add(node);
         }
 
-        TableNodeGraph nodeGraph = new();
-        TableNodeValidator validator = new(nodes);
-        foreach (TableNode node in nodes)
+        EntityNodeGraph nodeGraph = new();
+        EntityNodeValidator validator = new(nodes);
+        foreach (EntityNode node in nodes)
         {
             if (!validator.IsValid(node, out Exception? exception))
             {
@@ -31,7 +31,7 @@ internal sealed class TableNodeGraphFactory
             IEnumerable<Type> referenced = node
                 .Columns.Where(column => column.ReferencedEntityType != null)
                 .Select(column => column.ReferencedEntityType!);
-            List<TableNode> successors =
+            List<EntityNode> successors =
             [
                 .. nodes.Where(node => referenced.Contains(node.DataType)),
             ];

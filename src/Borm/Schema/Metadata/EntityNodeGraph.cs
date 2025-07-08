@@ -1,52 +1,50 @@
-﻿using System.Linq;
+﻿namespace Borm.Schema.Metadata;
 
-namespace Borm.Schema.Metadata;
-
-internal sealed class TableNodeGraph
+internal sealed class EntityNodeGraph
 {
-    private readonly Dictionary<TableNode, List<TableNode>> _adjacencyList;
+    private readonly Dictionary<EntityNode, List<EntityNode>> _adjacencyList;
 
-    public TableNodeGraph()
+    public EntityNodeGraph()
     {
         _adjacencyList = [];
     }
 
-    public IEnumerable<TableNode> Nodes => _adjacencyList.Keys;
+    public IEnumerable<EntityNode> Nodes => _adjacencyList.Keys;
 
-    public TableNode? this[Type entityType]
+    public EntityNode? this[Type entityType]
     {
         get => _adjacencyList.Keys.FirstOrDefault(node => node.DataType.Equals(entityType));
     }
 
-    public void AddSuccessorSet(TableNode node, List<TableNode> successors)
+    public void AddSuccessorSet(EntityNode node, List<EntityNode> successors)
     {
         _adjacencyList[node] = successors;
     }
 
-    public TableNode[] GetSuccessors(TableNode node)
+    public EntityNode[] GetSuccessors(EntityNode node)
     {
-        if (_adjacencyList.TryGetValue(node, out List<TableNode>? successors))
+        if (_adjacencyList.TryGetValue(node, out List<EntityNode>? successors))
         {
             return [.. successors];
         }
         throw new ArgumentException($"Node {node} was not found in the graph");
     }
 
-    public TableNode[] ReversedTopSort()
+    public EntityNode[] ReversedTopSort()
     {
-        Stack<TableNode> resultStack = [];
-        HashSet<TableNode> visited = [];
+        Stack<EntityNode> resultStack = [];
+        HashSet<EntityNode> visited = [];
 
-        foreach (KeyValuePair<TableNode, List<TableNode>> nodeAdjPair in _adjacencyList)
+        foreach (KeyValuePair<EntityNode, List<EntityNode>> nodeAdjPair in _adjacencyList)
         {
-            TableNode node = nodeAdjPair.Key;
+            EntityNode node = nodeAdjPair.Key;
             if (!visited.Contains(node))
             {
                 RecursiveTopSort(node, nodeAdjPair.Value, visited, resultStack);
             }
         }
 
-        TableNode[] resultArray = new TableNode[resultStack.Count];
+        EntityNode[] resultArray = new EntityNode[resultStack.Count];
         for (int i = 0; i < resultArray.Length; i++)
         {
             resultArray[i] = resultStack.Pop();
@@ -56,10 +54,10 @@ internal sealed class TableNodeGraph
     }
 
     private void RecursiveTopSort(
-        TableNode node,
-        List<TableNode> adj,
-        HashSet<TableNode> visited,
-        Stack<TableNode> resultStack
+        EntityNode node,
+        List<EntityNode> adj,
+        HashSet<EntityNode> visited,
+        Stack<EntityNode> resultStack
     )
     {
         visited.Add(node);

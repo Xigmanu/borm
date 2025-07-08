@@ -9,7 +9,7 @@ namespace Borm.Data;
 internal sealed class NodeDataTable : DataTable
 {
     private readonly EntityObjectCache _entityCache;
-    private readonly TableNode _node;
+    private readonly EntityNode _node;
 
     public NodeDataTable()
         : base()
@@ -18,7 +18,7 @@ internal sealed class NodeDataTable : DataTable
         _entityCache = null!;
     }
 
-    public NodeDataTable(string tableName, TableNode node)
+    public NodeDataTable(string tableName, EntityNode node)
         : base(tableName)
     {
         _node = node;
@@ -29,7 +29,7 @@ internal sealed class NodeDataTable : DataTable
         : this(original.TableName, original._node) { }
 
     internal EntityObjectCache EntityCache => _entityCache;
-    internal TableNode Node => _node;
+    internal EntityNode Node => _node;
 
     public new NodeDataTable Copy()
     {
@@ -51,7 +51,7 @@ internal sealed class NodeDataTable : DataTable
         return copy;
     }
 
-    public DataRelation? GetParentRelation(TableNode node)
+    public DataRelation? GetParentRelation(EntityNode node)
     {
         string relationName = $"{TableName}_{node.Name}";
         foreach (DataRelation parentRelation in ParentRelations)
@@ -76,7 +76,7 @@ internal sealed class NodeDataTable : DataTable
 
         public DataColumn[] Columns => [.. _nodeDataTable.Columns.Cast<DataColumn>()];
         public string Name => _nodeDataTable.TableName;
-        public TableNode Node => _nodeDataTable._node;
+        public EntityNode Node => _nodeDataTable._node;
         public DataRow[] Rows => [.. _nodeDataTable.Rows.Cast<DataRow>()];
     }
 }

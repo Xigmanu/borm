@@ -4,16 +4,16 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Borm.Schema.Metadata;
 
-internal sealed class TableNodeValidator
+internal sealed class EntityNodeValidator
 {
-    private readonly List<TableNode> _nodes;
+    private readonly List<EntityNode> _nodes;
 
-    public TableNodeValidator(List<TableNode> nodes)
+    public EntityNodeValidator(List<EntityNode> nodes)
     {
         _nodes = nodes;
     }
 
-    public bool IsValid(TableNode node, [NotNullWhen(false)] out Exception? exception)
+    public bool IsValid(EntityNode node, [NotNullWhen(false)] out Exception? exception)
     {
         exception = ValidatePrimaryKeyColumn(node);
         if (exception != null)
@@ -55,7 +55,7 @@ internal sealed class TableNodeValidator
     }
 
     private static InvalidOperationException? ValidateColumnIndex(
-        TableNode node,
+        EntityNode node,
         ColumnInfo columnInfo
     )
     {
@@ -67,7 +67,7 @@ internal sealed class TableNodeValidator
             );
     }
 
-    private static Exception? ValidatePrimaryKeyColumn(TableNode node)
+    private static Exception? ValidatePrimaryKeyColumn(EntityNode node)
     {
         IEnumerable<ColumnInfo> primaryKeys = node.Columns.Where(column =>
             column.Constraints.HasFlag(Constraints.PrimaryKey)
@@ -97,7 +97,7 @@ internal sealed class TableNodeValidator
     }
 
     private InvalidOperationException? ValidateForeignKeyColumn(
-        TableNode node,
+        EntityNode node,
         ColumnInfo columnInfo
     )
     {
@@ -105,7 +105,7 @@ internal sealed class TableNodeValidator
             ? UnwrapNullableType(columnInfo.DataType)
             : columnInfo.DataType;
 
-        TableNode? successor = _nodes.Find(node =>
+        EntityNode? successor = _nodes.Find(node =>
             node.DataType.Equals(columnInfo.ReferencedEntityType)
         );
         if (successor == null)

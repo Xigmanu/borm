@@ -1,13 +1,13 @@
 ﻿namespace Borm.Schema;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public sealed class TableAttribute : Attribute
+public sealed class EntityAttribute : Attribute
 {
     private readonly string? _name;
 
-    public TableAttribute() { }
+    public EntityAttribute() { }
 
-    public TableAttribute(string name)
+    public EntityAttribute(string name)
     {
         _name = name;
     }

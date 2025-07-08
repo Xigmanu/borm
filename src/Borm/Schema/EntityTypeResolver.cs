@@ -8,7 +8,7 @@ internal static class EntityTypeResolver
     public static IEnumerable<Type> GetTypes(IEnumerable<Type> assemblyTypes)
     {
         IEnumerable<Type> entityTypes = assemblyTypes.Where(type =>
-            type.HasAttribute<TableAttribute>()
+            type.HasAttribute<EntityAttribute>()
         );
         if (!IsTypeEnumerableValid(entityTypes, out ArgumentException? exception))
         {
