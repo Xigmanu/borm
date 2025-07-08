@@ -4,13 +4,13 @@ using Borm.Schema.Metadata;
 
 namespace Borm.Schema;
 
-internal sealed class EntityGraphDataSetBuilder
+internal sealed class EntityGraphDataSetMapper
 {
     private readonly EntityNodeGraph _nodeGraph;
     private readonly Dictionary<EntityNode, NodeDataTable> _nodeTableMap;
     private readonly List<PendingDataRelation> _pendingRelations;
 
-    public EntityGraphDataSetBuilder(EntityNodeGraph nodeGraph)
+    public EntityGraphDataSetMapper(EntityNodeGraph nodeGraph)
     {
         _nodeGraph = nodeGraph;
         _nodeTableMap = [];

@@ -70,7 +70,7 @@ public sealed class DataContext : IDisposable
             }
 
             _nodeGraph = new EntityNodeGraphFactory(entityTypes).Create();
-            new EntityGraphDataSetBuilder(_nodeGraph).LoadMapping(_dataSet);
+            new EntityGraphDataSetMapper(_nodeGraph).LoadMapping(_dataSet);
 
             connection.Open();
 
