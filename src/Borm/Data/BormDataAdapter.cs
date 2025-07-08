@@ -55,21 +55,20 @@ internal sealed class BormDataAdapter
         for (int i = 0; i < sorted.Length; i++)
         {
             DataTable table = dataSet.Tables[sorted[i].Name]!;
-            int modifiedRows = UpdateTable(table);
+            UpdateTable(table);
         }
     }
 
-    private int UpdateTable(DataTable table)
+    private void UpdateTable(DataTable table)
     {
         DataTable? changes = table.GetChanges();
         if (changes == null)
         {
-            return 0;
+            return;
         }
 
         try
         {
-            int rowCount = 0;
             foreach (DataRow row in changes.Rows)
             {
                 DataRow? deletedRowClone = null;
@@ -102,17 +101,14 @@ internal sealed class BormDataAdapter
 
                 statement.SetParameters(deletedRowClone ?? row);
                 statement.PrepareCommand(_dbCommand);
-                rowCount += _dbCommand.ExecuteNonQuery();
+                _ = _dbCommand.ExecuteNonQuery();
             }
 
             _dbCommand.Transaction?.Commit();
-            return rowCount;
         }
         catch (Exception)
         {
             _dbCommand.Transaction?.Rollback();
-            return 0;
         }
     }
-
 }

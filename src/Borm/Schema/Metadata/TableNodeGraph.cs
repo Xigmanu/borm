@@ -1,4 +1,6 @@
-﻿namespace Borm.Schema.Metadata;
+﻿using System.Linq;
+
+namespace Borm.Schema.Metadata;
 
 internal sealed class TableNodeGraph
 {
@@ -61,13 +63,11 @@ internal sealed class TableNodeGraph
     )
     {
         visited.Add(node);
-        foreach (TableNode successor in adj)
+        foreach (var successor in adj.Where(successor => !visited.Contains(successor)))
         {
-            if (!visited.Contains(successor))
-            {
-                RecursiveTopSort(successor, _adjacencyList[successor], visited, resultStack);
-            }
+            RecursiveTopSort(successor, _adjacencyList[successor], visited, resultStack);
         }
+
         resultStack.Push(node);
     }
 }

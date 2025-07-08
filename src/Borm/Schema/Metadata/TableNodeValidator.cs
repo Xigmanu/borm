@@ -59,11 +59,11 @@ internal sealed class TableNodeValidator
         ColumnInfo columnInfo
     )
     {
-        bool isIndexValid = node.Columns.Count() > columnInfo.Index && columnInfo.Index >= 0;
+        bool isIndexValid = node.Columns.Count > columnInfo.Index && columnInfo.Index >= 0;
         return isIndexValid
             ? null
             : new InvalidOperationException(
-                $"Invalid column index {columnInfo.Index} in entity {node.DataType.FullName}. Valid range is [0, {node.Columns.Count()})"
+                $"Invalid column index {columnInfo.Index} in entity {node.DataType.FullName}. Valid range is [0, {node.Columns.Count})"
             );
     }
 
