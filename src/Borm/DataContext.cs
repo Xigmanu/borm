@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using Borm.Data;
+using Borm.Reflection;
 using Borm.Schema;
 using Borm.Schema.Metadata;
 
@@ -69,7 +70,23 @@ public sealed class DataContext : IDisposable
                 return;
             }
 
-            _nodeGraph = new EntityNodeGraphFactory(entityTypes).Create();
+            EntityMetadataParser parser = new();
+            IEnumerable<ReflectedEntityInfo> reflectedEntities = entityTypes.Select(parser.Parse);
+
+            IEnumerable<EntityNode> entityNodes = reflectedEntities.Select(
+                EntityNodeFactory.Create
+            );
+            EntityNodeValidator validator = new(entityNodes);
+
+            foreach (EntityNode node in entityNodes)
+            {
+                if (!validator.IsValid(node, out Exception? exception))
+                {
+                    throw exception;
+                }
+            }
+
+            _nodeGraph = new EntityNodeGraphFactory(entityNodes).Create();
             new EntityGraphDataSetMapper(_nodeGraph).LoadMapping(_dataSet);
 
             connection.Open();

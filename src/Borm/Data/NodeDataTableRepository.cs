@@ -105,7 +105,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
             ColumnInfo column = entryPair.Key;
             object newValue = entryPair.Value;
 
-            if (column.ReferencedEntityType == null)
+            if (column.Reference == null)
             {
                 row[column.Name] = newValue;
                 continue;
@@ -148,7 +148,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
         }
 
         IEnumerable<ColumnInfo> foreignKeys = node.Columns.Where(column =>
-            column.ReferencedEntityType != null
+            column.Reference != null
         );
         foreach (ColumnInfo foreignKey in foreignKeys)
         {
@@ -184,7 +184,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
         primaryKeyValue = buffer[node.GetPrimaryKey()];
 
         IEnumerable<ColumnInfo> foreignKeys = node.Columns.Where(column =>
-            column.ReferencedEntityType != null
+            column.Reference != null
         );
         foreach (ColumnInfo foreignKey in foreignKeys)
         {

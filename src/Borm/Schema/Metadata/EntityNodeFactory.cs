@@ -1,102 +1,79 @@
 ﻿using System.Data;
-using System.Diagnostics;
-using System.Reflection;
 using Borm.Extensions;
+using Borm.Reflection;
 
 namespace Borm.Schema.Metadata;
 
-internal sealed class EntityNodeFactory
+internal static class EntityNodeFactory
 {
-    private readonly Type _entityType;
-
-    public EntityNodeFactory(Type entityType)
+    public static EntityNode Create(ReflectedEntityInfo entityInfo)
     {
-        ArgumentNullException.ThrowIfNull(entityType);
-        _entityType = entityType;
-    }
+        EntityAttribute entityAttribute = entityInfo.Attribute;
+        string name = entityAttribute.Name ?? CreateDefaultName(entityInfo.Type.Name);
 
-    public EntityNode Create()
-    {
-        EntityAttribute entityAttribute = _entityType.GetAttributeOrThrow<EntityAttribute>();
-        Debug.Assert(entityAttribute != null);
-        string name = entityAttribute.Name ?? CreateDefaultName(_entityType);
-
-        IEnumerable<ColumnInfo> columns = _entityType
-            .GetProperties()
-            .Where(property => property.HasAttribute<ColumnAttribute>())
-            .Select(CreateColumnInfo)
+        IEnumerable<ColumnInfo> columns = entityInfo
+            .Properties.Select(CreateColumnInfo)
             .OrderBy(columnInfo => columnInfo.Index);
         ColumnInfoCollection columnCollection = new(columns);
 
-        ConstructorInfo ctor = new ConstructorResolver(
-            columnCollection,
-            _entityType
-        ).GetAllColumnsConstructor(out bool isAutoConstructor);
-
-        EntityBindingInfo bindingInfo = new(_entityType, columnCollection, ctor);
-        EntityConversionBinding binding = isAutoConstructor
+        EntityBindingInfo bindingInfo = new(entityInfo.Type, columnCollection);
+        EntityConversionBinding binding = bindingInfo.Constructor.IsNoArgs()
             ? EntityConversionBinding.CreatePropertyBased(bindingInfo)
             : EntityConversionBinding.CreateConstructorBased(bindingInfo);
 
-        return new EntityNode(name, _entityType, columnCollection, binding);
+        return new EntityNode(name, entityInfo.Type, columnCollection, binding);
     }
 
-    private static ColumnInfo CreateColumnInfo(PropertyInfo propertyInfo)
+    private static ColumnInfo CreateColumnInfo(EntityProperty property)
     {
-        ColumnAttribute columnAttribute = propertyInfo.GetAttributeOrThrow<ColumnAttribute>();
+        ColumnAttribute columnAttribute = property.Attribute;
 
-        string? columnName = columnAttribute.Name ?? CreateDefaultName(propertyInfo);
+        string? columnName = columnAttribute.Name ?? CreateDefaultName(property.Name);
 
-        Constraints constraints = GetConstraints(columnAttribute);
-        if (IsNullable(propertyInfo))
-        {
-            constraints |= Constraints.AllowDbNull;
-        }
-        Type? referencedEntityType = FindReferencedEntityType(columnAttribute);
+        Constraints constraints = GetConstraints(property);
+        Type? reference = FindReferencedEntityType(columnAttribute);
 
         return new ColumnInfo(
             columnAttribute.Index,
             columnName,
-            propertyInfo.Name,
-            propertyInfo.PropertyType,
+            property.Name,
+            property.Type,
             constraints,
-            referencedEntityType
+            reference
         );
     }
 
-    private static string CreateDefaultName(MemberInfo memberInfo)
+    private static string CreateDefaultName(string memberName)
     {
-        string typeName = memberInfo.Name;
-        char first = typeName[0];
+        char first = memberName[0];
         if (char.IsUpper(first))
         {
-            return typeName.Length == 1
+            return memberName.Length == 1
                 ? char.ToLower(first).ToString()
-                : char.ToLower(first) + typeName[1..];
+                : char.ToLower(first) + memberName[1..];
         }
-        return typeName;
+        return memberName;
     }
 
     private static Type? FindReferencedEntityType(ColumnAttribute columnAttribute)
     {
         return columnAttribute is ForeignKeyAttribute foreignKeyAttribute
-            ? foreignKeyAttribute.ReferencedEntityType
+            ? foreignKeyAttribute.Reference
             : null;
     }
 
-    private static Constraints GetConstraints(ColumnAttribute columnAttribute)
+    private static Constraints GetConstraints(EntityProperty property)
     {
         Constraints constraints = Constraints.None;
-        if (columnAttribute is PrimaryKeyAttribute)
+        ColumnAttribute attribute = property.Attribute;
+        if (attribute is PrimaryKeyAttribute)
         {
             constraints |= Constraints.PrimaryKey;
         }
+        else if (property.IsNullable)
+        {
+            constraints |= Constraints.AllowDbNull;
+        }
         return constraints;
-    }
-
-    private static bool IsNullable(PropertyInfo propertyInfo)
-    {
-        NullabilityInfo nullabilityInfo = new NullabilityInfoContext().Create(propertyInfo);
-        return nullabilityInfo.ReadState == NullabilityState.Nullable;
     }
 }

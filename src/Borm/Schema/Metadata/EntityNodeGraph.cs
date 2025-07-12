@@ -9,13 +9,12 @@ internal sealed class EntityNodeGraph
         _adjacencyList = [];
     }
 
-    public IEnumerable<EntityNode> Nodes => _adjacencyList.Keys;
-
     public EntityNode? this[Type entityType]
     {
         get => _adjacencyList.Keys.FirstOrDefault(node => node.DataType.Equals(entityType));
     }
 
+    // The successors here represent the nodes to which the first node has foreign keys.
     public void AddSuccessorSet(EntityNode node, List<EntityNode> successors)
     {
         _adjacencyList[node] = successors;
@@ -27,7 +26,7 @@ internal sealed class EntityNodeGraph
         {
             return [.. successors];
         }
-        throw new ArgumentException($"Node {node} was not found in the graph");
+        throw new NodeNotFoundException($"Node {node} was not found in the graph", node.DataType);
     }
 
     public EntityNode[] ReversedTopSort()
@@ -61,7 +60,7 @@ internal sealed class EntityNodeGraph
     )
     {
         visited.Add(node);
-        foreach (var successor in adj.Where(successor => !visited.Contains(successor)))
+        foreach (EntityNode successor in adj.Where(successor => !visited.Contains(successor)))
         {
             RecursiveTopSort(successor, _adjacencyList[successor], visited, resultStack);
         }

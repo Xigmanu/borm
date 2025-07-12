@@ -3,33 +3,30 @@ using System.Reflection;
 
 namespace Borm.Schema.Metadata;
 
-internal sealed class ConstructorResolver
+internal sealed class EntityConstructorSelector
 {
     private readonly ColumnInfoCollection _columns;
-    private readonly Type _entityType;
+    private readonly ConstructorInfo[] _entityConstructors;
 
-    public ConstructorResolver(ColumnInfoCollection columns, Type entityType)
+    public EntityConstructorSelector(
+        ColumnInfoCollection columns,
+        ConstructorInfo[] entityConstructors
+    )
     {
         _columns = columns;
-        _entityType = entityType;
+        _entityConstructors = entityConstructors;
     }
 
-    public ConstructorInfo GetAllColumnsConstructor(out bool isImplicitCtor)
+    public ConstructorInfo? Select()
     {
-        ConstructorInfo[] constructors = _entityType.GetConstructors();
-        ConstructorInfo constructor = constructors[0];
-        isImplicitCtor =
-            constructors.Length == 1
-            && constructor.Equals(_entityType.GetConstructor(Type.EmptyTypes));
-
-        if (isImplicitCtor)
+        if (_entityConstructors[0].GetParameters().Length == 0)
         {
-            return constructor;
+            return null;
         }
 
-        for (int i = 0; i < constructors.Length; i++)
+        for (int i = 0; i < _entityConstructors.Length; i++)
         {
-            ConstructorInfo current = constructors[i];
+            ConstructorInfo current = _entityConstructors[i];
             List<ParameterInfo> parameters = [.. current.GetParameters()];
             if (_columns.Count == parameters.Count && IsCtorParamListValid(parameters))
             {
@@ -38,7 +35,7 @@ internal sealed class ConstructorResolver
         }
 
         throw new MissingMethodException(
-            $"Type {_entityType.Name} does not have a public constructor that would initialize all columns"
+            $"Type {_entityConstructors[0].DeclaringType!.FullName} does not have a public constructor that would initialize all columns"
         );
     }
 

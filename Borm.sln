@@ -16,7 +16,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm.Data.Sql.Sqlite", "src
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{8C4AF561-F3A7-4BDA-9939-6DFC45E62DD8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm.Data.Sql.Sqlite.Test", "tests\Borm.Provider\Borm.Data.Sql.Sqlite.Test\Borm.Data.Sql.Sqlite.Test.csproj", "{450CD1C0-A9E0-4847-8A90-6267FAFF70F4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm.Data.Sql.Sqlite.Tests", "tests\Borm.Provider\Borm.Data.Sql.Sqlite.Test\Borm.Data.Sql.Sqlite.Tests.csproj", "{450CD1C0-A9E0-4847-8A90-6267FAFF70F4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Debug", "Debug", "{24B6A659-E7B4-4195-9226-961114A64D6A}"
 EndProject
@@ -24,7 +24,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm.Debug", ".debug\Borm.D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Borm.Providers", "Borm.Providers", "{031910A2-C4BB-4D37-8F1B-73D8FA5FF17C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm.Test", "tests\Borm.Test\Borm.Test.csproj", "{EFB67EDB-72C8-4617-BDB2-887016340F05}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm.Tests", "tests\Borm.Test\Borm.Tests.csproj", "{EFB67EDB-72C8-4617-BDB2-887016340F05}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

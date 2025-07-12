@@ -44,13 +44,16 @@ internal sealed class EntityGraphDataSetMapper
         {
             EntityNode successor = successors[i];
 
-            ColumnInfo nodeForeignKey = node.Columns.First(column =>
-                column.ReferencedEntityType == successor.DataType
+            ColumnInfo fkColumnInfo = node.Columns.First(column =>
+                column.Reference == successor.DataType
             );
             NodeDataTable parentTable = _nodeTableMap[successor];
             DataColumn parentPrimaryKey = parentTable.PrimaryKey[0];
 
-            DataColumn foreignKey = new($"{nodeForeignKey.Name}", parentPrimaryKey.DataType);
+            DataColumn foreignKey = new($"{fkColumnInfo.Name}", parentPrimaryKey.DataType)
+            {
+                AllowDBNull = fkColumnInfo.Constraints.HasFlag(Constraints.AllowDbNull),
+            };
             table.Columns.Add(foreignKey);
 
             relations[i] = new DataRelation(
@@ -71,14 +74,16 @@ internal sealed class EntityGraphDataSetMapper
 
         foreach (ColumnInfo columnInfo in node.Columns)
         {
-            if (columnInfo.ReferencedEntityType != null)
+            if (columnInfo.Reference != null)
             {
                 continue;
             }
 
-            DataColumn column = new(columnInfo.Name, columnInfo.DataType);
+            DataColumn column = new(columnInfo.Name, columnInfo.DataType)
+            {
+                AllowDBNull = columnInfo.Constraints.HasFlag(Constraints.AllowDbNull),
+            };
             columns[columnInfo.Index] = column;
-            column.AllowDBNull = columnInfo.Constraints.HasFlag(Constraints.AllowDbNull);
 
             if (columnInfo.Constraints.HasFlag(Constraints.PrimaryKey))
             {

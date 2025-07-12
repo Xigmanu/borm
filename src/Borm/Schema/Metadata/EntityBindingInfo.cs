@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using Borm.Extensions;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace Borm.Schema.Metadata;
 
@@ -8,15 +10,16 @@ internal sealed class EntityBindingInfo
     private readonly ConstructorInfo _constructor;
     private readonly Type _entityType;
 
-    public EntityBindingInfo(
-        Type entityType,
-        ColumnInfoCollection columns,
-        ConstructorInfo constructor
-    )
+    public EntityBindingInfo(Type entityType, ColumnInfoCollection columns)
     {
         _entityType = entityType;
         _columns = columns;
-        _constructor = constructor;
+
+        ConstructorInfo[] constructors = _entityType.GetConstructors();
+        Debug.Assert(constructors.Length > 0);
+
+        EntityConstructorSelector selector = new(_columns, constructors);
+        _constructor = selector.Select() ?? constructors[0];
     }
 
     public ConstructorInfo Constructor => _constructor;
@@ -25,16 +28,16 @@ internal sealed class EntityBindingInfo
 
     public ColumnInfo[] GetOrderedColumns()
     {
-        if (_constructor == _entityType.GetConstructor(Type.EmptyTypes))
+        if (_constructor.IsNoArgs())
         {
-            return [.. _columns];
+            return [.. Columns];
         }
 
-        ColumnInfo[] ordered = new ColumnInfo[_columns.Count];
+        ColumnInfo[] ordered = new ColumnInfo[Columns.Count];
         ParameterInfo[] ctorParams = _constructor.GetParameters();
         for (int i = 0; i < ctorParams.Length; i++)
         {
-            ordered[i] = _columns[ctorParams[i].Name!];
+            ordered[i] = Columns[ctorParams[i].Name!];
         }
         return ordered;
     }

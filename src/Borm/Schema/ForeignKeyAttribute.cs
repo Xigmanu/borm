@@ -3,17 +3,17 @@
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
 public sealed class ForeignKeyAttribute : ColumnAttribute
 {
-    public ForeignKeyAttribute(int index, string name, Type referencedEntityType)
+    public ForeignKeyAttribute(int index, string name, Type reference)
         : base(index, name)
     {
-        ReferencedEntityType = referencedEntityType;
+        Reference = reference;
     }
 
-    public ForeignKeyAttribute(int index, Type referencedEntityType)
+    public ForeignKeyAttribute(int index, Type reference)
         : base(index)
     {
-        ReferencedEntityType = referencedEntityType;
+        Reference = reference;
     }
 
-    public Type ReferencedEntityType { get; }
+    public Type Reference { get; }
 }

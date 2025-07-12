@@ -1,39 +1,25 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Borm.Extensions;
+﻿using Borm.Extensions;
 
 namespace Borm.Schema;
 
 internal static class EntityTypeResolver
 {
-    public static IEnumerable<Type> GetTypes(IEnumerable<Type> assemblyTypes)
+    public static IEnumerable<Type> GetTypes(IEnumerable<Type> types)
     {
-        IEnumerable<Type> entityTypes = assemblyTypes.Where(type =>
-            type.HasAttribute<EntityAttribute>()
-        );
-        if (!IsTypeEnumerableValid(entityTypes, out ArgumentException? exception))
-        {
-            throw exception;
-        }
+        List<Type> entityTypes = [.. types.Where(type => type.HasAttribute<EntityAttribute>())];
+        ValidateEntityTypes(entityTypes);
 
         return entityTypes;
     }
 
-    private static bool IsTypeEnumerableValid(
-        IEnumerable<Type> types,
-        [NotNullWhen(false)] out ArgumentException? exception
-    )
+    private static void ValidateEntityTypes(List<Type> entityTypes)
     {
-        exception = null;
-        foreach (Type type in types)
+        Type? abstractEntityType = entityTypes.FirstOrDefault(type => type.IsAbstract);
+        if (abstractEntityType != null)
         {
-            if (type.IsAbstract)
-            {
-                exception = new ArgumentException(
-                    $"Entity classes cannot be abstract. Type: {type.FullName}"
-                );
-                return false;
-            }
+            throw new ArgumentException(
+                $"Entity classes cannot be abstract. Type: {abstractEntityType.FullName}"
+            );
         }
-        return true;
     }
 }

@@ -2,38 +2,24 @@
 
 internal sealed class EntityNodeGraphFactory
 {
-    private readonly IEnumerable<Type> _entityTypes;
+    private readonly IEnumerable<EntityNode> _entityNodes;
 
-    public EntityNodeGraphFactory(IEnumerable<Type> entityTypes)
+    public EntityNodeGraphFactory(IEnumerable<EntityNode> entityNodes)
     {
-        _entityTypes = entityTypes;
+        _entityNodes = entityNodes;
     }
 
     public EntityNodeGraph Create()
     {
-        List<EntityNode> nodes = [];
-
-        foreach (Type entityType in _entityTypes)
-        {
-            EntityNode node = new EntityNodeFactory(entityType).Create();
-            nodes.Add(node);
-        }
-
         EntityNodeGraph nodeGraph = new();
-        EntityNodeValidator validator = new(nodes);
-        foreach (EntityNode node in nodes)
+        foreach (EntityNode node in _entityNodes)
         {
-            if (!validator.IsValid(node, out Exception? exception))
-            {
-                throw exception;
-            }
-
             IEnumerable<Type> referenced = node
-                .Columns.Where(column => column.ReferencedEntityType != null)
-                .Select(column => column.ReferencedEntityType!);
+                .Columns.Where(column => column.Reference != null)
+                .Select(column => column.Reference!);
             List<EntityNode> successors =
             [
-                .. nodes.Where(node => referenced.Contains(node.DataType)),
+                .. _entityNodes.Where(node => referenced.Contains(node.DataType)),
             ];
 
             nodeGraph.AddSuccessorSet(node, successors);

@@ -6,9 +6,9 @@ namespace Borm.Schema.Metadata;
 
 internal sealed class EntityNodeValidator
 {
-    private readonly List<EntityNode> _nodes;
+    private readonly IEnumerable<EntityNode> _nodes;
 
-    public EntityNodeValidator(List<EntityNode> nodes)
+    public EntityNodeValidator(IEnumerable<EntityNode> nodes)
     {
         _nodes = nodes;
     }
@@ -29,7 +29,7 @@ internal sealed class EntityNodeValidator
                 return false;
             }
 
-            if (columnInfo.ReferencedEntityType != null)
+            if (columnInfo.Reference != null)
             {
                 exception = ValidateForeignKeyColumn(node, columnInfo);
                 if (exception != null)
@@ -38,6 +38,7 @@ internal sealed class EntityNodeValidator
                 }
             }
         }
+
         return true;
     }
 
@@ -105,18 +106,18 @@ internal sealed class EntityNodeValidator
             ? UnwrapNullableType(columnInfo.DataType)
             : columnInfo.DataType;
 
-        EntityNode? successor = _nodes.Find(node =>
-            node.DataType.Equals(columnInfo.ReferencedEntityType)
-        );
+        Type reference = columnInfo.Reference!;
+        EntityNode? successor = _nodes.FirstOrDefault(node => node.DataType.Equals(reference));
         if (successor == null)
         {
-            return new InvalidOperationException(
-                $"Referenced entity type {columnInfo.ReferencedEntityType!.FullName} does not exist"
+            return new NodeNotFoundException(
+                $"Referenced entity type {reference.FullName} does not exist",
+                reference
             );
         }
 
         bool isFKValid =
-            dataType.Equals(columnInfo.ReferencedEntityType)
+            dataType.Equals(columnInfo.Reference)
             || dataType.Equals(successor.GetPrimaryKey().DataType);
 
         return isFKValid

@@ -4,7 +4,7 @@ internal sealed class EntityNode
 {
     private readonly ColumnInfoCollection _columns;
     private readonly Type _dataType;
-    private readonly string _name;
+    private readonly string _name; // name is unique for each schema
 
     public EntityNode(
         string name,
@@ -13,7 +13,6 @@ internal sealed class EntityNode
         EntityConversionBinding binding
     )
     {
-        ArgumentNullException.ThrowIfNull(columns);
         if (columns.Count == 0)
         {
             throw new ArgumentException("Table must have at least 1 column", nameof(columns));
@@ -26,9 +25,22 @@ internal sealed class EntityNode
     }
 
     public Type DataType => _dataType;
+
     public string Name => _name;
+
     internal EntityConversionBinding Binding { get; }
+
     internal ColumnInfoCollection Columns => _columns;
+
+    public override bool Equals(object? obj)
+    {
+        return obj is EntityNode other && _name == other.Name;
+    }
+
+    public override int GetHashCode()
+    {
+        return _name.GetHashCode();
+    }
 
     public ColumnInfo GetPrimaryKey()
     {
