@@ -4,7 +4,7 @@ internal sealed class EntityObjectCache
 {
     private readonly Dictionary<object, object> _pkEntityMap = [];
 
-    public IEnumerable<object> Entities => _pkEntityMap.Values;
+    public IEnumerable<object> Values => _pkEntityMap.Values;
 
     public void Add(object primaryKey, object entity)
     {
@@ -16,7 +16,7 @@ internal sealed class EntityObjectCache
         _ = _pkEntityMap.Remove(primaryKey);
     }
 
-    public object? Find(object primaryKey)
+    internal object? Find(object primaryKey)
     {
         if (_pkEntityMap.TryGetValue(primaryKey, out object? entity))
         {

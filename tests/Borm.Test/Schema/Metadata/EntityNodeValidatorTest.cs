@@ -3,7 +3,7 @@ using Borm.Schema.Metadata;
 
 namespace Borm.Tests.Schema.Metadata;
 
-public class EntityNodeValidatorTest
+public sealed class EntityNodeValidatorTest
 {
     [Theory]
     [InlineData(-1)]

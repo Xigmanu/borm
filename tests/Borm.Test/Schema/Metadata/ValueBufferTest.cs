@@ -3,7 +3,7 @@ using Borm.Schema.Metadata;
 
 namespace Borm.Tests.Schema.Metadata;
 
-public class ValueBufferTest
+public sealed class ValueBufferTest
 {
     [Fact]
     public void FromDataRow_ReturnsValueBuffer_WithEntityNodeAndDataRow()

@@ -60,7 +60,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
 
     public IEnumerable<T> Select()
     {
-        List<T> entities = [.. _table.EntityCache.Entities.Cast<T>()];
+        List<T> entities = [.. _table.EntityCache.Values.Cast<T>()];
         if (entities.Count != 0)
         {
             return entities;

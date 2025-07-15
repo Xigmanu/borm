@@ -3,7 +3,7 @@ using static Borm.Tests.Mocks.EntityTypeResolverTestMocks;
 
 namespace Borm.Tests.Schema;
 
-public class EntityTypeResolverTest
+public sealed class EntityTypeResolverTest
 {
     [Fact]
     public void GetTypes_ReturnsEnumerationOfEntityTypes_WithEnumerationOfTypes()

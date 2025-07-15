@@ -1,4 +1,6 @@
-﻿namespace Borm.Schema.Metadata;
+﻿using System.Diagnostics;
+
+namespace Borm.Schema.Metadata;
 
 internal sealed class ConversionBinding
 {

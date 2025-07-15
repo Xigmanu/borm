@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace Borm.Tests.Extensions;
 
-public class MemberInfoExtensionsTest
+public sealed class MemberInfoExtensionsTest
 {
     [Fact]
     public void HasAttribute_ReturnsExpectedResult_BasedOnPresenceOfAttribute()

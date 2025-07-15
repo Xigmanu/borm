@@ -1,10 +1,12 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using Borm.Extensions;
 
 namespace Borm.Schema.Metadata;
 
+[DebuggerTypeProxy(typeof(BindingInfoDebugView))]
 internal sealed class BindingInfo
 {
     private readonly ColumnInfoCollection _columns;
@@ -171,5 +173,19 @@ internal sealed class BindingInfo
             ordered[i] = _columns[ctorParams[i].Name!];
         }
         return ordered;
+    }
+
+    [ExcludeFromCodeCoverage(Justification = "Debug view class")]
+    internal sealed class BindingInfoDebugView
+    {
+        private readonly BindingInfo _instance;
+
+        public BindingInfoDebugView(BindingInfo instance)
+        {
+            _instance = instance;
+        }
+
+        public ColumnInfoCollection Columns => _instance._columns;
+        public Type EntityType => _instance._entityType;
     }
 }

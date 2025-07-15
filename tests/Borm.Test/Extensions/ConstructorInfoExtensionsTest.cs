@@ -3,7 +3,7 @@ using Borm.Extensions;
 
 namespace Borm.Tests.Extensions;
 
-public class ConstructorInfoExtensionsTest
+public sealed class ConstructorInfoExtensionsTest
 {
     [Fact]
     public void IsNoArgs_ReturnsFalse_IfConstructorHasArguments()

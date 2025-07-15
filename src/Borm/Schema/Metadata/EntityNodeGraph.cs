@@ -9,6 +9,8 @@ internal sealed class EntityNodeGraph
         _adjacencyList = [];
     }
 
+    public int NodeCount => _adjacencyList.Count;
+
     public EntityNode? this[Type entityType]
     {
         get => _adjacencyList.Keys.FirstOrDefault(node => node.DataType.Equals(entityType));

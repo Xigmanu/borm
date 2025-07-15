@@ -2,7 +2,7 @@
 
 namespace Borm.Tests.Schema.Metadata;
 
-public class EntityNodeTest
+public sealed class EntityNodeTest
 {
     [Fact]
     public void Constructor_ThrowsArgumentException_WhenColumnCollectionIsEmpty()

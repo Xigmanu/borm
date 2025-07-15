@@ -5,7 +5,7 @@ using Borm.Schema.Metadata;
 
 namespace Borm.Tests.Schema;
 
-public class EntityGraphDataSetMapperTest
+public sealed class EntityGraphDataSetMapperTest
 {
     [Fact]
     public void LoadMapping_CreatesAndLoadsTableSchemaIntoDataSet_WithEntityNodeGraphAndEmptyDataSet()

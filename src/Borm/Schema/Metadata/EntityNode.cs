@@ -1,16 +1,14 @@
-﻿namespace Borm.Schema.Metadata;
+﻿using System.Diagnostics;
 
+namespace Borm.Schema.Metadata;
+
+[DebuggerDisplay("Name = {Name}, DataType = {DataType.FullName}")]
 internal sealed class EntityNode
 {
     private readonly ColumnInfoCollection _columns;
-    private readonly Type _dataType;
-    private readonly string _name; // name is unique for each schema
+    private readonly string _name;
 
-    public EntityNode(
-        string name,
-        Type dataType,
-        ColumnInfoCollection columns
-    )
+    public EntityNode(string name, Type dataType, ColumnInfoCollection columns)
     {
         if (columns.Count == 0)
         {
@@ -18,12 +16,12 @@ internal sealed class EntityNode
         }
 
         _columns = columns;
-        _dataType = dataType;
+        DataType = dataType;
         _name = name;
         Binding = ConversionBinding.Empty;
     }
 
-    public Type DataType => _dataType;
+    public Type DataType { get; }
 
     public string Name => _name;
 

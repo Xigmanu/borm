@@ -2,7 +2,7 @@
 
 namespace Borm.Tests.Schema.Metadata;
 
-public class EntityNodeGraphTest
+public sealed class EntityNodeGraphTest
 {
     [Fact]
     public void GetSuccessors_ReturnsSuccessorNodes_WithPredecessorEntityNode()

@@ -3,7 +3,7 @@ using Borm.Extensions;
 
 namespace Borm.Tests.Extensions;
 
-public class DataRelationExtensionsTest
+public sealed class DataRelationExtensionsTest
 {
     [Fact]
     public void Copy_ReturnsCopyOfDataRelation_WithOriginalDataRelationAndTargetDataSet()
