@@ -41,7 +41,7 @@ internal sealed class BormDataSet : DataSet
         foreach (DataTable table in Tables)
         {
             NodeDataTable tableCopy = ((NodeDataTable)table).Copy();
-            dataSetCopy.Tables.Add(tableCopy);
+            dataSetCopy.AddTable(tableCopy);
         }
         foreach (DataRelation relation in Relations)
         {
@@ -86,7 +86,7 @@ internal sealed class BormDataSet : DataSet
         }
     }
 
-    [ExcludeFromCodeCoverage(Justification = "Debug code")]
+    [ExcludeFromCodeCoverage(Justification = "Debug view class")]
     internal sealed class BormDataSetDebugView
     {
         private readonly BormDataSet _dataSet;

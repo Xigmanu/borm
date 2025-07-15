@@ -22,7 +22,7 @@ internal sealed class EntityGraphDataSetMapper
         {
             EntityNode node = topSortedNodes[i];
             CreateNodeTable(node);
-            dataSet.Tables.Add(_nodeTableMap[node]);
+            dataSet.AddTable(_nodeTableMap[node]);
         }
 
         foreach (NodeDataTable table in dataSet.Tables)
