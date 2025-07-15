@@ -9,8 +9,7 @@ internal sealed class EntityNode
     public EntityNode(
         string name,
         Type dataType,
-        ColumnInfoCollection columns,
-        EntityConversionBinding binding
+        ColumnInfoCollection columns
     )
     {
         if (columns.Count == 0)
@@ -21,14 +20,14 @@ internal sealed class EntityNode
         _columns = columns;
         _dataType = dataType;
         _name = name;
-        Binding = binding;
+        Binding = ConversionBinding.Empty;
     }
 
     public Type DataType => _dataType;
 
     public string Name => _name;
 
-    internal EntityConversionBinding Binding { get; }
+    internal ConversionBinding Binding { get; set; }
 
     internal ColumnInfoCollection Columns => _columns;
 

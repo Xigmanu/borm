@@ -12,9 +12,7 @@ public class ValueBufferTest
         int expected = 42;
         ColumnInfo column = new(0, "foo", "Foo", typeof(int), Constraints.None, null);
 
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-        EntityNode node = new("foo", typeof(object), new ColumnInfoCollection([column]), null);
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+        EntityNode node = new("foo", typeof(object), new ColumnInfoCollection([column]));
 
         DataTable table = new("foo");
         table.Columns.Add("foo", typeof(int));

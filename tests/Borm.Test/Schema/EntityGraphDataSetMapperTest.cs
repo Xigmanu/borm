@@ -100,7 +100,7 @@ public class EntityGraphDataSetMapperTest
 
             ColumnInfoCollection columns1 = new([pk1, fkColumn1]);
 
-            return new EntityNode("table2", typeof(int), columns1, null);
+            return new EntityNode("table2", typeof(int), columns1);
         }
 
         private static EntityNode CreateSimpleNode()
@@ -118,7 +118,7 @@ public class EntityGraphDataSetMapperTest
 
             ColumnInfoCollection columns0 = new([pk0, name0, comment0]);
 
-            return new EntityNode("table1", typeof(int), columns0, null);
+            return new EntityNode("table1", typeof(int), columns0);
         }
 
         private static NodeDataTable CreateTable(EntityNode node)

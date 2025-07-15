@@ -9,8 +9,8 @@ public class EntityNodeGraphTest
     {
         // Arrange
         ColumnInfo column = new(0, "foo", "Foo", typeof(int), Constraints.None, null);
-        EntityNode node0 = new("foo", typeof(float), new ColumnInfoCollection([column]), null);
-        EntityNode node1 = new("bar", typeof(double), new ColumnInfoCollection([column]), null);
+        EntityNode node0 = new("foo", typeof(float), new ColumnInfoCollection([column]));
+        EntityNode node1 = new("bar", typeof(double), new ColumnInfoCollection([column]));
 
         EntityNodeGraph nodeGraph = new();
         nodeGraph.AddSuccessorSet(node0, []);
@@ -31,8 +31,8 @@ public class EntityNodeGraphTest
     {
         // Arrange
         ColumnInfo column = new(0, "foo", "Foo", typeof(int), Constraints.None, null);
-        EntityNode node0 = new("foo", typeof(float), new ColumnInfoCollection([column]), null);
-        EntityNode node1 = new("bar", typeof(double), new ColumnInfoCollection([column]), null);
+        EntityNode node0 = new("foo", typeof(float), new ColumnInfoCollection([column]));
+        EntityNode node1 = new("bar", typeof(double), new ColumnInfoCollection([column]));
 
         EntityNodeGraph nodeGraph = new();
         nodeGraph.AddSuccessorSet(node0, []);
@@ -49,7 +49,7 @@ public class EntityNodeGraphTest
     {
         // Arrange
         ColumnInfo column = new(0, "foo", "Foo", typeof(int), Constraints.None, null);
-        EntityNode node = new("foo", typeof(object), new ColumnInfoCollection([column]), null);
+        EntityNode node = new("foo", typeof(object), new ColumnInfoCollection([column]));
         EntityNodeGraph nodeGraph = new();
         nodeGraph.AddSuccessorSet(node, []);
 
@@ -66,7 +66,7 @@ public class EntityNodeGraphTest
     {
         // Arrange
         ColumnInfo column = new(0, "foo", "Foo", typeof(int), Constraints.None, null);
-        EntityNode node = new("foo", typeof(object), new ColumnInfoCollection([column]), null);
+        EntityNode node = new("foo", typeof(object), new ColumnInfoCollection([column]));
         EntityNodeGraph nodeGraph = new();
         nodeGraph.AddSuccessorSet(node, []);
 
@@ -82,8 +82,8 @@ public class EntityNodeGraphTest
     {
         // Arrange
         ColumnInfo column = new(0, "foo", "Foo", typeof(int), Constraints.None, null);
-        EntityNode node0 = new("foo", typeof(float), new ColumnInfoCollection([column]), null);
-        EntityNode node1 = new("bar", typeof(double), new ColumnInfoCollection([column]), null);
+        EntityNode node0 = new("foo", typeof(float), new ColumnInfoCollection([column]));
+        EntityNode node1 = new("bar", typeof(double), new ColumnInfoCollection([column]));
 
         EntityNode[] expected = [node0, node1];
 
