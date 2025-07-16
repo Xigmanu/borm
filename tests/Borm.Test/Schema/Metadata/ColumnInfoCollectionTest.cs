@@ -2,7 +2,7 @@
 
 namespace Borm.Tests.Schema.Metadata;
 
-public class ColumnInfoCollectionTest
+public sealed class ColumnInfoCollectionTest
 {
     [Fact]
     public void Indexer_ReturnsColumnInfo_WithColumnName()

@@ -1,7 +1,7 @@
 ﻿using Borm.Schema.Metadata;
 
 namespace Borm.Tests.Schema.Metadata;
-public class ColumnInfoTest
+public sealed class ColumnInfoTest
 {
     [Fact]
     public void Constructor_ShouldAssignPropertyNameAndColumnName_WithValidCtorArgs()

@@ -1,43 +1,37 @@
-﻿using System.Linq.Expressions;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
+using System.Reflection;
+using Borm.Extensions;
 
 namespace Borm.Schema.Metadata;
 
-internal sealed class EntityConversionBinding
+[DebuggerTypeProxy(typeof(BindingInfoDebugView))]
+internal sealed class BindingInfo
 {
-    private readonly Func<object, ValueBuffer> _convertToValueBuffer;
-    private readonly Func<ValueBuffer, object> _materializeEntity;
+    private readonly ColumnInfoCollection _columns;
+    private readonly ConstructorInfo _constructor;
+    private readonly Type _entityType;
 
-    private EntityConversionBinding(
-        Func<ValueBuffer, object> materializeEntity,
-        Func<object, ValueBuffer> convertToValueBuffer
-    )
+    public BindingInfo(Type entityType, ColumnInfoCollection columns)
     {
-        _materializeEntity = materializeEntity;
-        _convertToValueBuffer = convertToValueBuffer;
+        _entityType = entityType;
+        _columns = columns;
+
+        ConstructorInfo[] constructors = entityType.GetConstructors();
+        Debug.Assert(constructors.Length > 0);
+
+        EntityConstructorSelector selector = new(_columns, constructors);
+        _constructor = selector.Select() ?? constructors[0];
     }
 
-    public static EntityConversionBinding CreateConstructorBased(EntityBindingInfo bindingInfo)
+    public ConversionBinding CreateBinding()
     {
-        Func<ValueBuffer, object> materializer = CreateConstructorMaterializer(bindingInfo);
-        Func<object, ValueBuffer> converter = CreateEntityValueBufferConverter(bindingInfo);
-        return new EntityConversionBinding(materializer, converter);
-    }
-
-    public static EntityConversionBinding CreatePropertyBased(EntityBindingInfo bindingInfo)
-    {
-        Func<ValueBuffer, object> materializer = CreatePropertyMaterializer(bindingInfo);
-        Func<object, ValueBuffer> converter = CreateEntityValueBufferConverter(bindingInfo);
-        return new EntityConversionBinding(materializer, converter);
-    }
-
-    public ValueBuffer Convert(object entity)
-    {
-        return _convertToValueBuffer(entity);
-    }
-
-    public object Materialize(ValueBuffer buffer)
-    {
-        return _materializeEntity(buffer);
+        Func<object, ValueBuffer> converter = CreateEntityValueBufferConverter();
+        Func<ValueBuffer, object> materializer = _constructor.IsNoArgs()
+            ? CreatePropertyMaterializer()
+            : CreateConstructorMaterializer();
+        return new ConversionBinding(materializer, converter);
     }
 
     private static Expression CreateBufferPropertyBinding(
@@ -65,16 +59,13 @@ internal sealed class EntityConversionBinding
         return Expression.Condition(isDbNull, nullValue, convertValue);
     }
 
-    private static Func<ValueBuffer, object> CreateConstructorMaterializer(
-        EntityBindingInfo bindingInfo
-    )
+    private Func<ValueBuffer, object> CreateConstructorMaterializer()
     {
         ParameterExpression bufferParam = Expression.Parameter(typeof(ValueBuffer), "buffer");
 
-        IEnumerable<Expression> args = bindingInfo
-            .GetOrderedColumns()
+        IEnumerable<Expression> args = GetOrderedColumns()
             .Select(columnInfo => CreateBufferPropertyBinding(bufferParam, columnInfo));
-        NewExpression ctorCall = Expression.New(bindingInfo.Constructor, args);
+        NewExpression ctorCall = Expression.New(_constructor, args);
 
         return Expression
             .Lambda<Func<ValueBuffer, object>>(
@@ -84,20 +75,15 @@ internal sealed class EntityConversionBinding
             .Compile();
     }
 
-    private static Func<object, ValueBuffer> CreateEntityValueBufferConverter(
-        EntityBindingInfo bindingInfo
-    )
+    private Func<object, ValueBuffer> CreateEntityValueBufferConverter()
     {
         Type valueBufferType = typeof(ValueBuffer);
 
         ParameterExpression boxedEntityParam = Expression.Parameter(typeof(object), "entity");
-        ParameterExpression unboxedEntityVar = Expression.Variable(
-            bindingInfo.EntityType,
-            "typedEntity"
-        );
+        ParameterExpression unboxedEntityVar = Expression.Variable(_entityType, "typedEntity");
         BinaryExpression unboxEntity = Expression.Assign(
             unboxedEntityVar,
-            Expression.Convert(boxedEntityParam, bindingInfo.EntityType)
+            Expression.Convert(boxedEntityParam, _entityType)
         );
 
         ParameterExpression valueBufferVar = Expression.Variable(valueBufferType, "buffer");
@@ -108,7 +94,7 @@ internal sealed class EntityConversionBinding
             Expression.Assign(valueBufferVar, Expression.New(valueBufferType)),
         ];
 
-        foreach (ColumnInfo columnInfo in bindingInfo.Columns)
+        foreach (ColumnInfo columnInfo in _columns)
         {
             ConstantExpression key = Expression.Constant(columnInfo);
             MemberExpression value = Expression.Property(unboxedEntityVar, columnInfo.PropertyName);
@@ -146,19 +132,17 @@ internal sealed class EntityConversionBinding
             .Compile();
     }
 
-    private static Func<ValueBuffer, object> CreatePropertyMaterializer(
-        EntityBindingInfo bindingInfo
-    )
+    private Func<ValueBuffer, object> CreatePropertyMaterializer()
     {
         ParameterExpression bufferParam = Expression.Parameter(typeof(ValueBuffer), "buffer");
-        ParameterExpression instanceVar = Expression.Variable(bindingInfo.EntityType, "instance");
+        ParameterExpression instanceVar = Expression.Variable(_entityType, "instance");
 
         List<Expression> blockExpressions =
         [
-            Expression.Assign(instanceVar, Expression.New(bindingInfo.Constructor)),
+            Expression.Assign(instanceVar, Expression.New(_constructor)),
         ];
 
-        foreach (ColumnInfo column in bindingInfo.GetOrderedColumns())
+        foreach (ColumnInfo column in GetOrderedColumns())
         {
             Expression valueExpr = CreateBufferPropertyBinding(bufferParam, column);
             MemberExpression propertyExpr = Expression.Property(instanceVar, column.PropertyName);
@@ -173,5 +157,35 @@ internal sealed class EntityConversionBinding
                 bufferParam
             )
             .Compile();
+    }
+
+    private ColumnInfo[] GetOrderedColumns()
+    {
+        if (_constructor.IsNoArgs())
+        {
+            return [.. _columns];
+        }
+
+        ColumnInfo[] ordered = new ColumnInfo[_columns.Count];
+        ParameterInfo[] ctorParams = _constructor.GetParameters();
+        for (int i = 0; i < ctorParams.Length; i++)
+        {
+            ordered[i] = _columns[ctorParams[i].Name!];
+        }
+        return ordered;
+    }
+
+    [ExcludeFromCodeCoverage(Justification = "Debug view class")]
+    internal sealed class BindingInfoDebugView
+    {
+        private readonly BindingInfo _instance;
+
+        public BindingInfoDebugView(BindingInfo instance)
+        {
+            _instance = instance;
+        }
+
+        public ColumnInfoCollection Columns => _instance._columns;
+        public Type EntityType => _instance._entityType;
     }
 }

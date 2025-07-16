@@ -4,7 +4,7 @@ using static Borm.Tests.Mocks.ConstructorSelectorTestMocks;
 
 namespace Borm.Tests.Schema.Metadata;
 
-public class ConstructorSelectorTest
+public sealed class ConstructorSelectorTest
 {
     [Fact]
     public void Select_ReturnsConstructorInfo_WithEntityTypeWithValidCtor()

@@ -3,7 +3,7 @@ using static Borm.Tests.Mocks.EntityMetadataParserTestMocks;
 
 namespace Borm.Tests.Reflection;
 
-public class EntityMetadataParserTest
+public sealed class EntityMetadataParserTest
 {
     [Fact]
     public void Parse_ReturnsReflectedInfo_WithValidEntity()

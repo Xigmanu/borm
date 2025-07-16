@@ -3,7 +3,7 @@ using Borm.Schema.Metadata;
 
 namespace Borm.Tests.Schema.Metadata;
 
-public class EntityNodeValidatorTest
+public sealed class EntityNodeValidatorTest
 {
     [Theory]
     [InlineData(-1)]
@@ -17,7 +17,7 @@ public class EntityNodeValidatorTest
                 new ColumnInfo(index, "bar", "Bar", typeof(string), Constraints.AllowDbNull, null),
             ]
         );
-        EntityNode node = new("foo", typeof(object), columns, null);
+        EntityNode node = new("foo", typeof(object), columns);
 
         EntityNodeValidator validator = new([node]);
 
@@ -50,8 +50,8 @@ public class EntityNodeValidatorTest
             [new ColumnInfo(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null)]
         );
 
-        EntityNode node0 = new("foo", typeof(EntityA), columns0, null);
-        EntityNode node1 = new("foo", typeof(EntityB), columns1, null);
+        EntityNode node0 = new("foo", typeof(EntityA), columns0);
+        EntityNode node1 = new("foo", typeof(EntityB), columns1);
 
         EntityNodeValidator validator = new([node0, node1]);
 
@@ -73,7 +73,7 @@ public class EntityNodeValidatorTest
                 new ColumnInfo(1, "bar", "Bar", typeof(int), Constraints.PrimaryKey, null),
             ]
         );
-        EntityNode node = new("foo", typeof(EntityA), columns, null);
+        EntityNode node = new("foo", typeof(EntityA), columns);
 
         EntityNodeValidator validator = new([node]);
 
@@ -101,7 +101,7 @@ public class EntityNodeValidatorTest
                 ),
             ]
         );
-        EntityNode node = new("foo", typeof(EntityA), columns, null);
+        EntityNode node = new("foo", typeof(EntityA), columns);
 
         EntityNodeValidator validator = new([node]);
 
@@ -120,7 +120,7 @@ public class EntityNodeValidatorTest
         ColumnInfoCollection columns = new(
             [new ColumnInfo(0, "foo", "Foo", typeof(int), Constraints.None, null)]
         );
-        EntityNode node = new("foo", typeof(EntityA), columns, null);
+        EntityNode node = new("foo", typeof(EntityA), columns);
 
         EntityNodeValidator validator = new([node]);
 
@@ -149,7 +149,7 @@ public class EntityNodeValidatorTest
                 ),
             ]
         );
-        EntityNode node0 = new("foo", typeof(EntityA), columns0, null);
+        EntityNode node0 = new("foo", typeof(EntityA), columns0);
 
         EntityNodeValidator validator = new([node0]);
 
@@ -177,8 +177,8 @@ public class EntityNodeValidatorTest
             [new ColumnInfo(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null)]
         );
 
-        EntityNode node0 = new("foo", typeof(EntityA), columns0, null);
-        EntityNode node1 = new("foo", typeof(EntityB), columns1, null);
+        EntityNode node0 = new("foo", typeof(EntityA), columns0);
+        EntityNode node1 = new("foo", typeof(EntityB), columns1);
 
         EntityNodeValidator validator = new([node0, node1]);
 

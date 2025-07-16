@@ -1,5 +1,4 @@
 ﻿using System.Data;
-using Borm.Extensions;
 using Borm.Reflection;
 
 namespace Borm.Schema.Metadata;
@@ -16,12 +15,7 @@ internal static class EntityNodeFactory
             .OrderBy(columnInfo => columnInfo.Index);
         ColumnInfoCollection columnCollection = new(columns);
 
-        EntityBindingInfo bindingInfo = new(entityInfo.Type, columnCollection);
-        EntityConversionBinding binding = bindingInfo.Constructor.IsNoArgs()
-            ? EntityConversionBinding.CreatePropertyBased(bindingInfo)
-            : EntityConversionBinding.CreateConstructorBased(bindingInfo);
-
-        return new EntityNode(name, entityInfo.Type, columnCollection, binding);
+        return new EntityNode(name, entityInfo.Type, columnCollection);
     }
 
     private static ColumnInfo CreateColumnInfo(EntityProperty property)

@@ -1,6 +1,6 @@
 ﻿namespace Borm.Tests;
 
-public class TypeMismatchExceptionTest
+public sealed class TypeMismatchExceptionTest
 {
     [Fact]
     public void Constructor_SetsActualAndExpectedTypes_WithCtorArgs()

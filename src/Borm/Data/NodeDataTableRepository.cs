@@ -20,7 +20,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
         ArgumentNullException.ThrowIfNull(entity);
 
         EntityNode node = _table.Node;
-        ValueBuffer buffer = node.Binding.Convert(entity);
+        ValueBuffer buffer = node.Binding.ConvertToValueBuffer(entity);
         ColumnInfo primaryKey = node.GetPrimaryKey();
 
         object primaryKeyValue = buffer[primaryKey];
@@ -60,7 +60,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
 
     public IEnumerable<T> Select()
     {
-        List<T> entities = [.. _table.EntityCache.Entities.Cast<T>()];
+        List<T> entities = [.. _table.EntityCache.Values.Cast<T>()];
         if (entities.Count != 0)
         {
             return entities;
@@ -90,7 +90,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
         ArgumentNullException.ThrowIfNull(entity);
 
         EntityNode node = _table.Node;
-        ValueBuffer buffer = node.Binding.Convert(entity);
+        ValueBuffer buffer = node.Binding.ConvertToValueBuffer(entity);
         ColumnInfo primaryKey = node.GetPrimaryKey();
 
         object primaryKeyValue = buffer[primaryKey];
@@ -119,7 +119,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
             }
 
             ColumnInfo parentPrimaryKey = parentNode.GetPrimaryKey();
-            ValueBuffer parentBuffer = parentNode.Binding.Convert(entryPair.Value);
+            ValueBuffer parentBuffer = parentNode.Binding.ConvertToValueBuffer(entryPair.Value);
             row[column.Name] = parentBuffer[parentPrimaryKey];
         }
 
@@ -138,7 +138,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
     private object InsertRecursively(NodeDataTable table, object entity)
     {
         EntityNode node = table.Node;
-        ValueBuffer buffer = node.Binding.Convert(entity);
+        ValueBuffer buffer = node.Binding.ConvertToValueBuffer(entity);
         ColumnInfo primaryKey = node.GetPrimaryKey();
 
         object primaryKeyValue = buffer[primaryKey];
@@ -173,7 +173,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
 
         DataRow newRow = table.NewRow();
         buffer.LoadIntoRow(newRow);
-        _table.Rows.Add(newRow);
+        table.Rows.Add(newRow);
 
         return primaryKeyValue;
     }
@@ -204,6 +204,6 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
             buffer[foreignKey] = ReadRowRecursively(parentNode, parentRow, out _);
         }
 
-        return node.Binding.Materialize(buffer);
+        return node.Binding.MaterializeEntity(buffer);
     }
 }

@@ -1,25 +1,24 @@
 ﻿namespace Borm.Schema.Metadata;
 
-internal sealed class EntityNodeGraphFactory
+internal static class EntityNodeGraphFactory
 {
-    private readonly IEnumerable<EntityNode> _entityNodes;
-
-    public EntityNodeGraphFactory(IEnumerable<EntityNode> entityNodes)
-    {
-        _entityNodes = entityNodes;
-    }
-
-    public EntityNodeGraph Create()
+    public static EntityNodeGraph Create(IEnumerable<EntityNode> entityNodes)
     {
         EntityNodeGraph nodeGraph = new();
-        foreach (EntityNode node in _entityNodes)
+        foreach (EntityNode node in entityNodes)
         {
             IEnumerable<Type> referenced = node
                 .Columns.Where(column => column.Reference != null)
                 .Select(column => column.Reference!);
+            if (!referenced.Any())
+            {
+                nodeGraph.AddSuccessorSet(node, []);
+                continue;
+            }
+
             List<EntityNode> successors =
             [
-                .. _entityNodes.Where(node => referenced.Contains(node.DataType)),
+                .. entityNodes.Where(node => referenced.Contains(node.DataType)),
             ];
 
             nodeGraph.AddSuccessorSet(node, successors);

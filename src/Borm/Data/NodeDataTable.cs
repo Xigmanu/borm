@@ -64,7 +64,7 @@ internal sealed class NodeDataTable : DataTable
         return null;
     }
 
-    [ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage(Justification = "Debug view class")]
     internal sealed class NodeDataTableDebugView
     {
         private readonly NodeDataTable _nodeDataTable;

@@ -70,23 +70,29 @@ public sealed class DataContext : IDisposable
                 return;
             }
 
+            List<EntityNode> entityNodes = new(entityTypes.Count());
             EntityMetadataParser parser = new();
-            IEnumerable<ReflectedEntityInfo> reflectedEntities = entityTypes.Select(parser.Parse);
+            foreach (Type entityType in entityTypes)
+            {
+                ReflectedEntityInfo reflectedEntity = parser.Parse(entityType);
+                EntityNode node = EntityNodeFactory.Create(reflectedEntity);
 
-            IEnumerable<EntityNode> entityNodes = reflectedEntities.Select(
-                EntityNodeFactory.Create
-            );
+                BindingInfo bindingInfo = new(entityType, node.Columns);
+                node.Binding = bindingInfo.CreateBinding();
+
+                entityNodes.Add(node);
+            }
+
             EntityNodeValidator validator = new(entityNodes);
-
-            foreach (EntityNode node in entityNodes)
+            entityNodes.ForEach(node =>
             {
                 if (!validator.IsValid(node, out Exception? exception))
                 {
                     throw exception;
                 }
-            }
+            });
 
-            _nodeGraph = new EntityNodeGraphFactory(entityNodes).Create();
+            _nodeGraph = EntityNodeGraphFactory.Create(entityNodes);
             new EntityGraphDataSetMapper(_nodeGraph).LoadMapping(_dataSet);
 
             connection.Open();

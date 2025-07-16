@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Data.Common;
+using System.Runtime.CompilerServices;
 
 namespace Borm.Data.Sql;
 
@@ -47,6 +48,7 @@ public sealed class SqlStatement
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string GetColumnNameFromParameterName(string parameterName)
     {
         return parameterName[0] == DefaultParameterPrefix ? parameterName[1..] : parameterName;
