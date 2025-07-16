@@ -173,7 +173,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
 
         DataRow newRow = table.NewRow();
         buffer.LoadIntoRow(newRow);
-        _table.Rows.Add(newRow);
+        table.Rows.Add(newRow);
 
         return primaryKeyValue;
     }
