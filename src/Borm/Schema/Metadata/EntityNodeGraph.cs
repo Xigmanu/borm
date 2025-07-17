@@ -1,4 +1,6 @@
-﻿namespace Borm.Schema.Metadata;
+﻿using Borm.Properties;
+
+namespace Borm.Schema.Metadata;
 
 internal sealed class EntityNodeGraph
 {
@@ -28,7 +30,7 @@ internal sealed class EntityNodeGraph
         {
             return [.. successors];
         }
-        throw new NodeNotFoundException($"Node {node} was not found in the graph", node.DataType);
+        throw new NodeNotFoundException(Strings.MissingEntityNode(node.Name), node.DataType);
     }
 
     public EntityNode[] ReversedTopSort()

@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using Borm.Properties;
 using Borm.Schema.Metadata;
 
 namespace Borm.Data;
@@ -161,7 +162,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
             DataRelation parentRelation =
                 _table.GetParentRelation(parentNode)
                 ?? throw new InvalidOperationException(
-                    $"No data relation exists even though two nodes have a relation. Child: {table.Node}, Parent: {parentNode}"
+                    Strings.MissingExpectedDataRelation(parentNode, node)
                 );
 
             object parentEntity = buffer[foreignKey];
@@ -197,7 +198,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
             DataRelation parentRelation =
                 _table.GetParentRelation(parentNode)
                 ?? throw new InvalidOperationException(
-                    $"No data relation exists even though two nodes have a relation. Child: {node}, Parent: {parentNode}"
+                    Strings.MissingExpectedDataRelation(parentNode, node)
                 );
 
             DataRow parentRow = row.GetParentRow(parentRelation)!;

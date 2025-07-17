@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
+using Borm.Properties;
 
 namespace Borm.Schema.Metadata;
 
@@ -35,7 +36,7 @@ internal sealed class EntityConstructorSelector
         }
 
         throw new MissingMethodException(
-            $"Type {_entityConstructors[0].DeclaringType!.FullName} does not have a public constructor that would initialize all columns"
+            Strings.InvalidEntityTypeConstructor(_entityConstructors[0].DeclaringType!.FullName!)
         );
     }
 

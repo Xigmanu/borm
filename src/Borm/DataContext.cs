@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using Borm.Data;
+using Borm.Properties;
 using Borm.Reflection;
 using Borm.Schema;
 using Borm.Schema.Metadata;
@@ -42,15 +43,13 @@ public sealed class DataContext : IDisposable
     {
         if (_nodeGraph == null)
         {
-            throw new InvalidOperationException("Data context is not initialized");
+            throw new InvalidOperationException(Strings.DataContextNotInitialized());
         }
 
         Type entityType = typeof(T);
         EntityNode node =
             _nodeGraph[entityType]
-            ?? throw new ArgumentException(
-                $"No table with data type {entityType.FullName} exists in the data context"
-            );
+            ?? throw new ArgumentException(Strings.MissingTableForEntity(entityType.FullName!));
         NodeDataTable? table = _dataSet.Tables[node.Name] as NodeDataTable;
         Debug.Assert(table != null);
 
@@ -106,10 +105,10 @@ public sealed class DataContext : IDisposable
 
             OnInitialized();
         }
-        catch (Exception ex)
+        catch
         {
             connection.Close();
-            throw new InvalidOperationException("Failed to initialize data context", ex);
+            throw;
         }
     }
 
@@ -126,28 +125,17 @@ public sealed class DataContext : IDisposable
         }
         if (_nodeGraph == null)
         {
-            throw new InvalidOperationException("Data context is not initialized");
+            throw new InvalidOperationException(Strings.DataContextNotInitialized());
         }
 
-        try
-        {
-            using IDbConnection connection = _configuration.DbConnectionSupplier();
-            connection.Open();
-            using IDbCommand command = connection.CreateCommand();
+        using IDbConnection connection = _configuration.DbConnectionSupplier();
+        connection.Open();
+        using IDbCommand command = connection.CreateCommand();
 
-            BormDataAdapter dataAdapter = new(
-                command,
-                _nodeGraph,
-                _configuration.SqlStatementFactory
-            );
-            dataAdapter.Update(_dataSet);
-            _dataSet.AcceptChanges();
-            connection.Close();
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("Failed to update the data source", ex);
-        }
+        BormDataAdapter dataAdapter = new(command, _nodeGraph, _configuration.SqlStatementFactory);
+        dataAdapter.Update(_dataSet);
+        _dataSet.AcceptChanges();
+        connection.Close();
     }
 
     private void OnInitialized()

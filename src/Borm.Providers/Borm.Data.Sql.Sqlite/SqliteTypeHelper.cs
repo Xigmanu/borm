@@ -1,5 +1,6 @@
-﻿using Microsoft.Data.Sqlite;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using Borm.Properties;
+using Microsoft.Data.Sqlite;
 
 namespace Borm.Data.Sql.Sqlite;
 
@@ -27,7 +28,7 @@ internal static class SqliteTypeHelper
             case Type _ when type == typeof(Guid):
                 return SqliteType.Text;
             default:
-                throw new NotSupportedException($"Type {type.FullName} is not supported");
+                throw new NotSupportedException(Strings.TypeNotSupported(type.FullName!));
         }
     }
 }

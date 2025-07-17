@@ -14,4 +14,10 @@
             <_Parameter1>Borm.Debug</_Parameter1>
         </AssemblyAttribute>
     </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Update="Properties\Strings.resx">
+        <Generator></Generator>
+      </EmbeddedResource>
+    </ItemGroup>
 </Project>

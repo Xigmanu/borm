@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using System.Data.Common;
 using System.Runtime.CompilerServices;
+using Borm.Properties;
 
 namespace Borm.Data.Sql;
 
@@ -33,7 +34,8 @@ public sealed class SqlStatement
 
     internal void SetParameters(DataRow row)
     {
-        DataColumnCollection columns = row.Table.Columns;
+        DataTable table = row.Table;
+        DataColumnCollection columns = table.Columns;
         for (int i = 0; i < Parameters.Length; i++)
         {
             DbParameter current = Parameters[i];
@@ -41,7 +43,7 @@ public sealed class SqlStatement
             if (columns[columnName] == null)
             {
                 throw new InvalidOperationException(
-                    "Unable to match column schema of a row and parameter schema"
+                    Strings.SqlStatementParameterRowMapping(columnName, table.TableName)
                 );
             }
             current.Value = row[columnName];

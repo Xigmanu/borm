@@ -1,4 +1,5 @@
 ﻿using Borm.Extensions;
+using Borm.Properties;
 
 namespace Borm.Schema;
 
@@ -18,7 +19,7 @@ internal static class EntityTypeResolver
         if (abstractEntityType != null)
         {
             throw new ArgumentException(
-                $"Entity classes cannot be abstract. Type: {abstractEntityType.FullName}"
+                Strings.EntityTypeCannotBeAbstract(abstractEntityType.FullName!)
             );
         }
     }

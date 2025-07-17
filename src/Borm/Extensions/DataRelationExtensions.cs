@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using Borm.Properties;
 
 namespace Borm.Extensions;
 
@@ -26,7 +27,7 @@ internal static class DataRelationExtensions
             }
         }
         throw new InvalidOperationException(
-            $"Table from copied data set does not have an expected column \"{original.ColumnName}\""
+            Strings.MissingColumnInCopiedTable(table.TableName, original.ColumnName)
         );
     }
 }

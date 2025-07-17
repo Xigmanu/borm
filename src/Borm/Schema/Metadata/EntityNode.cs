@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Borm.Properties;
 
 namespace Borm.Schema.Metadata;
 
@@ -12,7 +13,7 @@ internal sealed class EntityNode
     {
         if (columns.Count == 0)
         {
-            throw new ArgumentException("Table must have at least 1 column", nameof(columns));
+            throw new ArgumentException(Strings.EmptyColumnCollection(name), nameof(columns));
         }
 
         _columns = columns;
@@ -42,6 +43,6 @@ internal sealed class EntityNode
     public ColumnInfo GetPrimaryKey()
     {
         return _columns.FirstOrDefault(column => column.Constraints == Constraints.PrimaryKey)
-            ?? throw new InvalidOperationException($"Node {_name} has no primary key");
+            ?? throw new InvalidOperationException(Strings.MissingPrimaryKey(_name));
     }
 }
