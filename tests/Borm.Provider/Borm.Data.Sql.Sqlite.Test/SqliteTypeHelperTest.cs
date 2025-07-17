@@ -1,6 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 
-namespace Borm.Data.Sql.Sqlite.Test;
+namespace Borm.Data.Sql.Sqlite.Tests;
 
 public class SqliteTypeHelperTest
 {
