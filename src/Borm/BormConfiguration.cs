@@ -1,11 +1,12 @@
-﻿using System.Data;
-using Borm.Data.Sql;
+﻿using Borm.Data.Sql;
+using Borm.Schema;
 
 namespace Borm;
 
 public sealed class BormConfiguration
 {
-    public required Func<IDbConnection> DbConnectionSupplier { get; set; }
-    public required ISqlStatementFactory SqlStatementFactory { get; set; }
-    public bool TransactionWriteOnCommit { get; set; } = false;
+    public required IDbStatementExecutor CommandExecutor { get; init; }
+    public required EntityModel Model { get; init; }
+    public required ISqlStatementFactory SqlStatementFactory { get; init; }
+    public bool TransactionWriteOnCommit { get; init; } = false;
 }

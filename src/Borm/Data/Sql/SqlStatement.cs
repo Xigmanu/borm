@@ -10,24 +10,32 @@ public sealed class SqlStatement
     public const char DefaultParameterPrefix = '$';
     private readonly DbParameter[] _parameters;
     private readonly string _sql;
+    private bool _areParametersSet;
 
     public SqlStatement(string sql, DbParameter[] parameters)
     {
         _sql = sql;
         _parameters = parameters;
+        _areParametersSet = false;
     }
 
     public DbParameter[] Parameters => _parameters;
     public string Sql => _sql;
 
-    internal void PrepareCommand(IDbCommand dbCommand)
+    public void PrepareCommand(IDbCommand dbCommand)
     {
         dbCommand.CommandText = _sql;
-        dbCommand.Parameters.Clear();
-        DbParameter[] parameters = _parameters;
-        for (int i = 0; i < parameters.Length; i++)
+        IDataParameterCollection cmdParameters = dbCommand.Parameters;
+        for (int i = 0; i < _parameters.Length; i++)
         {
-            dbCommand.Parameters.Add(parameters[i]);
+            if (cmdParameters.Contains(_parameters[i].ParameterName))
+            {
+                cmdParameters[i] = _parameters[i].Value;
+            }
+            else
+            {
+                cmdParameters.Add(_parameters[i]);
+            }
         }
         dbCommand.Prepare();
     }
@@ -48,6 +56,7 @@ public sealed class SqlStatement
             }
             current.Value = row[columnName];
         }
+        _areParametersSet = true;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
