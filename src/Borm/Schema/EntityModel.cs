@@ -7,17 +7,17 @@ namespace Borm.Schema;
 
 public sealed class EntityModel
 {
-    private readonly Assembly _modelSource;
+    private readonly IEnumerable<Type> _types;
 
-    public EntityModel(Assembly modelSource)
+    public EntityModel(IEnumerable<Type> types)
     {
-        ArgumentNullException.ThrowIfNull(modelSource);
-        _modelSource = modelSource;
+        ArgumentNullException.ThrowIfNull(types);
+        _types = types;
     }
 
     internal IEnumerable<ReflectedTypeInfo> GetReflectedInfo()
     {
-        IEnumerable<Type> entityTypes = _modelSource.ExportedTypes.Where(type =>
+        IEnumerable<Type> entityTypes = _types.Where(type =>
             type.HasAttribute<EntityAttribute>()
         );
         List<ReflectedTypeInfo> reflectedInfos = new(entityTypes.Count());
