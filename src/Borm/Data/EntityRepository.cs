@@ -4,13 +4,13 @@ using Borm.Schema.Metadata;
 
 namespace Borm.Data;
 
-internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
+internal sealed class EntityRepository<T> : IEntityRepository<T>
     where T : class
 {
     private readonly EntityNodeGraph _nodeGraph;
     private readonly NodeDataTable _table;
 
-    public NodeDataTableRepository(NodeDataTable table, EntityNodeGraph nodeGraph)
+    public EntityRepository(NodeDataTable table, EntityNodeGraph nodeGraph)
     {
         _table = table;
         _nodeGraph = nodeGraph;
@@ -40,7 +40,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
     {
         return transaction.Execute(
             _table.TableName,
-            (table) => new NodeDataTableRepository<T>(table, _nodeGraph).Delete(entity)
+            (table) => new EntityRepository<T>(table, _nodeGraph).Delete(entity)
         );
     }
 
@@ -55,7 +55,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
     {
         return transaction.Execute(
             _table.TableName,
-            (table) => new NodeDataTableRepository<T>(table, _nodeGraph).Insert(entity)
+            (table) => new EntityRepository<T>(table, _nodeGraph).Insert(entity)
         );
     }
 
@@ -132,7 +132,7 @@ internal sealed class NodeDataTableRepository<T> : IEntityRepository<T>
     {
         return transaction.Execute(
             _table.TableName,
-            (table) => new NodeDataTableRepository<T>(table, _nodeGraph).Update(entity)
+            (table) => new EntityRepository<T>(table, _nodeGraph).Update(entity)
         );
     }
 

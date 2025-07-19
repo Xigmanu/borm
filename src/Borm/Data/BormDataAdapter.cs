@@ -22,7 +22,7 @@ internal sealed class BormDataAdapter
         _statementFactory = statementFactory;
     }
 
-    public void CreateTables(DataSet dataSet)
+    public void CreateTables(BormDataSet dataSet)
     {
         EntityNode[] sorted = _nodeGraph.ReversedTopSort();
         for (int i = 0; i < sorted.Length; i++)
@@ -33,7 +33,7 @@ internal sealed class BormDataAdapter
         }
     }
 
-    public void Load(DataSet dataSet)
+    public void Load(BormDataSet dataSet)
     {
         EntityNode[] sorted = _nodeGraph.ReversedTopSort();
         for (int i = 0; i < sorted.Length; i++)
@@ -46,18 +46,18 @@ internal sealed class BormDataAdapter
         dataSet.AcceptChanges();
     }
 
-    public void Update(DataSet dataSet)
+    public void Update(BormDataSet dataSet)
     {
         EntityNode[] sorted = _nodeGraph.ReversedTopSort();
         for (int i = 0; i < sorted.Length; i++)
         {
             DataTable table = dataSet.Tables[sorted[i].Name]!;
-            List<SqlStatement> statements = CreateUpdateStatements(table);
+            List<SqlStatement> statements = CreateUpdateStatements((NodeDataTable)table);
             statements.ForEach(_executor.ExecuteNonQuery);
         }
     }
 
-    private List<SqlStatement> CreateUpdateStatements(DataTable table)
+    private List<SqlStatement> CreateUpdateStatements(NodeDataTable table)
     {
         DataTable? changes = table.GetChanges();
         List<SqlStatement> statements = [];

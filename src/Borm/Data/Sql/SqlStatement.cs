@@ -10,13 +10,11 @@ public sealed class SqlStatement
     public const char DefaultParameterPrefix = '$';
     private readonly DbParameter[] _parameters;
     private readonly string _sql;
-    private bool _areParametersSet;
 
     public SqlStatement(string sql, DbParameter[] parameters)
     {
         _sql = sql;
         _parameters = parameters;
-        _areParametersSet = false;
     }
 
     public DbParameter[] Parameters => _parameters;
@@ -56,7 +54,6 @@ public sealed class SqlStatement
             }
             current.Value = row[columnName];
         }
-        _areParametersSet = true;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

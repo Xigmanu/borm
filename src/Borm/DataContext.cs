@@ -52,7 +52,7 @@ public sealed class DataContext : IDisposable
         NodeDataTable? table = _dataSet.Tables[node.Name] as NodeDataTable;
         Debug.Assert(table != null);
 
-        return new NodeDataTableRepository<T>(table, _nodeGraph);
+        return new EntityRepository<T>(table, _nodeGraph);
     }
 
     public void Initialize()

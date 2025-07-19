@@ -6,14 +6,14 @@ using static Borm.Tests.Mocks.NodeDataTableRepositoryTestMocks;
 namespace Borm.Tests.Data;
 
 // TODO Finish this
-public sealed class NodeDataTableRepositoryTest
+public sealed class EntityRepositoryTest
 {
     [Fact]
     public void Delete_ShouldThrowArgumentNullException_WhenEntityIsNull()
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTableRepository<EntityA> repository = new(
+        EntityRepository<EntityA> repository = new(
             (NodeDataTable)dataSet.Tables["entityA"]!,
             nodeGraph
         );
@@ -31,7 +31,7 @@ public sealed class NodeDataTableRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTableRepository<EntityA> repository = new(
+        EntityRepository<EntityA> repository = new(
             (NodeDataTable)dataSet.Tables["entityA"]!,
             nodeGraph
         );
@@ -49,7 +49,7 @@ public sealed class NodeDataTableRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTableRepository<EntityA> repository = new(
+        EntityRepository<EntityA> repository = new(
             (NodeDataTable)dataSet.Tables["entityA"]!,
             nodeGraph
         );
@@ -68,7 +68,7 @@ public sealed class NodeDataTableRepositoryTest
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
         NodeDataTable table = (NodeDataTable)dataSet.Tables["entityA"]!;
-        NodeDataTableRepository<EntityA> repository = new(
+        EntityRepository<EntityA> repository = new(
             table,
             nodeGraph
         );
@@ -95,7 +95,7 @@ public sealed class NodeDataTableRepositoryTest
         NodeDataTable tableA = (NodeDataTable)dataSet.Tables["entityA"]!;
         tableA.Rows.Add(1, "foo");
         NodeDataTable tableB = (NodeDataTable)dataSet.Tables["entityB"]!;
-        NodeDataTableRepository<EntityB> repository = new(
+        EntityRepository<EntityB> repository = new(
             tableB,
             nodeGraph
         );
@@ -124,7 +124,7 @@ public sealed class NodeDataTableRepositoryTest
         tableA.Rows.Add(1, "foo");
         NodeDataTable tableB = (NodeDataTable)dataSet.Tables["entityB"]!;
         NodeDataTable tableC = (NodeDataTable)dataSet.Tables["entityC"]!;
-        NodeDataTableRepository<EntityC> repository = new(
+        EntityRepository<EntityC> repository = new(
             tableC,
             nodeGraph
         );
