@@ -4,16 +4,16 @@ using Borm.Schema;
 
 namespace Borm.Reflection;
 
-internal sealed class EntityMetadataParser
+internal sealed class MetadataParser
 {
     private readonly NullabilityInfoContext _nullabilityCtx;
 
-    public EntityMetadataParser()
+    public MetadataParser()
     {
         _nullabilityCtx = new();
     }
 
-    public ReflectedEntityInfo Parse(Type entityType)
+    public ReflectedTypeInfo Parse(Type entityType)
     {
         EntityAttribute entityAttribute =
             entityType.GetCustomAttribute<EntityAttribute>()
@@ -21,7 +21,7 @@ internal sealed class EntityMetadataParser
                 $"EntityAttribute was not applied to the member {entityType.FullName}"
             );
 
-        List<EntityProperty> properties = [];
+        List<Property> properties = [];
         PropertyInfo[] typeProperties = entityType.GetProperties();
         for (int i = 0; i < typeProperties.Length; i++)
         {
@@ -32,15 +32,15 @@ internal sealed class EntityMetadataParser
             }
         }
 
-        return new ReflectedEntityInfo(entityType, entityAttribute, properties);
+        return new ReflectedTypeInfo(entityType, entityAttribute, properties);
     }
 
-    private EntityProperty ParsePropertyInfo(PropertyInfo propertyInfo)
+    private Property ParsePropertyInfo(PropertyInfo propertyInfo)
     {
         ColumnAttribute columnAttribute = propertyInfo.GetCustomAttribute<ColumnAttribute>()!;
         bool isNullable =
             _nullabilityCtx.Create(propertyInfo).ReadState == NullabilityState.Nullable;
-        return new EntityProperty(
+        return new Property(
             propertyInfo.Name,
             columnAttribute,
             isNullable,

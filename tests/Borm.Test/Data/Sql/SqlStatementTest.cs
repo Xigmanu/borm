@@ -28,7 +28,6 @@ public sealed class SqlStatementTest
 
         // Assert
         mockCommand.VerifySet(c => c.CommandText = sql);
-        mockParams.Verify(c => c.Clear(), Times.Once);
         mockParams.Verify(c => c.Add(It.IsAny<object>()), Times.Exactly(2));
         mockCommand.Verify(c => c.Prepare(), Times.Once);
     }

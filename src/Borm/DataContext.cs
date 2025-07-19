@@ -1,6 +1,5 @@
 ﻿using System.Data;
 using System.Diagnostics;
-using System.Reflection;
 using Borm.Data;
 using Borm.Properties;
 using Borm.Reflection;
@@ -53,63 +52,48 @@ public sealed class DataContext : IDisposable
         NodeDataTable? table = _dataSet.Tables[node.Name] as NodeDataTable;
         Debug.Assert(table != null);
 
-        return new NodeDataTableRepository<T>(table, _nodeGraph);
+        return new EntityRepository<T>(table, _nodeGraph);
     }
 
-    public void Initialize(Assembly entitySource)
+    public void Initialize()
     {
-        using IDbConnection connection = _configuration.DbConnectionSupplier();
-        try
+        IEnumerable<ReflectedTypeInfo> typeInfos = _configuration.Model.GetReflectedInfo();
+        if (!typeInfos.Any())
         {
-            IEnumerable<Type> entityTypes = EntityTypeResolver.GetTypes(
-                entitySource.GetExportedTypes()
-            );
-            if (!entityTypes.Any())
-            {
-                return;
-            }
-
-            List<EntityNode> entityNodes = new(entityTypes.Count());
-            EntityMetadataParser parser = new();
-            foreach (Type entityType in entityTypes)
-            {
-                ReflectedEntityInfo reflectedEntity = parser.Parse(entityType);
-                EntityNode node = EntityNodeFactory.Create(reflectedEntity);
-
-                BindingInfo bindingInfo = new(entityType, node.Columns);
-                node.Binding = bindingInfo.CreateBinding();
-
-                entityNodes.Add(node);
-            }
-
-            EntityNodeValidator validator = new(entityNodes);
-            entityNodes.ForEach(node =>
-            {
-                if (!validator.IsValid(node, out Exception? exception))
-                {
-                    throw exception;
-                }
-            });
-
-            _nodeGraph = EntityNodeGraphFactory.Create(entityNodes);
-            new EntityGraphDataSetMapper(_nodeGraph).LoadMapping(_dataSet);
-
-            connection.Open();
-
-            BormDataAdapter dataAdapter = new(
-                connection.CreateCommand(),
-                _nodeGraph,
-                _configuration.SqlStatementFactory
-            );
-            dataAdapter.CreateTables(_dataSet);
-
-            OnInitialized();
+            return;
         }
-        catch
+
+        List<EntityNode> entityNodes = new(typeInfos.Count());
+        foreach (ReflectedTypeInfo typeInfo in typeInfos)
         {
-            connection.Close();
-            throw;
+            EntityNode node = EntityNodeFactory.Create(typeInfo);
+
+            BindingInfo bindingInfo = new(typeInfo.Type, node.Columns);
+            node.Binding = bindingInfo.CreateBinding();
+
+            entityNodes.Add(node);
         }
+
+        EntityNodeValidator validator = new(entityNodes);
+        entityNodes.ForEach(node =>
+        {
+            if (!validator.IsValid(node, out Exception? exception))
+            {
+                throw exception;
+            }
+        });
+
+        _nodeGraph = EntityNodeGraphFactory.Create(entityNodes);
+        new EntityGraphDataSetMapper(_nodeGraph).LoadMapping(_dataSet);
+
+        BormDataAdapter dataAdapter = new(
+            _configuration.CommandExecutor,
+            _nodeGraph,
+            _configuration.SqlStatementFactory
+        );
+        dataAdapter.CreateTables(_dataSet);
+
+        OnInitialized();
     }
 
     public void RejectChanges()
@@ -128,14 +112,13 @@ public sealed class DataContext : IDisposable
             throw new InvalidOperationException(Strings.DataContextNotInitialized());
         }
 
-        using IDbConnection connection = _configuration.DbConnectionSupplier();
-        connection.Open();
-        using IDbCommand command = connection.CreateCommand();
-
-        BormDataAdapter dataAdapter = new(command, _nodeGraph, _configuration.SqlStatementFactory);
+        BormDataAdapter dataAdapter = new(
+            _configuration.CommandExecutor,
+            _nodeGraph,
+            _configuration.SqlStatementFactory
+        );
         dataAdapter.Update(_dataSet);
         _dataSet.AcceptChanges();
-        connection.Close();
     }
 
     private void OnInitialized()

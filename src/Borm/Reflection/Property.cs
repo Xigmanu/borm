@@ -2,9 +2,9 @@
 
 namespace Borm.Reflection;
 
-internal sealed class EntityProperty
+internal sealed class Property
 {
-    public EntityProperty(string name, ColumnAttribute attribute, bool isNullable, Type type)
+    public Property(string name, ColumnAttribute attribute, bool isNullable, Type type)
     {
         Name = name;
         Attribute = attribute;

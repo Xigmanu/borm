@@ -13,23 +13,23 @@ public sealed class EntityNodeFactoryTest
         Type type = typeof(EntityNodeFactoryTest);
         EntityAttribute attribute = new("foo");
 
-        EntityProperty pKColumn = new("id", new PrimaryKeyAttribute(0), false, typeof(int));
-        EntityProperty columnUsrName = new(
+        Property pKColumn = new("id", new PrimaryKeyAttribute(0), false, typeof(int));
+        Property columnUsrName = new(
             "V",
             new ColumnAttribute(1, "value0"),
             false,
             typeof(string)
         );
-        EntityProperty columnAutoName = new("Value1", new ColumnAttribute(2), true, typeof(string));
-        EntityProperty fkColumn = new(
+        Property columnAutoName = new("Value1", new ColumnAttribute(2), true, typeof(string));
+        Property fkColumn = new(
             "FkColumn",
             new ForeignKeyAttribute(3, typeof(decimal)),
             true,
             typeof(int)
         );
 
-        EntityProperty[] columns = [pKColumn, columnUsrName, columnAutoName, fkColumn];
-        ReflectedEntityInfo reflectedInfo = new(type, attribute, columns);
+        Property[] columns = [pKColumn, columnUsrName, columnAutoName, fkColumn];
+        ReflectedTypeInfo reflectedInfo = new(type, attribute, columns);
 
         // Act
         EntityNode node = EntityNodeFactory.Create(reflectedInfo);
@@ -41,7 +41,7 @@ public sealed class EntityNodeFactoryTest
         Assert.Equal(columns.Length, node.Columns.Count);
         for (int i = 0; i < columns.Length; i++)
         {
-            EntityProperty column = columns[i];
+            Property column = columns[i];
             ColumnInfo actual = node.Columns.ElementAt(i);
 
             Assert.Equal(column.Name, actual.PropertyName);

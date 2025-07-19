@@ -3,7 +3,7 @@ using static Borm.Tests.Mocks.EntityMetadataParserTestMocks;
 
 namespace Borm.Tests.Reflection;
 
-public sealed class EntityMetadataParserTest
+public sealed class MetadataParserTest
 {
     [Fact]
     public void Parse_ReturnsReflectedInfo_WithValidEntity()
@@ -16,17 +16,17 @@ public sealed class EntityMetadataParserTest
             ["Id", typeof(int), false],
             ["Name", typeof(string), true],
         ];
-        EntityMetadataParser parser = new();
+        MetadataParser parser = new();
 
         // Act
-        ReflectedEntityInfo reflectedInfo = parser.Parse(entityType);
+        ReflectedTypeInfo reflectedInfo = parser.Parse(entityType);
 
         // Assert
         Assert.Equal(entityType, reflectedInfo.Type);
         Assert.Equal(numColumns, reflectedInfo.Properties.Count());
         for (int i = 0; i < expectedPropData.Length; i++)
         {
-            EntityProperty property = reflectedInfo.Properties.ElementAt(i);
+            Property property = reflectedInfo.Properties.ElementAt(i);
 
             object[] expected = expectedPropData[i];
             Assert.Equal(expected[0], property.Name);
@@ -39,8 +39,8 @@ public sealed class EntityMetadataParserTest
     public void Parse_ThrowsMemberAccessException_WhenEntityIsNotDecoratedWithEntityAttribute()
     {
         // Arrange
-        Type entityType = typeof(EntityMetadataParserTest);
-        EntityMetadataParser parser = new();
+        Type entityType = typeof(MetadataParserTest);
+        MetadataParser parser = new();
 
         // Act
         Exception exception = Record.Exception(() => _ = parser.Parse(entityType));

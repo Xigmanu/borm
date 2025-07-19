@@ -20,14 +20,20 @@ public sealed class SqlStatement
     public DbParameter[] Parameters => _parameters;
     public string Sql => _sql;
 
-    internal void PrepareCommand(IDbCommand dbCommand)
+    public void PrepareCommand(IDbCommand dbCommand)
     {
         dbCommand.CommandText = _sql;
-        dbCommand.Parameters.Clear();
-        DbParameter[] parameters = _parameters;
-        for (int i = 0; i < parameters.Length; i++)
+        IDataParameterCollection cmdParameters = dbCommand.Parameters;
+        for (int i = 0; i < _parameters.Length; i++)
         {
-            dbCommand.Parameters.Add(parameters[i]);
+            if (cmdParameters.Contains(_parameters[i].ParameterName))
+            {
+                cmdParameters[i] = _parameters[i].Value;
+            }
+            else
+            {
+                cmdParameters.Add(_parameters[i]);
+            }
         }
         dbCommand.Prepare();
     }

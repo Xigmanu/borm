@@ -5,7 +5,7 @@ namespace Borm.Schema.Metadata;
 
 internal static class EntityNodeFactory
 {
-    public static EntityNode Create(ReflectedEntityInfo entityInfo)
+    public static EntityNode Create(ReflectedTypeInfo entityInfo)
     {
         EntityAttribute entityAttribute = entityInfo.Attribute;
         string name = entityAttribute.Name ?? CreateDefaultName(entityInfo.Type.Name);
@@ -18,7 +18,7 @@ internal static class EntityNodeFactory
         return new EntityNode(name, entityInfo.Type, columnCollection);
     }
 
-    private static ColumnInfo CreateColumnInfo(EntityProperty property)
+    private static ColumnInfo CreateColumnInfo(Property property)
     {
         ColumnAttribute columnAttribute = property.Attribute;
 
@@ -56,7 +56,7 @@ internal static class EntityNodeFactory
             : null;
     }
 
-    private static Constraints GetConstraints(EntityProperty property)
+    private static Constraints GetConstraints(Property property)
     {
         Constraints constraints = Constraints.None;
         ColumnAttribute attribute = property.Attribute;

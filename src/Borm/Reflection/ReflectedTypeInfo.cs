@@ -2,12 +2,12 @@
 
 namespace Borm.Reflection;
 
-internal sealed class ReflectedEntityInfo
+internal sealed class ReflectedTypeInfo
 {
-    public ReflectedEntityInfo(
+    public ReflectedTypeInfo(
         Type type,
         EntityAttribute attribute,
-        IEnumerable<EntityProperty> properties
+        IEnumerable<Property> properties
     )
     {
         Type = type;
@@ -16,6 +16,6 @@ internal sealed class ReflectedEntityInfo
     }
 
     public EntityAttribute Attribute { get; }
-    public IEnumerable<EntityProperty> Properties { get; }
+    public IEnumerable<Property> Properties { get; }
     public Type Type { get; }
 }
