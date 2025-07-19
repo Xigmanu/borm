@@ -39,6 +39,7 @@ public sealed class EntityGraphDataSetMapperTest
                 Assert.Equal(expectedColumn.ColumnName, actualColumn.ColumnName);
                 Assert.Equal(expectedColumn.DataType, actualColumn.DataType);
                 Assert.Equal(expectedColumn.AllowDBNull, actualColumn.AllowDBNull);
+                Assert.Equal(expectedColumn.Unique, actualColumn.Unique);
             }
         }
 
@@ -106,7 +107,7 @@ public sealed class EntityGraphDataSetMapperTest
         private static EntityNode CreateSimpleNode()
         {
             ColumnInfo pk0 = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-            ColumnInfo name0 = new(1, "name", "Name", typeof(string), Constraints.None, null);
+            ColumnInfo name0 = new(1, "name", "Name", typeof(string), Constraints.Unique, null);
             ColumnInfo comment0 = new(
                 2,
                 "comment",

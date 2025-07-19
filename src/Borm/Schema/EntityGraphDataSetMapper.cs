@@ -53,6 +53,7 @@ internal sealed class EntityGraphDataSetMapper
             DataColumn foreignKey = new($"{fkColumnInfo.Name}", parentPrimaryKey.DataType)
             {
                 AllowDBNull = fkColumnInfo.Constraints.HasFlag(Constraints.AllowDbNull),
+                Unique = fkColumnInfo.Constraints.HasFlag(Constraints.Unique),
             };
             table.Columns.Add(foreignKey);
 
