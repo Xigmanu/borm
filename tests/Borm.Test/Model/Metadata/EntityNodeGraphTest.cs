@@ -1,5 +1,4 @@
 ﻿using Borm.Model.Metadata;
-using Borm.Schema.Metadata;
 
 namespace Borm.Tests.Model.Metadata;
 

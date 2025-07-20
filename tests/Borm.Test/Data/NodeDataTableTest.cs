@@ -1,7 +1,6 @@
 ﻿using System.Data;
 using Borm.Data;
 using Borm.Model.Metadata;
-using Borm.Schema.Metadata;
 
 namespace Borm.Tests.Data;
 
