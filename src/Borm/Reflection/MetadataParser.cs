@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 using Borm.Extensions;
-using Borm.Schema;
+using Borm.Model;
 
 namespace Borm.Reflection;
 

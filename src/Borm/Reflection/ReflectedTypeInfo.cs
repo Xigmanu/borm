@@ -1,4 +1,4 @@
-﻿using Borm.Schema;
+﻿using Borm.Model;
 
 namespace Borm.Reflection;
 

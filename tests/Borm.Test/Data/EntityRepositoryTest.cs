@@ -1,5 +1,5 @@
 ﻿using Borm.Data;
-using Borm.Schema.Metadata;
+using Borm.Model.Metadata;
 using System.Data;
 using static Borm.Tests.Mocks.NodeDataTableRepositoryTestMocks;
 

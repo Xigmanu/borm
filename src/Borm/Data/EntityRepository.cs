@@ -1,6 +1,6 @@
 ﻿using System.Data;
+using Borm.Model.Metadata;
 using Borm.Properties;
-using Borm.Schema.Metadata;
 
 namespace Borm.Data;
 
@@ -91,6 +91,8 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         ArgumentNullException.ThrowIfNull(entity);
 
         EntityNode node = _table.Node;
+        node.Validator?.Invoke(entity);
+
         ValueBuffer buffer = node.Binding.ConvertToValueBuffer(entity);
         ColumnInfo primaryKey = node.GetPrimaryKey();
 
@@ -139,6 +141,8 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     private object InsertRecursively(NodeDataTable table, object entity)
     {
         EntityNode node = table.Node;
+        node.Validator?.Invoke(entity);
+
         ValueBuffer buffer = node.Binding.ConvertToValueBuffer(entity);
         ColumnInfo primaryKey = node.GetPrimaryKey();
 

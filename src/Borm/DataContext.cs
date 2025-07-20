@@ -1,10 +1,10 @@
 ﻿using System.Data;
 using System.Diagnostics;
 using Borm.Data;
+using Borm.Model;
+using Borm.Model.Metadata;
 using Borm.Properties;
 using Borm.Reflection;
-using Borm.Schema;
-using Borm.Schema.Metadata;
 
 namespace Borm;
 
@@ -57,7 +57,8 @@ public sealed class DataContext : IDisposable
 
     public void Initialize()
     {
-        IEnumerable<ReflectedTypeInfo> typeInfos = _configuration.Model.GetReflectedInfo();
+        EntityModel model = _configuration.Model;
+        IEnumerable<ReflectedTypeInfo> typeInfos = model.GetReflectedInfo();
         if (!typeInfos.Any())
         {
             return;
@@ -70,6 +71,7 @@ public sealed class DataContext : IDisposable
 
             BindingInfo bindingInfo = new(typeInfo.Type, node.Columns);
             node.Binding = bindingInfo.CreateBinding();
+            node.Validator = model.GetValidatorFunc(typeInfo.Type);
 
             entityNodes.Add(node);
         }

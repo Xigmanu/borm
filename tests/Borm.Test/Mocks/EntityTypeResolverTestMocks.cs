@@ -1,4 +1,4 @@
-﻿using Borm.Schema;
+﻿using Borm.Model;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Borm.Tests.Mocks;

@@ -93,6 +93,14 @@ public static class Strings
     }
 
     /// <summary>
+    /// Entity types must be decorated with the 'EntityAttribute'.
+    /// </summary>
+    public static string NotDecoratedEntityType()
+    {
+        return GetString(formatArgs: null);
+    }
+
+    /// <summary>
     /// Missing SQL parameter for required column '{columnName}' in table '{tableName}'.
     /// </summary>
     public static string SqlStatementParameterRowMapping(string columnName, string tableName)

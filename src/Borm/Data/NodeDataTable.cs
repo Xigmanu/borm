@@ -1,14 +1,14 @@
 ﻿using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Borm.Schema.Metadata;
+using Borm.Model.Metadata;
 
 namespace Borm.Data;
 
 [DebuggerTypeProxy(typeof(NodeDataTableDebugView))]
 internal sealed class NodeDataTable : DataTable
 {
-    private readonly EntityObjectCache _entityCache;
+    private readonly ObjectCache _entityCache;
     private readonly EntityNode _node;
 
     public NodeDataTable()
@@ -28,7 +28,7 @@ internal sealed class NodeDataTable : DataTable
     private NodeDataTable(NodeDataTable original)
         : this(original.TableName, original._node) { }
 
-    internal EntityObjectCache EntityCache => _entityCache;
+    internal ObjectCache EntityCache => _entityCache;
     internal EntityNode Node => _node;
 
     public new NodeDataTable Copy()
