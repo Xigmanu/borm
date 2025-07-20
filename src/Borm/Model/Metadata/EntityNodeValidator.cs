@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Borm.Schema.Metadata;
+namespace Borm.Model.Metadata;
 
 internal sealed class EntityNodeValidator
 {

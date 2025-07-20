@@ -1,4 +1,4 @@
-﻿namespace Borm.Schema;
+﻿namespace Borm.Model;
 
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
 public sealed class PrimaryKeyAttribute : ColumnAttribute

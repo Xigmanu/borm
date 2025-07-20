@@ -1,8 +1,8 @@
-﻿using Borm.Reflection;
-using Borm.Schema;
-using Borm.Schema.Metadata;
+﻿using Borm.Model;
+using Borm.Model.Metadata;
+using Borm.Reflection;
 
-namespace Borm.Tests.Schema.Metadata;
+namespace Borm.Tests.Model.Metadata;
 
 public sealed class EntityNodeFactoryTest
 {

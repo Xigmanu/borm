@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
-using Borm.Schema.Metadata;
+using Borm.Model.Metadata;
 using static Borm.Tests.Mocks.ConstructorSelectorTestMocks;
 
-namespace Borm.Tests.Schema.Metadata;
+namespace Borm.Tests.Model.Metadata;
 
 public sealed class ConstructorSelectorTest
 {

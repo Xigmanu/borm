@@ -1,9 +1,9 @@
 ﻿using System.Data;
 using Borm.Data;
-using Borm.Schema;
-using Borm.Schema.Metadata;
+using Borm.Model;
+using Borm.Model.Metadata;
 
-namespace Borm.Tests.Schema;
+namespace Borm.Tests.Model;
 
 public sealed class EntityGraphDataSetMapperTest
 {

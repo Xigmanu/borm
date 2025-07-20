@@ -1,7 +1,7 @@
 ﻿using System.Data;
-using Borm.Schema.Metadata;
+using Borm.Model.Metadata;
 
-namespace Borm.Tests.Schema.Metadata;
+namespace Borm.Tests.Model.Metadata;
 
 public sealed class EntityNodeValidatorTest
 {

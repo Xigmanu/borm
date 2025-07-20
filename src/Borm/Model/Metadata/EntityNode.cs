@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using Borm.Properties;
 
-namespace Borm.Schema.Metadata;
+namespace Borm.Model.Metadata;
 
 [DebuggerDisplay("Name = {Name}, DataType = {DataType.FullName}")]
 internal sealed class EntityNode

@@ -1,7 +1,7 @@
 ﻿using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Borm.Schema.Metadata;
+using Borm.Model.Metadata;
 
 namespace Borm.Data;
 

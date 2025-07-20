@@ -1,4 +1,4 @@
-﻿namespace Borm.Schema.Metadata;
+﻿namespace Borm.Model.Metadata;
 
 internal sealed class ColumnInfo
 {

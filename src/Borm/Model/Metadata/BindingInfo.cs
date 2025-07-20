@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Borm.Extensions;
 
-namespace Borm.Schema.Metadata;
+namespace Borm.Model.Metadata;
 
 [DebuggerTypeProxy(typeof(BindingInfoDebugView))]
 internal sealed class BindingInfo

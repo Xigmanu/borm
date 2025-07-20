@@ -2,7 +2,7 @@
 using System.Reflection;
 using Borm.Properties;
 
-namespace Borm.Schema.Metadata;
+namespace Borm.Model.Metadata;
 
 internal sealed class EntityConstructorSelector
 {

@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Runtime.CompilerServices;
 
-namespace Borm.Schema.Metadata;
+namespace Borm.Model.Metadata;
 
 internal sealed class ColumnInfoCollection : IReadOnlyCollection<ColumnInfo>
 {

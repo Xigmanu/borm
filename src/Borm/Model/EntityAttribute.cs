@@ -1,4 +1,4 @@
-﻿namespace Borm.Schema;
+﻿namespace Borm.Model;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public sealed class EntityAttribute : Attribute

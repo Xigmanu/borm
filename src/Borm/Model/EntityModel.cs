@@ -2,7 +2,7 @@
 using Borm.Properties;
 using Borm.Reflection;
 
-namespace Borm.Schema;
+namespace Borm.Model;
 
 public sealed class EntityModel
 {

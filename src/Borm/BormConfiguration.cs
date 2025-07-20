@@ -1,5 +1,5 @@
 ﻿using Borm.Data.Sql;
-using Borm.Schema;
+using Borm.Model;
 
 namespace Borm;
 

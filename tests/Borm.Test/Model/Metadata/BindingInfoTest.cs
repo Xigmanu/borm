@@ -1,4 +1,4 @@
-﻿namespace Borm.Tests.Schema.Metadata;
+﻿namespace Borm.Tests.Model.Metadata;
 public sealed class BindingInfoTest
 {
 

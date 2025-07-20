@@ -1,6 +1,6 @@
 ﻿using Borm.Properties;
 
-namespace Borm.Schema;
+namespace Borm.Model;
 
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
 public class ColumnAttribute : Attribute

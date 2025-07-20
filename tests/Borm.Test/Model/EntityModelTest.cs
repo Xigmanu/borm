@@ -1,7 +1,7 @@
-﻿using Borm.Reflection;
-using Borm.Schema;
+﻿using Borm.Model;
+using Borm.Reflection;
 
-namespace Borm.Tests.Schema;
+namespace Borm.Tests.Model;
 
 public sealed class EntityModelTest
 {

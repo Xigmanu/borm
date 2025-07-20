@@ -1,8 +1,8 @@
 ﻿using System.Data;
 using Borm.Data;
-using Borm.Schema.Metadata;
+using Borm.Model.Metadata;
 
-namespace Borm.Schema;
+namespace Borm.Model;
 
 internal sealed class EntityGraphDataSetMapper
 {

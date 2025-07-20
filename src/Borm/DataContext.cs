@@ -1,10 +1,10 @@
 ﻿using System.Data;
 using System.Diagnostics;
 using Borm.Data;
+using Borm.Model;
+using Borm.Model.Metadata;
 using Borm.Properties;
 using Borm.Reflection;
-using Borm.Schema;
-using Borm.Schema.Metadata;
 
 namespace Borm;
 

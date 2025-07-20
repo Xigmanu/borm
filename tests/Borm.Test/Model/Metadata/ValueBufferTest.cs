@@ -1,7 +1,8 @@
 ﻿using System.Data;
+using Borm.Model.Metadata;
 using Borm.Schema.Metadata;
 
-namespace Borm.Tests.Schema.Metadata;
+namespace Borm.Tests.Model.Metadata;
 
 public sealed class ValueBufferTest
 {

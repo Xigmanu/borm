@@ -2,7 +2,7 @@
 using System.Data;
 using System.Runtime.CompilerServices;
 
-namespace Borm.Schema.Metadata;
+namespace Borm.Model.Metadata;
 
 internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object>>
 {
