@@ -1,6 +1,6 @@
 ﻿namespace Borm.Data;
 
-internal sealed class EntityObjectCache
+internal sealed class ObjectCache
 {
     private readonly Dictionary<object, object> _pkEntityMap = [];
 

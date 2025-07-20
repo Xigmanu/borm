@@ -2,7 +2,7 @@
 
 namespace Borm.Tests.Data;
 
-public sealed class EntityObjectCacheTest
+public sealed class ObjectCacheTest
 {
     [Fact]
     public void Add_ShouldMapPrimaryKeyValueToEntity_WithPrimaryKeyAndEntityObject()
@@ -11,7 +11,7 @@ public sealed class EntityObjectCacheTest
         object primaryKey = 1;
         object entity = "foo";
 
-        EntityObjectCache cache = new();
+        ObjectCache cache = new();
 
         // Act
         cache.Add(primaryKey, entity);
@@ -30,7 +30,7 @@ public sealed class EntityObjectCacheTest
         object primaryKey = 1;
         object entity = "foo";
 
-        EntityObjectCache cache = new();
+        ObjectCache cache = new();
         cache.Add(primaryKey, entity);
 
         // Act
@@ -47,7 +47,7 @@ public sealed class EntityObjectCacheTest
         object primaryKey = 1;
         object entity = "foo";
 
-        EntityObjectCache cache = new();
+        ObjectCache cache = new();
         cache.Add(primaryKey, entity);
 
         // Act
@@ -64,7 +64,7 @@ public sealed class EntityObjectCacheTest
         object primaryKey = 1;
         object entity = "foo";
 
-        EntityObjectCache cache = new();
+        ObjectCache cache = new();
         cache.Add(primaryKey, entity);
 
         // Act
@@ -82,7 +82,7 @@ public sealed class EntityObjectCacheTest
         object entity = "foo";
         object newEntity = "bar";
 
-        EntityObjectCache cache = new();
+        ObjectCache cache = new();
         cache.Add(primaryKey, entity);
 
         // Act
