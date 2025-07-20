@@ -52,18 +52,40 @@ internal sealed class BormDataAdapter
         for (int i = 0; i < sorted.Length; i++)
         {
             DataTable table = dataSet.Tables[sorted[i].Name]!;
-            List<SqlStatement> statements = CreateUpdateStatements((NodeDataTable)table);
-            statements.ForEach(_executor.ExecuteNonQuery);
+            IEnumerable<SqlStatement> statements = CreateUpdateStatements((NodeDataTable)table);
+            foreach (SqlStatement statement in statements)
+            {
+                _executor.ExecuteNonQuery(statement);
+            }
         }
     }
 
-    private List<SqlStatement> CreateUpdateStatements(NodeDataTable table)
+    private static SqlStatement GetOrCreateSqlStatement(
+        DataTable changes,
+        DataRow row,
+        Dictionary<DataRowState, SqlStatement> rowStateStatements,
+        Func<DataTable, SqlStatement> factoryMethod
+    )
+    {
+        if (rowStateStatements.TryGetValue(row.RowState, out SqlStatement? cached))
+        {
+            return cached;
+        }
+
+        SqlStatement statement = factoryMethod(changes);
+        rowStateStatements[row.RowState] = statement;
+        return statement;
+    }
+
+    private Dictionary<DataRowState, SqlStatement>.ValueCollection CreateUpdateStatements(
+        NodeDataTable table
+    )
     {
         DataTable? changes = table.GetChanges();
-        List<SqlStatement> statements = [];
+        Dictionary<DataRowState, SqlStatement> rowStateStatements = [];
         if (changes == null)
         {
-            return statements;
+            return rowStateStatements.Values;
         }
 
         foreach (DataRow row in changes.Rows)
@@ -78,13 +100,28 @@ internal sealed class BormDataAdapter
             switch (row.RowState)
             {
                 case DataRowState.Added:
-                    statement = _statementFactory.NewInsertStatement(changes);
+                    statement = GetOrCreateSqlStatement(
+                        changes,
+                        row,
+                        rowStateStatements,
+                        _statementFactory.NewInsertStatement
+                    );
                     break;
                 case DataRowState.Modified:
-                    statement = _statementFactory.NewUpdateStatement(changes);
+                    statement = GetOrCreateSqlStatement(
+                        changes,
+                        row,
+                        rowStateStatements,
+                        _statementFactory.NewUpdateStatement
+                    );
                     break;
                 case DataRowState.Deleted:
-                    statement = _statementFactory.NewDeleteStatement(changes);
+                    statement = GetOrCreateSqlStatement(
+                        changes,
+                        row,
+                        rowStateStatements,
+                        _statementFactory.NewDeleteStatement
+                    );
                     deletedRowClone = ((BormDataSet)table.DataSet!).GetDeletedRowClone(
                         table,
                         changes.Rows.IndexOf(row)
@@ -95,11 +132,9 @@ internal sealed class BormDataAdapter
             }
 
             Debug.Assert(!string.IsNullOrEmpty(statement.Sql));
-            statement.SetParameters(deletedRowClone ?? row);
-
-            statements.Add(statement);
+            statement.BatchQueue.AddFromRow(deletedRowClone ?? row);
         }
 
-        return statements;
+        return rowStateStatements.Values;
     }
 }

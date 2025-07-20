@@ -8,89 +8,58 @@ namespace Borm.Tests.Data.Sql;
 public sealed class SqlStatementTest
 {
     [Fact]
-    public void PrepareCommand_ShouldSetCommandTextAndAddParameters()
+    public void Constructor_ShouldInitializeBatchQueue()
+    {
+        // Act
+        SqlStatement statement = new(string.Empty, []);
+
+        // Assert
+        Assert.NotNull(statement.BatchQueue);
+    }
+
+    [Fact]
+    public void Prepare_ShouldSetCommandTextAndAddParameters()
     {
         // Arrange
-        Mock<IDbCommand> mockCommand = new();
-        Mock<IDataParameterCollection> mockParams = new();
-
-        DbParameter[] parameters = [CreateParameter("$id", 1), CreateParameter("$name", "Alice")];
-
-        mockCommand.SetupAllProperties();
-        mockCommand.Setup(c => c.Parameters).Returns(mockParams.Object);
-
-        string sql = "INSERT INTO table VALUES($id, $name);";
+        string sql = "INSERT INTO person VALUES ($id, $name);";
+        DbParameter[] parameters =
+        [
+            CreateParameter("id", DbType.Int32),
+            CreateParameter("name", DbType.String),
+        ];
 
         SqlStatement statement = new(sql, parameters);
 
+        Mock<IDbCommand> mockCommand = new();
+        Mock<IDataParameterCollection> mockParams = new();
+
+        int addCalls = 0;
+
+        mockParams.Setup(p => p.Clear());
+        mockParams
+            .Setup(p => p.Add(It.IsAny<IDbDataParameter>()))
+            .Callback<object>(_ => addCalls++);
+
+        mockCommand.Setup(c => c.Parameters).Returns(mockParams.Object);
+        mockCommand.SetupProperty(c => c.CommandText);
+        mockCommand.Setup(c => c.Prepare());
+
         // Act
-        statement.PrepareCommand(mockCommand.Object);
+        statement.Prepare(mockCommand.Object);
 
         // Assert
-        mockCommand.VerifySet(c => c.CommandText = sql);
-        mockParams.Verify(c => c.Add(It.IsAny<object>()), Times.Exactly(2));
+        Assert.Equal(sql, mockCommand.Object.CommandText);
+        mockParams.Verify(p => p.Clear(), Times.Once);
+        Assert.Equal(2, addCalls);
         mockCommand.Verify(c => c.Prepare(), Times.Once);
     }
 
-    [Fact]
-    public void SetParameters_ShouldSetValuesFromDataRow()
-    {
-        // Arrange
-        int id = 1;
-        string name = "Alice";
-
-        DataTable table = new();
-        table.Columns.Add("id", typeof(int));
-        table.Columns.Add("name", typeof(string));
-
-        DataRow row = table.NewRow();
-        row["id"] = id;
-        row["name"] = name;
-        table.Rows.Add(row);
-
-        // Missing parameter prefix is intentional
-        DbParameter[] parameters = [CreateParameter("id", null), CreateParameter("$name", null)];
-
-        SqlStatement statement = new("some", parameters);
-
-        // Act
-        statement.SetParameters(row);
-
-        // Assert
-        Assert.Equal(id, parameters[0].Value);
-        Assert.Equal(name, parameters[1].Value);
-    }
-
-    [Fact]
-    public void SetParameters_ThrowsInvalidOperationException_WhenColumnIsMissing()
-    {
-        // Arrange
-        int id = 1;
-
-        DataTable table = new();
-        table.Columns.Add("id", typeof(int));
-
-        DataRow row = table.NewRow();
-        row["id"] = id;
-        table.Rows.Add(row);
-
-        DbParameter[] parameters = [CreateParameter("$id", null), CreateParameter("$name", null)];
-
-        SqlStatement statement = new("some", parameters);
-
-        // Act
-        Exception exception = Record.Exception(() => statement.SetParameters(row));
-
-        // Assert
-        Assert.IsType<InvalidOperationException>(exception);
-    }
-
-    private static DbParameter CreateParameter(string name, object? value)
+    private static DbParameter CreateParameter(string name, DbType type)
     {
         Mock<DbParameter> mockParam = new();
         mockParam.SetupAllProperties();
         mockParam.Object.ParameterName = name;
-        mockParam.Object.Value = value;
+        mockParam.Object.DbType = type;
         return mockParam.Object;
     }
 }

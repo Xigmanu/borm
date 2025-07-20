@@ -1,7 +1,5 @@
 ﻿using System.Data;
 using System.Data.Common;
-using System.Runtime.CompilerServices;
-using Borm.Properties;
 
 namespace Borm.Data.Sql;
 
@@ -15,50 +13,22 @@ public sealed class SqlStatement
     {
         _sql = sql;
         _parameters = parameters;
+        BatchQueue = new();
     }
 
+    public ParameterBatchQueue BatchQueue { get; }
     public DbParameter[] Parameters => _parameters;
     public string Sql => _sql;
 
-    public void PrepareCommand(IDbCommand dbCommand)
+    public void Prepare(IDbCommand dbCommand)
     {
         dbCommand.CommandText = _sql;
         IDataParameterCollection cmdParameters = dbCommand.Parameters;
+        cmdParameters.Clear();
         for (int i = 0; i < _parameters.Length; i++)
         {
-            if (cmdParameters.Contains(_parameters[i].ParameterName))
-            {
-                cmdParameters[i] = _parameters[i].Value;
-            }
-            else
-            {
-                cmdParameters.Add(_parameters[i]);
-            }
+            cmdParameters.Add(_parameters[i]);
         }
         dbCommand.Prepare();
-    }
-
-    internal void SetParameters(DataRow row)
-    {
-        DataTable table = row.Table;
-        DataColumnCollection columns = table.Columns;
-        for (int i = 0; i < Parameters.Length; i++)
-        {
-            DbParameter current = Parameters[i];
-            string columnName = GetColumnNameFromParameterName(current.ParameterName);
-            if (columns[columnName] == null)
-            {
-                throw new InvalidOperationException(
-                    Strings.SqlStatementParameterRowMapping(columnName, table.TableName)
-                );
-            }
-            current.Value = row[columnName];
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static string GetColumnNameFromParameterName(string parameterName)
-    {
-        return parameterName[0] == DefaultParameterPrefix ? parameterName[1..] : parameterName;
     }
 }

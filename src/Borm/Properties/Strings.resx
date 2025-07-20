@@ -126,6 +126,9 @@
   <data name="EntityTypeCannotBeAbstract" xml:space="preserve">
     <value>The entity type '{0}' cannot be abstract.</value>
   </data>
+  <data name="EntityValidationFailed" xml:space="preserve">
+    <value>Validation failed for entity type '{0}'.</value>
+  </data>
   <data name="InvalidColumnIndex" xml:space="preserve">
     <value>Column index cannot be lesser than zero.</value>
   </data>

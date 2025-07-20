@@ -23,8 +23,22 @@ public sealed class SqliteCommandExecutor : IDbStatementExecutor
 
         try
         {
-            statement.PrepareCommand(command);
-            _ = command.ExecuteNonQuery();
+            statement.Prepare(command);
+
+            ParameterBatchQueue batchQueue = statement.BatchQueue;
+            if (batchQueue.Count > 0)
+            {
+                while (batchQueue.Next())
+                {
+                    batchQueue.SetParameterValues(command);
+                    _ = command.ExecuteNonQuery();
+                }
+            }
+            else
+            {
+                _ = command.ExecuteNonQuery();
+            }
+
             transaction.Commit();
         }
         catch
@@ -47,7 +61,7 @@ public sealed class SqliteCommandExecutor : IDbStatementExecutor
         connection.Open();
         try
         {
-            statement.PrepareCommand(command);
+            statement.Prepare(command);
             dataReader = command.ExecuteReader();
         }
         catch
