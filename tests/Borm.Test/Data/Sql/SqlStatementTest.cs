@@ -33,35 +33,6 @@ public sealed class SqlStatementTest
     }
 
     [Fact]
-    public void SetParameters_ShouldSetValuesFromDataRow()
-    {
-        // Arrange
-        int id = 1;
-        string name = "Alice";
-
-        DataTable table = new();
-        table.Columns.Add("id", typeof(int));
-        table.Columns.Add("name", typeof(string));
-
-        DataRow row = table.NewRow();
-        row["id"] = id;
-        row["name"] = name;
-        table.Rows.Add(row);
-
-        // Missing parameter prefix is intentional
-        DbParameter[] parameters = [CreateParameter("id", null), CreateParameter("$name", null)];
-
-        SqlStatement statement = new("some", parameters);
-
-        // Act
-        statement.SetParameters(row);
-
-        // Assert
-        Assert.Equal(id, parameters[0].Value);
-        Assert.Equal(name, parameters[1].Value);
-    }
-
-    [Fact]
     public void SetParameters_ThrowsInvalidOperationException_WhenColumnIsMissing()
     {
         // Arrange
@@ -79,7 +50,7 @@ public sealed class SqlStatementTest
         SqlStatement statement = new("some", parameters);
 
         // Act
-        Exception exception = Record.Exception(() => statement.SetParameters(row));
+        Exception exception = Record.Exception(() => statement.AddBatchValues(row));
 
         // Assert
         Assert.IsType<InvalidOperationException>(exception);

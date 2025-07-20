@@ -24,7 +24,20 @@ public sealed class SqliteCommandExecutor : IDbStatementExecutor
         try
         {
             statement.PrepareCommand(command);
-            _ = command.ExecuteNonQuery();
+
+            if (statement.BatchValuesCount > 0)
+            {
+                for (int i = 0; i < statement.BatchValuesCount; i++)
+                {
+                    statement.SetDbParameters(command, i);
+                    _ = command.ExecuteNonQuery();
+                }
+            }
+            else
+            {
+                _ = command.ExecuteNonQuery();
+            }
+
             transaction.Commit();
         }
         catch

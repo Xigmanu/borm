@@ -8,6 +8,7 @@ namespace Borm.Data.Sql;
 public sealed class SqlStatement
 {
     public const char DefaultParameterPrefix = '$';
+    private readonly List<object?[]> _batchValues;
     private readonly DbParameter[] _parameters;
     private readonly string _sql;
 
@@ -15,45 +16,51 @@ public sealed class SqlStatement
     {
         _sql = sql;
         _parameters = parameters;
+        _batchValues = [];
     }
 
+    public int BatchValuesCount => _batchValues.Count;
     public DbParameter[] Parameters => _parameters;
     public string Sql => _sql;
 
-    public void PrepareCommand(IDbCommand dbCommand)
+    public void PrepareCommand(DbCommand dbCommand)
     {
         dbCommand.CommandText = _sql;
         IDataParameterCollection cmdParameters = dbCommand.Parameters;
+        cmdParameters.Clear();
         for (int i = 0; i < _parameters.Length; i++)
         {
-            if (cmdParameters.Contains(_parameters[i].ParameterName))
-            {
-                cmdParameters[i] = _parameters[i].Value;
-            }
-            else
-            {
-                cmdParameters.Add(_parameters[i]);
-            }
+            cmdParameters.Add(_parameters[i]);
         }
         dbCommand.Prepare();
     }
 
-    internal void SetParameters(DataRow row)
+    public void SetDbParameters(DbCommand dbCommand, int idx)
+    {
+        object?[] values = _batchValues[idx];
+        for (int i = 0; i < values.Length; i++)
+        {
+            dbCommand.Parameters[i].Value = values[i];
+        }
+    }
+
+    internal void AddBatchValues(DataRow row)
     {
         DataTable table = row.Table;
         DataColumnCollection columns = table.Columns;
-        for (int i = 0; i < Parameters.Length; i++)
+        object?[] values = new object[_parameters.Length];
+        for (int i = 0; i < _parameters.Length; i++)
         {
-            DbParameter current = Parameters[i];
-            string columnName = GetColumnNameFromParameterName(current.ParameterName);
+            string columnName = GetColumnNameFromParameterName(_parameters[i].ParameterName);
             if (columns[columnName] == null)
             {
                 throw new InvalidOperationException(
                     Strings.SqlStatementParameterRowMapping(columnName, table.TableName)
                 );
             }
-            current.Value = row[columnName];
+            values[i] = row[columnName];
         }
+        _batchValues.Add(values);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
