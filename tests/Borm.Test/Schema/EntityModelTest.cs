@@ -6,14 +6,32 @@ namespace Borm.Tests.Schema;
 public sealed class EntityModelTest
 {
     [Fact]
-    public void Constructor_ThrowsArgumentNullException_WhenModelTypeEnumerationIsNull()
+    public void AddEntity_AddsNewEntityWithValidator()
     {
+        // Arrange
+        Type entityType = typeof(EntityA);
+        EntityAValidator validator = new();
+        EntityModel model = new();
+
         // Act
-        Exception exception = Record.Exception(() => _ = new EntityModel(null!));
+        model.AddEntity(entityType, validator);
+
+        // Assert
+        Assert.NotNull(model.GetValidatorFunc(entityType));
+    }
+
+    [Fact]
+    public void AddEntity_ThrowsArgumentException_WhenEntityTypeIsNotDecoratedWithEntityAttribute()
+    {
+        // Arrange
+        EntityModel model = new();
+
+        // Act
+        Exception exception = Record.Exception(() => model.AddEntity(typeof(string)));
 
         // Assert
         Assert.NotNull(exception);
-        Assert.IsType<ArgumentNullException>(exception);
+        Assert.IsType<ArgumentException>(exception);
     }
 
     [Fact]
@@ -21,7 +39,8 @@ public sealed class EntityModelTest
     {
         // Arrange
         Type entityType = typeof(EntityA);
-        EntityModel model = new([entityType]);
+        EntityModel model = new();
+        model.AddEntity(entityType);
 
         Property idProp = new("Id", new PrimaryKeyAttribute(0, "id"), false, typeof(int));
         Property nameProp = new("Name", new ColumnAttribute(1, "name"), false, typeof(string));
@@ -55,8 +74,8 @@ public sealed class EntityModelTest
     public void GetReflectedInfo_ThrowsArgumentException_WhenEntityTypeIsAbstract()
     {
         // Arrange
-        Type entityType = typeof(EntityB);
-        EntityModel model = new([entityType]);
+        EntityModel model = new();
+        model.AddEntity(typeof(EntityB));
 
         // Act
         Exception exception = Record.Exception(() => _ = model.GetReflectedInfo());
@@ -74,6 +93,11 @@ public sealed class EntityModelTest
 
         [Column(1, "name")]
         public string Name { get; } = name;
+    }
+
+    public sealed class EntityAValidator : IEntityValidator<EntityA>
+    {
+        public void Validate(EntityA entity) { }
     }
 
     [Entity]

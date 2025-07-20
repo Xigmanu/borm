@@ -147,6 +147,9 @@
   <data name="MissingTableForEntity" xml:space="preserve">
     <value>The data context does not contain a table for the entity of type '{0}'.</value>
   </data>
+  <data name="NotDecoratedEntityType" xml:space="preserve">
+    <value>Entity types must be decorated with the 'EntityAttribute'.</value>
+  </data>
   <data name="SqlStatementParameterRowMapping" xml:space="preserve">
     <value>Missing SQL parameter for required column '{1}' in table '{0}'.</value>
   </data>

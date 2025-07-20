@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using Borm.Extensions;
+﻿using Borm.Extensions;
 using Borm.Properties;
 using Borm.Reflection;
 
@@ -7,22 +6,34 @@ namespace Borm.Schema;
 
 public sealed class EntityModel
 {
-    private readonly IEnumerable<Type> _types;
+    private readonly HashSet<Type> _entities;
+    private readonly Dictionary<Type, Action<object>> _entityValidators;
 
-    public EntityModel(IEnumerable<Type> types)
+    public EntityModel()
     {
-        ArgumentNullException.ThrowIfNull(types);
-        _types = types;
+        (_entities, _entityValidators) = ([], []);
+    }
+
+    public void AddEntity(Type entityType)
+    {
+        if (!entityType.HasAttribute<EntityAttribute>())
+        {
+            throw new ArgumentException(Strings.NotDecoratedEntityType(), nameof(entityType));
+        }
+        _entities.Add(entityType);
+    }
+
+    public void AddEntity<TEntity>(Type entityType, IEntityValidator<TEntity> validator)
+    {
+        AddEntity(entityType);
+        _entityValidators[typeof(TEntity)] = WrapValidator(validator);
     }
 
     internal IEnumerable<ReflectedTypeInfo> GetReflectedInfo()
     {
-        IEnumerable<Type> entityTypes = _types.Where(type =>
-            type.HasAttribute<EntityAttribute>()
-        );
-        List<ReflectedTypeInfo> reflectedInfos = new(entityTypes.Count());
+        List<ReflectedTypeInfo> reflectedInfos = new(_entities.Count);
         MetadataParser parser = new();
-        foreach (Type entityType in entityTypes)
+        foreach (Type entityType in _entities)
         {
             if (entityType.IsAbstract)
             {
@@ -36,5 +47,16 @@ public sealed class EntityModel
         }
 
         return reflectedInfos;
+    }
+
+    internal Action<object>? GetValidatorFunc(Type entityType)
+    {
+        _ = _entityValidators.TryGetValue(entityType, out Action<object>? validator);
+        return validator;
+    }
+
+    private static Action<object> WrapValidator<TEntity>(IEntityValidator<TEntity> validator)
+    {
+        return (obj) => validator.Validate((TEntity)obj);
     }
 }

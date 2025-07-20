@@ -27,8 +27,8 @@ internal sealed class EntityNode
     public string Name => _name;
 
     internal ConversionBinding Binding { get; set; }
-
     internal ColumnInfoCollection Columns => _columns;
+    internal Action<object>? Validator { get; set; }
 
     public override bool Equals(object? obj)
     {
