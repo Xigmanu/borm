@@ -52,11 +52,8 @@ internal sealed class BormDataAdapter
         for (int i = 0; i < sorted.Length; i++)
         {
             DataTable table = dataSet.Tables[sorted[i].Name]!;
-            Dictionary<DataRowState, SqlStatement> statements = CreateUpdateStatements(
-                (NodeDataTable)table
-            );
-
-            foreach (SqlStatement statement in statements.Values)
+            IEnumerable<SqlStatement> statements = CreateUpdateStatements((NodeDataTable)table);
+            foreach (SqlStatement statement in statements)
             {
                 _executor.ExecuteNonQuery(statement);
             }
@@ -80,13 +77,15 @@ internal sealed class BormDataAdapter
         return statement;
     }
 
-    private Dictionary<DataRowState, SqlStatement> CreateUpdateStatements(NodeDataTable table)
+    private Dictionary<DataRowState, SqlStatement>.ValueCollection CreateUpdateStatements(
+        NodeDataTable table
+    )
     {
         DataTable? changes = table.GetChanges();
         Dictionary<DataRowState, SqlStatement> rowStateStatements = [];
         if (changes == null)
         {
-            return rowStateStatements;
+            return rowStateStatements.Values;
         }
 
         foreach (DataRow row in changes.Rows)
@@ -133,9 +132,9 @@ internal sealed class BormDataAdapter
             }
 
             Debug.Assert(!string.IsNullOrEmpty(statement.Sql));
-            statement.AddBatchValues(deletedRowClone ?? row);
+            statement.BatchQueue.AddFromRow(deletedRowClone ?? row);
         }
 
-        return rowStateStatements;
+        return rowStateStatements.Values;
     }
 }

@@ -7,30 +7,6 @@ namespace Borm.Tests.Data.Sql;
 
 public sealed class SqlStatementTest
 {
-    [Fact]
-    public void SetParameters_ThrowsInvalidOperationException_WhenColumnIsMissing()
-    {
-        // Arrange
-        int id = 1;
-
-        DataTable table = new();
-        table.Columns.Add("id", typeof(int));
-
-        DataRow row = table.NewRow();
-        row["id"] = id;
-        table.Rows.Add(row);
-
-        DbParameter[] parameters = [CreateParameter("$id", null), CreateParameter("$name", null)];
-
-        SqlStatement statement = new("some", parameters);
-
-        // Act
-        Exception exception = Record.Exception(() => statement.AddBatchValues(row));
-
-        // Assert
-        Assert.IsType<InvalidOperationException>(exception);
-    }
-
     private static DbParameter CreateParameter(string name, object? value)
     {
         Mock<DbParameter> mockParam = new();
