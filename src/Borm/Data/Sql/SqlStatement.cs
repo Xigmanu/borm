@@ -20,7 +20,7 @@ public sealed class SqlStatement
     public DbParameter[] Parameters => _parameters;
     public string Sql => _sql;
 
-    public void Prepare(DbCommand dbCommand)
+    public void Prepare(IDbCommand dbCommand)
     {
         dbCommand.CommandText = _sql;
         IDataParameterCollection cmdParameters = dbCommand.Parameters;

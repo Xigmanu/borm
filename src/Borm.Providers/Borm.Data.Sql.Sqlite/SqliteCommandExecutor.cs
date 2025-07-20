@@ -30,7 +30,7 @@ public sealed class SqliteCommandExecutor : IDbStatementExecutor
             {
                 while (batchQueue.Next())
                 {
-                    batchQueue.SetDbParameters(command);
+                    batchQueue.SetParameterValues(command);
                     _ = command.ExecuteNonQuery();
                 }
             }

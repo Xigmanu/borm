@@ -1,5 +1,5 @@
 ﻿using System.Data;
-using System.Data.Common;
+using System.Diagnostics;
 
 namespace Borm.Data.Sql;
 
@@ -11,24 +11,26 @@ public sealed class ParameterBatchQueue
     public ParameterBatchQueue()
     {
         _values = [];
-        _currentIdx = 0;
+        _currentIdx = -1;
     }
 
     public int Count => _values.Count;
 
     public bool Next()
     {
+        _currentIdx++;
         return _values.Count > _currentIdx;
     }
 
-    public void SetDbParameters(DbCommand dbCommand)
+    public void SetParameterValues(IDbCommand dbCommand)
     {
         object?[] values = _values[_currentIdx];
         for (int i = 0; i < values.Length; i++)
         {
-            dbCommand.Parameters[i].Value = values[i];
+            IDbDataParameter? param = dbCommand.Parameters[i] as IDbDataParameter;
+            Debug.Assert(param != null);
+            param.Value = values[i];
         }
-        _currentIdx++;
     }
 
     internal void AddFromRow(DataRow row)
