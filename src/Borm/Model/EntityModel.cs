@@ -57,6 +57,19 @@ public sealed class EntityModel
 
     private static Action<object> WrapValidator<TEntity>(IEntityValidator<TEntity> validator)
     {
-        return (obj) => validator.Validate((TEntity)obj);
+        return (obj) =>
+        {
+            try
+            {
+                validator.Validate((TEntity)obj);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    Strings.EntityValidationFailed(typeof(TEntity)),
+                    ex
+                );
+            }
+        };
     }
 }
