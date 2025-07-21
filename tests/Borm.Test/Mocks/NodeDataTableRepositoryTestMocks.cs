@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using Borm.Data;
+using Borm.Model;
 using Borm.Model.Metadata;
 
 namespace Borm.Tests.Mocks;
@@ -32,6 +33,7 @@ internal static class NodeDataTableRepositoryTestMocks
                     return buffer;
                 }
             ),
+            Validator = (obj) => new EntityAValidator().Validate((EntityA)obj),
         };
         ColumnInfoCollection columnsB = new(
             [
@@ -141,6 +143,19 @@ internal static class NodeDataTableRepositoryTestMocks
     {
         public int Id { get; } = id;
         public string Value { get; } = value;
+    }
+
+    public sealed class EntityAValidator : IEntityValidator<EntityA>
+    {
+        public const string InvalidValue = "invalid_value";
+
+        public void Validate(EntityA entity)
+        {
+            if (entity.Value == InvalidValue)
+            {
+                throw new InvalidOperationException();
+            }
+        }
     }
 
     public sealed class EntityB(int id, int entityA)
