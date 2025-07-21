@@ -16,7 +16,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         _nodeGraph = nodeGraph;
     }
 
-    public bool Delete(T entity)
+    public void Delete(T entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
@@ -25,35 +25,35 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         ColumnInfo primaryKey = node.GetPrimaryKey();
 
         object primaryKeyValue = buffer[primaryKey];
-        DataRow? row = _table.Rows.Find(primaryKeyValue);
-        if (row == null)
-        {
-            return false;
-        }
+        DataRow? row =
+            _table.Rows.Find(primaryKeyValue)
+            ?? throw new RowNotFoundException(
+                Strings.RowNotFound(_table.TableName, primaryKeyValue),
+                node.DataType,
+                primaryKeyValue
+            );
 
         row.Delete();
         _table.EntityCache.Remove(entity);
-        return true;
     }
 
-    public bool Delete(T entity, Transaction transaction)
+    public void Delete(T entity, Transaction transaction)
     {
-        return transaction.Execute(
+        transaction.Execute(
             _table.TableName,
             (table) => new EntityRepository<T>(table, _nodeGraph).Delete(entity)
         );
     }
 
-    public bool Insert(T entity)
+    public void Insert(T entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
         _ = InsertRecursively(_table, entity);
-        return true;
     }
 
-    public bool Insert(T entity, Transaction transaction)
+    public void Insert(T entity, Transaction transaction)
     {
-        return transaction.Execute(
+        transaction.Execute(
             _table.TableName,
             (table) => new EntityRepository<T>(table, _nodeGraph).Insert(entity)
         );
@@ -86,7 +86,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         return Select().Select(selector);
     }
 
-    public bool Update(T entity)
+    public void Update(T entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
@@ -97,11 +97,13 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         ColumnInfo primaryKey = node.GetPrimaryKey();
 
         object primaryKeyValue = buffer[primaryKey];
-        DataRow? row = _table.Rows.Find(primaryKeyValue);
-        if (row == null)
-        {
-            return false;
-        }
+        DataRow row =
+            _table.Rows.Find(primaryKeyValue)
+            ?? throw new RowNotFoundException(
+                Strings.RowNotFound(_table.TableName, primaryKeyValue),
+                node.DataType,
+                primaryKeyValue
+            );
 
         foreach (KeyValuePair<ColumnInfo, object> entryPair in buffer)
         {
@@ -127,12 +129,11 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         }
 
         _table.EntityCache.Update(primaryKeyValue, entity);
-        return true;
     }
 
-    public bool Update(T entity, Transaction transaction)
+    public void Update(T entity, Transaction transaction)
     {
-        return transaction.Execute(
+        transaction.Execute(
             _table.TableName,
             (table) => new EntityRepository<T>(table, _nodeGraph).Update(entity)
         );
