@@ -26,17 +26,17 @@ public sealed class Transaction : IDisposable
         _dataSetCopy.Dispose();
     }
 
-    internal bool Execute(string tableName, Func<NodeDataTable, bool> tableOp)
+    internal void Execute(string tableName, Action<NodeDataTable> tableOp)
     {
         NodeDataTable tableCopy = GetTableCopy(tableName);
         try
         {
-            return tableOp(tableCopy);
+            tableOp(tableCopy);
         }
         catch (Exception ex)
         {
             exception = ex;
-            return false;
+            throw;
         }
     }
 

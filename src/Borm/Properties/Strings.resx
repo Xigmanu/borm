@@ -153,6 +153,9 @@
   <data name="NotDecoratedEntityType" xml:space="preserve">
     <value>Entity types must be decorated with the 'EntityAttribute'.</value>
   </data>
+  <data name="RowNotFound" xml:space="preserve">
+    <value>Table '{0}' does not contain row with the primary key '{1}'.</value>
+  </data>
   <data name="SqlStatementParameterRowMapping" xml:space="preserve">
     <value>Missing SQL parameter for required column '{1}' in table '{0}'.</value>
   </data>

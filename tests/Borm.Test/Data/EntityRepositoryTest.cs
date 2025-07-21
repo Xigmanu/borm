@@ -36,26 +36,6 @@ public sealed class EntityRepositoryTest
     }
 
     [Fact]
-    public void Delete_ShouldReturnFalse_WhenRowDoesNotExist()
-    {
-        // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable table = (NodeDataTable)dataSet.Tables["entityA"]!;
-        EntityRepository<EntityA> repository = new(table, nodeGraph);
-
-        int id = 1;
-        string newValue = "bar";
-
-        EntityA entity = new(id, newValue);
-
-        // Act
-        bool result = repository.Delete(entity);
-
-        // Assert
-        Assert.False(result);
-    }
-
-    [Fact]
     public void Delete_ShouldThrowArgumentNullException_WhenEntityIsNull()
     {
         // Arrange
@@ -71,6 +51,27 @@ public sealed class EntityRepositoryTest
         // Assert
         Assert.NotNull(exception);
         Assert.IsType<ArgumentNullException>(exception);
+    }
+
+    [Fact]
+    public void Delete_ShouldThrowRowNotFoundException_WhenRowDoesNotExist()
+    {
+        // Arrange
+        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        NodeDataTable table = (NodeDataTable)dataSet.Tables["entityA"]!;
+        EntityRepository<EntityA> repository = new(table, nodeGraph);
+
+        int id = 1;
+        string newValue = "bar";
+
+        EntityA entity = new(id, newValue);
+
+        // Act
+        Exception exception = Record.Exception(() => repository.Delete(entity));
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<RowNotFoundException>(exception);
     }
 
     [Fact]
@@ -199,7 +200,7 @@ public sealed class EntityRepositoryTest
         EntityA entity = new(1, EntityAValidator.InvalidValue);
 
         // Act
-        Exception exception = Record.Exception(() => _ = repository.Insert(entity));
+        Exception exception = Record.Exception(() => repository.Insert(entity));
 
         // Assert
         Assert.Empty(table.Rows);
@@ -223,7 +224,7 @@ public sealed class EntityRepositoryTest
         EntityC entity = new(id, entityB);
 
         // Act
-        Exception exception = Record.Exception(() => _ = repository.Insert(entity));
+        Exception exception = Record.Exception(() => repository.Insert(entity));
 
         // Assert
         Assert.NotNull(exception);
@@ -330,27 +331,6 @@ public sealed class EntityRepositoryTest
     }
 
     [Fact]
-    public void Update_ReturnsFalse_WhenRowDoesNotExist()
-    {
-        // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable table = (NodeDataTable)dataSet.Tables["entityA"]!;
-        EntityRepository<EntityA> repository = new(table, nodeGraph);
-
-        int id = 1;
-        string newValue = "bar";
-
-        EntityA entity = new(id, newValue);
-
-        // Act
-        bool result = repository.Update(entity);
-
-        // Assert
-        Assert.Empty(table.Rows);
-        Assert.False(result);
-    }
-
-    [Fact]
     public void Update_ShouldThrowArgumentNullException_WhenEntityIsNull()
     {
         // Arrange
@@ -366,6 +346,28 @@ public sealed class EntityRepositoryTest
         // Assert
         Assert.NotNull(exception);
         Assert.IsType<ArgumentNullException>(exception);
+    }
+
+    [Fact]
+    public void Update_ShouldThrowRowNotFoundException_WhenRowDoesNotExist()
+    {
+        // Arrange
+        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        NodeDataTable table = (NodeDataTable)dataSet.Tables["entityA"]!;
+        EntityRepository<EntityA> repository = new(table, nodeGraph);
+
+        int id = 1;
+        string newValue = "bar";
+
+        EntityA entity = new(id, newValue);
+
+        // Act
+        Exception exception = Record.Exception(() => repository.Update(entity));
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<RowNotFoundException>(exception);
+        Assert.Empty(table.Rows);
     }
 
     [Fact]

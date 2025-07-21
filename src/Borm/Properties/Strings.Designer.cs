@@ -109,6 +109,14 @@ public static class Strings
     }
 
     /// <summary>
+    /// Table '{tableName}' does not contain row with the primary key '{primaryKey}'.
+    /// </summary>
+    public static string RowNotFound(string tableName, object primaryKey)
+    {
+        return GetString([tableName, primaryKey]);
+    }
+
+    /// <summary>
     /// Missing SQL parameter for required column '{columnName}' in table '{tableName}'.
     /// </summary>
     public static string SqlStatementParameterRowMapping(string columnName, string tableName)
