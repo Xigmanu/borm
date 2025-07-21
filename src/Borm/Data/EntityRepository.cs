@@ -8,11 +8,13 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     where T : class
 {
     private readonly EntityNodeGraph _nodeGraph;
+    private readonly SemaphoreSlim _semaphore;
     private readonly NodeDataTable _table;
 
     public EntityRepository(NodeDataTable table, EntityNodeGraph nodeGraph)
     {
         _table = table;
+        _semaphore = new(1, 1);
         _nodeGraph = nodeGraph;
     }
 
@@ -45,6 +47,11 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         );
     }
 
+    public Task DeleteAsync(T entity)
+    {
+        return ExecuteInLock(() => Delete(entity));
+    }
+
     public void Insert(T entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
@@ -57,6 +64,11 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             _table.TableName,
             (table) => new EntityRepository<T>(table, _nodeGraph).Insert(entity)
         );
+    }
+
+    public Task InsertAsync(T entity)
+    {
+        return ExecuteInLock(() => Insert(entity));
     }
 
     public IEnumerable<T> Select()
@@ -84,6 +96,16 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     public IEnumerable<R> Select<R>(Func<T, R> selector)
     {
         return Select().Select(selector);
+    }
+
+    public Task<IEnumerable<T>> SelectAsync()
+    {
+        return Task.Run(Select);
+    }
+
+    public Task<IEnumerable<R>> SelectAsync<R>(Func<T, R> selector)
+    {
+        return Task.Run(() => Select(selector));
     }
 
     public void Update(T entity)
@@ -137,6 +159,24 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             _table.TableName,
             (table) => new EntityRepository<T>(table, _nodeGraph).Update(entity)
         );
+    }
+
+    public Task UpdateAsync(T entity)
+    {
+        return ExecuteInLock(() => Update(entity));
+    }
+
+    private async Task ExecuteInLock(Action action)
+    {
+        await _semaphore.WaitAsync();
+        try
+        {
+            action();
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 
     private object InsertRecursively(NodeDataTable table, object entity)
