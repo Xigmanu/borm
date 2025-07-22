@@ -153,6 +153,9 @@
   <data name="NotDecoratedEntityType" xml:space="preserve">
     <value>Entity types must be decorated with the 'EntityAttribute'.</value>
   </data>
+  <data name="PrimaryKeyConstraintViolation" xml:space="preserve">
+    <value>The table '{0}' already contains a row with the primary key '{1}'.</value>
+  </data>
   <data name="RowNotFound" xml:space="preserve">
     <value>Table '{0}' does not contain row with the primary key '{1}'.</value>
   </data>

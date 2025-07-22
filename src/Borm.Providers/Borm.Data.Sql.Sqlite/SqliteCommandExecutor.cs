@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Data.Common;
 using Microsoft.Data.Sqlite;
 
 namespace Borm.Data.Sql.Sqlite;
@@ -12,7 +13,7 @@ public sealed class SqliteCommandExecutor : IDbStatementExecutor
         _connectionString = connectionString;
     }
 
-    public void ExecuteNonQuery(SqlStatement statement)
+    public void ExecuteBatch(SqlStatement statement)
     {
         using SqliteConnection connection = new(_connectionString);
         using SqliteCommand command = connection.CreateCommand();
@@ -48,6 +49,45 @@ public sealed class SqliteCommandExecutor : IDbStatementExecutor
             throw;
         }
         connection.Close();
+    }
+
+    public async Task ExecuteBatchAsync(SqlStatement statement)
+    {
+        await using SqliteConnection connection = new(_connectionString);
+        await using DbCommand command = connection.CreateCommand();
+
+        await connection.OpenAsync();
+        await using DbTransaction transaction = await connection.BeginTransactionAsync();
+        command.Transaction = transaction;
+
+        try
+        {
+            statement.Prepare(command);
+
+            ParameterBatchQueue batchQueue = statement.BatchQueue;
+            if (batchQueue.Count > 0)
+            {
+                while (batchQueue.Next())
+                {
+                    batchQueue.SetParameterValues(command);
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+            else
+            {
+                await command.ExecuteNonQueryAsync();
+            }
+
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            await connection.CloseAsync();
+            throw;
+        }
+
+        await connection.CloseAsync();
     }
 
     public IDataReader ExecuteReader(SqlStatement statement)

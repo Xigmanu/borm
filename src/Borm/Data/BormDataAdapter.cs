@@ -29,7 +29,7 @@ internal sealed class BormDataAdapter
         {
             DataTable table = dataSet.Tables[sorted[i].Name]!;
             SqlStatement statement = _statementFactory.NewCreateTableStatement(table);
-            _executor.ExecuteNonQuery(statement);
+            _executor.ExecuteBatch(statement);
         }
     }
 
@@ -55,7 +55,21 @@ internal sealed class BormDataAdapter
             IEnumerable<SqlStatement> statements = CreateUpdateStatements((NodeDataTable)table);
             foreach (SqlStatement statement in statements)
             {
-                _executor.ExecuteNonQuery(statement);
+                _executor.ExecuteBatch(statement);
+            }
+        }
+    }
+
+    public async Task UpdateAsync(BormDataSet dataSet)
+    {
+        EntityNode[] sorted = _nodeGraph.ReversedTopSort();
+        for (int i = 0; i < sorted.Length; i++)
+        {
+            DataTable table = dataSet.Tables[sorted[i].Name]!;
+            IEnumerable<SqlStatement> statements = CreateUpdateStatements((NodeDataTable)table);
+            foreach (SqlStatement statement in statements)
+            {
+                await _executor.ExecuteBatchAsync(statement);
             }
         }
     }

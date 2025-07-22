@@ -88,12 +88,12 @@ public sealed class DataContext : IDisposable
         _nodeGraph = EntityNodeGraphFactory.Create(entityNodes);
         new EntityGraphDataSetMapper(_nodeGraph).LoadMapping(_dataSet);
 
-        BormDataAdapter dataAdapter = new(
+        BormDataAdapter adapter = new(
             _configuration.CommandExecutor,
             _nodeGraph,
             _configuration.SqlStatementFactory
         );
-        dataAdapter.CreateTables(_dataSet);
+        adapter.CreateTables(_dataSet);
 
         OnInitialized();
     }
@@ -105,21 +105,43 @@ public sealed class DataContext : IDisposable
 
     public void SaveChanges()
     {
-        if (_dataSet.GetChanges() == null)
-        {
-            return;
-        }
         if (_nodeGraph == null)
         {
             throw new InvalidOperationException(Strings.DataContextNotInitialized());
         }
+        if (_dataSet.GetChanges() == null)
+        {
+            return;
+        }
 
-        BormDataAdapter dataAdapter = new(
+        BormDataAdapter adapter = new(
             _configuration.CommandExecutor,
             _nodeGraph,
             _configuration.SqlStatementFactory
         );
-        dataAdapter.Update(_dataSet);
+
+        adapter.Update(_dataSet);
+        _dataSet.AcceptChanges();
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        if (_nodeGraph == null)
+        {
+            throw new InvalidOperationException(Strings.DataContextNotInitialized());
+        }
+        if (!_dataSet.HasChanges())
+        {
+            return;
+        }
+
+        BormDataAdapter adapter = new(
+            _configuration.CommandExecutor,
+            _nodeGraph,
+            _configuration.SqlStatementFactory
+        );
+
+        await adapter.UpdateAsync(_dataSet);
         _dataSet.AcceptChanges();
     }
 

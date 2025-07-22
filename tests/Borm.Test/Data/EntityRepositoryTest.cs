@@ -148,30 +148,6 @@ public sealed class EntityRepositoryTest
     }
 
     [Fact]
-    public void Insert_ShouldNotInsert_WhenRowWithProviderPKExists()
-    {
-        // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable table = (NodeDataTable)dataSet.Tables["entityA"]!;
-        EntityRepository<EntityA> repository = new(table, nodeGraph);
-
-        int id = 1;
-        string value = "foo";
-        DataRow row = table.NewRow();
-        row["id"] = id;
-        row["value"] = value;
-        table.Rows.Add(row);
-
-        EntityA entity = new(id, value);
-
-        // Act
-        repository.Insert(entity);
-
-        // Assert
-        Assert.Single(table.Rows);
-    }
-
-    [Fact]
     public void Insert_ShouldThrowArgumentNullException_WhenEntityIsNull()
     {
         // Arrange
@@ -229,6 +205,32 @@ public sealed class EntityRepositoryTest
         // Assert
         Assert.NotNull(exception);
         Assert.IsType<InvalidOperationException>(exception);
+    }
+
+    [Fact]
+    public void Insert_ThrowConstraintException_WhenRowWithProvidedPKExists()
+    {
+        // Arrange
+        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        NodeDataTable table = (NodeDataTable)dataSet.Tables["entityA"]!;
+        EntityRepository<EntityA> repository = new(table, nodeGraph);
+
+        int id = 1;
+        string value = "foo";
+        DataRow row = table.NewRow();
+        row["id"] = id;
+        row["value"] = value;
+        table.Rows.Add(row);
+
+        EntityA entity = new(id, value);
+
+        // Act
+        Exception exception = Record.Exception(() => repository.Insert(entity));
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<ConstraintException>(exception);
+        Assert.Single(table.Rows);
     }
 
     [Fact]
