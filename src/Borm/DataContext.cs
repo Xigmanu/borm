@@ -21,14 +21,11 @@ public sealed class DataContext : IDisposable
         _configuration = configuration;
         _dataSet = new BormDataSet(DefaultDataStoreName);
         _nodeGraph = null;
-        Semaphore = new(1, 1);
     }
 
     public event EventHandler? Initialized;
 
     internal BormDataSet DataSet => _dataSet;
-
-    internal SemaphoreSlim Semaphore { get; }
 
     public Transaction BeginTransaction()
     {
@@ -91,12 +88,12 @@ public sealed class DataContext : IDisposable
         _nodeGraph = EntityNodeGraphFactory.Create(entityNodes);
         new EntityGraphDataSetMapper(_nodeGraph).LoadMapping(_dataSet);
 
-        BormDataAdapter dataAdapter = new(
+        BormDataAdapter adapter = new(
             _configuration.CommandExecutor,
             _nodeGraph,
             _configuration.SqlStatementFactory
         );
-        dataAdapter.CreateTables(_dataSet);
+        adapter.CreateTables(_dataSet);
 
         OnInitialized();
     }
@@ -108,42 +105,43 @@ public sealed class DataContext : IDisposable
 
     public void SaveChanges()
     {
-        if (_dataSet.GetChanges() == null)
-        {
-            return;
-        }
         if (_nodeGraph == null)
         {
             throw new InvalidOperationException(Strings.DataContextNotInitialized());
         }
+        if (_dataSet.GetChanges() == null)
+        {
+            return;
+        }
 
-        BormDataAdapter dataAdapter = new(
+        BormDataAdapter adapter = new(
             _configuration.CommandExecutor,
             _nodeGraph,
             _configuration.SqlStatementFactory
         );
-        dataAdapter.Update(_dataSet);
+
+        adapter.Update(_dataSet);
         _dataSet.AcceptChanges();
     }
 
     public async Task SaveChangesAsync()
     {
+        if (_nodeGraph == null)
+        {
+            throw new InvalidOperationException(Strings.DataContextNotInitialized());
+        }
         if (!_dataSet.HasChanges())
         {
             return;
         }
 
-        if (_nodeGraph == null)
-        {
-            throw new InvalidOperationException(Strings.DataContextNotInitialized());
-        }
-
-        BormDataAdapter dataAdapter = new(
+        BormDataAdapter adapter = new(
             _configuration.CommandExecutor,
             _nodeGraph,
             _configuration.SqlStatementFactory
         );
-        // await dataAdapter.UpdateAsync(_dataSet);
+
+        await adapter.UpdateAsync(_dataSet);
         _dataSet.AcceptChanges();
     }
 

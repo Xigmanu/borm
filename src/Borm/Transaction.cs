@@ -5,6 +5,7 @@ namespace Borm;
 
 public sealed class Transaction : IDisposable, IAsyncDisposable
 {
+    private static readonly SemaphoreSlim Semaphore = new(1, 1);
     private readonly DataContext _context;
     private readonly DataSet _dataSetCopy;
     private readonly bool _writeOnCommit;
@@ -84,14 +85,11 @@ public sealed class Transaction : IDisposable, IAsyncDisposable
             return;
         }
 
-        await _context.Semaphore.WaitAsync();
+        await Semaphore.WaitAsync();
         try
         {
-            // FIXME
-            // If the same row is added by a different thread (NOT transaction) and written to the data source,
-            // preserveChanges will overwrite the DataRowState forcing it to be added to the parameter value queue again.
             _context.DataSet.Merge(_dataSetCopy, preserveChanges: true, MissingSchemaAction.Error);
-
+            
             if (_writeOnCommit)
             {
                 await _context.SaveChangesAsync();
@@ -99,7 +97,7 @@ public sealed class Transaction : IDisposable, IAsyncDisposable
         }
         finally
         {
-            _context.Semaphore.Release();
+            Semaphore.Release();
         }
     }
 
