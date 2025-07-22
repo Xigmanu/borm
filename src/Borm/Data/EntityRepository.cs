@@ -24,15 +24,15 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
 
         EntityNode node = _table.Node;
         ValueBuffer buffer = node.Binding.ConvertToValueBuffer(entity);
-        ColumnInfo primaryKey = node.GetPrimaryKey();
+        ColumnInfo primaryKeyColumn = node.GetPrimaryKey();
 
-        object primaryKeyValue = buffer[primaryKey];
+        object primaryKey = buffer[primaryKeyColumn];
         DataRow? row =
-            _table.Rows.Find(primaryKeyValue)
+            _table.Rows.Find(primaryKey)
             ?? throw new RowNotFoundException(
-                Strings.RowNotFound(_table.TableName, primaryKeyValue),
+                Strings.RowNotFound(_table.TableName, primaryKey),
                 node.DataType,
-                primaryKeyValue
+                primaryKey
             );
 
         row.Delete();
@@ -116,15 +116,15 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         node.Validator?.Invoke(entity);
 
         ValueBuffer buffer = node.Binding.ConvertToValueBuffer(entity);
-        ColumnInfo primaryKey = node.GetPrimaryKey();
+        ColumnInfo primaryKeyColumn = node.GetPrimaryKey();
 
-        object primaryKeyValue = buffer[primaryKey];
+        object primaryKey = buffer[primaryKeyColumn];
         DataRow row =
-            _table.Rows.Find(primaryKeyValue)
+            _table.Rows.Find(primaryKey)
             ?? throw new RowNotFoundException(
-                Strings.RowNotFound(_table.TableName, primaryKeyValue),
+                Strings.RowNotFound(_table.TableName, primaryKey),
                 node.DataType,
-                primaryKeyValue
+                primaryKey
             );
 
         foreach (KeyValuePair<ColumnInfo, object> entryPair in buffer)
@@ -150,7 +150,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             row[column.Name] = parentBuffer[parentPrimaryKey];
         }
 
-        _table.EntityCache.Update(primaryKeyValue, entity);
+        _table.EntityCache.Update(primaryKey, entity);
     }
 
     public void Update(T entity, Transaction transaction)
@@ -185,12 +185,18 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         node.Validator?.Invoke(entity);
 
         ValueBuffer buffer = node.Binding.ConvertToValueBuffer(entity);
-        ColumnInfo primaryKey = node.GetPrimaryKey();
+        ColumnInfo primaryKeyColumn = node.GetPrimaryKey();
 
-        object primaryKeyValue = buffer[primaryKey];
-        if (table.Rows.Contains(primaryKeyValue))
+        object primaryKey = buffer[primaryKeyColumn];
+        if (table.Rows.Contains(primaryKey))
         {
-            return primaryKeyValue;
+            if (_table.TableName == table.TableName)
+            {
+                throw new ConstraintException(
+                    Strings.PrimaryKeyConstraintViolation(table.TableName, primaryKey)
+                );
+            }
+            return primaryKey;
         }
 
         IEnumerable<ColumnInfo> foreignKeys = node.Columns.Where(column =>
@@ -221,13 +227,13 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         buffer.LoadIntoRow(newRow);
         table.Rows.Add(newRow);
 
-        return primaryKeyValue;
+        return primaryKey;
     }
 
-    private object ReadRowRecursively(EntityNode node, DataRow row, out object primaryKeyValue)
+    private object ReadRowRecursively(EntityNode node, DataRow row, out object primaryKey)
     {
         ValueBuffer buffer = ValueBuffer.FromDataRow(node, row);
-        primaryKeyValue = buffer[node.GetPrimaryKey()];
+        primaryKey = buffer[node.GetPrimaryKey()];
 
         IEnumerable<ColumnInfo> foreignKeys = node.Columns.Where(column =>
             column.Reference != null

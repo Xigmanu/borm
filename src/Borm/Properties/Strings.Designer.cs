@@ -109,6 +109,14 @@ public static class Strings
     }
 
     /// <summary>
+    /// The table '{tableName}' already contains a row with the primary key '{primaryKey}'.
+    /// </summary>
+    public static string PrimaryKeyConstraintViolation(string tableName, object primaryKey)
+    {
+        return GetString([tableName, primaryKey]);
+    }
+
+    /// <summary>
     /// Table '{tableName}' does not contain row with the primary key '{primaryKey}'.
     /// </summary>
     public static string RowNotFound(string tableName, object primaryKey)
