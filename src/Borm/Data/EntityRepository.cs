@@ -27,14 +27,9 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         ColumnInfo primaryKeyColumn = node.GetPrimaryKey();
 
         object primaryKey = buffer[primaryKeyColumn];
-        DataRow? row =
-            _table.Rows.Find(primaryKey)
-            ?? throw new RowNotFoundException(
-                Strings.RowNotFound(_table.TableName, primaryKey),
-                node.DataType,
-                primaryKey
-            );
+        VersionedDataRow row = _table.GetRowByPK(primaryKey);
 
+        row.InsertTx = Transaction.NextId();
         row.Delete();
         _table.EntityCache.Remove(entity);
     }
@@ -119,13 +114,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         ColumnInfo primaryKeyColumn = node.GetPrimaryKey();
 
         object primaryKey = buffer[primaryKeyColumn];
-        DataRow row =
-            _table.Rows.Find(primaryKey)
-            ?? throw new RowNotFoundException(
-                Strings.RowNotFound(_table.TableName, primaryKey),
-                node.DataType,
-                primaryKey
-            );
+        VersionedDataRow row = _table.GetRowByPK(primaryKey);
 
         foreach (KeyValuePair<ColumnInfo, object> entryPair in buffer)
         {
@@ -150,6 +139,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             row[column.Name] = parentBuffer[parentPrimaryKey];
         }
 
+        row.InsertTx = Transaction.NextId();
         _table.EntityCache.Update(primaryKey, entity);
     }
 
@@ -223,7 +213,8 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             );
         }
 
-        DataRow newRow = table.NewRow();
+        VersionedDataRow newRow = table.NewRow();
+        newRow.InsertTx = Transaction.NextId();
         buffer.LoadIntoRow(newRow);
         table.Rows.Add(newRow);
 
