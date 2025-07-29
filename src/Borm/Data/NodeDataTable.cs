@@ -9,21 +9,22 @@ namespace Borm.Data;
 [DebuggerTypeProxy(typeof(NodeDataTableDebugView))]
 internal sealed class NodeDataTable : DataTable
 {
-    private readonly ObjectCache _entityCache;
+    private readonly ChangeTracker _changeTracker = new();
+    private readonly ObjectCache _entityCache = new();
     private readonly EntityNode _node;
+    private bool _isInitialized = false;
 
     public NodeDataTable()
         : base()
     {
         _node = null!;
-        _entityCache = null!;
     }
 
     public NodeDataTable(string tableName, EntityNode node)
         : base(tableName)
     {
         _node = node;
-        _entityCache = new();
+        Initialized += NodeDataTable_Initialized;
     }
 
     private NodeDataTable(NodeDataTable original)
@@ -86,6 +87,32 @@ internal sealed class NodeDataTable : DataTable
     protected override DataRow NewRowFromBuilder(DataRowBuilder builder)
     {
         return new VersionedDataRow(builder);
+    }
+
+    protected override void OnRowChanged(DataRowChangeEventArgs e)
+    {
+        VersionedDataRow row = (VersionedDataRow)e.Row;
+        object primaryKey = row[PrimaryKey[0]];
+
+        if (!_isInitialized)
+        {
+            _changeTracker.InitInsert(primaryKey, row);
+        }
+        else
+        {
+            _changeTracker.Update(primaryKey, row, e.Action);
+        }
+    }
+
+    protected override void OnRowDeleting(DataRowChangeEventArgs e)
+    {
+        VersionedDataRow row = (VersionedDataRow)e.Row;
+        _changeTracker.Update(row[PrimaryKey[0]], row, DataRowAction.Delete);
+    }
+
+    private void NodeDataTable_Initialized(object? sender, EventArgs e)
+    {
+        _isInitialized = true;
     }
 
     [ExcludeFromCodeCoverage(Justification = "Debug view class")]
