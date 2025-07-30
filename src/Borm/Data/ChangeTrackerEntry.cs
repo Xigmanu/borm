@@ -28,6 +28,8 @@ internal readonly struct ChangeTrackerEntry : IEquatable<ChangeTrackerEntry>
 
     public DataRowAction RowAction => _rowAction;
 
+    public object?[] Data => _data;
+
     public static bool operator !=(ChangeTrackerEntry first, ChangeTrackerEntry second)
     {
         return !Equals(first, second);
@@ -61,13 +63,13 @@ internal readonly struct ChangeTrackerEntry : IEquatable<ChangeTrackerEntry>
         }
         if (_insertTx > incoming._insertTx)
         {
-            throw new InvalidOperationException();
+            throw new InvalidOperationException(); // TODO this should trigger a rerun for transactions
         }
 
-        DataRowAction operation;
+        DataRowAction rowAction;
         if (_isWrittenToDb)
         {
-            operation = incoming._rowAction;
+            rowAction = incoming._rowAction;
         }
         else
         {
@@ -75,13 +77,13 @@ internal readonly struct ChangeTrackerEntry : IEquatable<ChangeTrackerEntry>
             {
                 return null;
             }
-            operation = DataRowAction.Add;
+            rowAction = DataRowAction.Add;
         }
 
         object[] data = new object[_data.Length];
         Array.Copy(incoming._data, data, data.Length);
 
-        return new ChangeTrackerEntry(data, incoming._insertTx, _isWrittenToDb, operation);
+        return new ChangeTrackerEntry(data, incoming._insertTx, _isWrittenToDb, rowAction);
     }
 
     public ChangeTrackerEntry WriteToDb()

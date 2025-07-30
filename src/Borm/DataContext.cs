@@ -88,6 +88,9 @@ public sealed class DataContext : IDisposable
         _nodeGraph = EntityNodeGraphFactory.Create(entityNodes);
         new EntityGraphDataSetMapper(_nodeGraph).LoadMapping(_dataSet);
 
+        // For now EndInit is called to simply finish the table initialization
+        // Later though: TODO check and load data from the database. EndInit is to be called afterwards in order not to screw up the change tracking
+
         BormDataAdapter adapter = new(
             _configuration.CommandExecutor,
             _nodeGraph,

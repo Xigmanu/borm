@@ -33,15 +33,10 @@ public sealed class ParameterBatchQueue
         }
     }
 
-    internal void AddFromRow(DataRow row)
+    internal void AddFromChange(ChangeTrackerEntry entry)
     {
-        DataTable table = row.Table;
-        DataColumnCollection columns = table.Columns;
-        object?[] values = new object[columns.Count];
-        for (int i = 0; i < values.Length; i++)
-        {
-            values[i] = row[i];
-        }
+        object?[] values = new object[entry.Data.Length];
+        Array.Copy(entry.Data, values, values.Length);
         _values.Add(values);
     }
 }

@@ -30,6 +30,7 @@ internal sealed class BormDataAdapter
             DataTable table = dataSet.Tables[sorted[i].Name]!;
             SqlStatement statement = _statementFactory.NewCreateTableStatement(table);
             _executor.ExecuteBatch(statement);
+            table.EndInit();
         }
     }
 
@@ -75,70 +76,60 @@ internal sealed class BormDataAdapter
     }
 
     private static SqlStatement GetOrCreateSqlStatement(
-        DataTable changes,
-        DataRow row,
-        Dictionary<DataRowState, SqlStatement> rowStateStatements,
+        DataTable table,
+        ChangeTrackerEntry entry,
+        Dictionary<DataRowAction, SqlStatement> rowStateStatements,
         Func<DataTable, SqlStatement> factoryMethod
     )
     {
-        if (rowStateStatements.TryGetValue(row.RowState, out SqlStatement? cached))
+        if (rowStateStatements.TryGetValue(entry.RowAction, out SqlStatement? cached))
         {
             return cached;
         }
 
-        SqlStatement statement = factoryMethod(changes);
-        rowStateStatements[row.RowState] = statement;
+        SqlStatement statement = factoryMethod(table);
+        rowStateStatements[entry.RowAction] = statement;
         return statement;
     }
 
-    private Dictionary<DataRowState, SqlStatement>.ValueCollection CreateUpdateStatements(
+    private Dictionary<DataRowAction, SqlStatement>.ValueCollection CreateUpdateStatements(
         NodeDataTable table
     )
     {
-        DataTable? changes = table.GetChanges();
-        Dictionary<DataRowState, SqlStatement> rowStateStatements = [];
-        if (changes == null)
+        IEnumerable<ChangeTrackerEntry> changes = table.GetChanges();
+        Dictionary<DataRowAction, SqlStatement> rowStateStatements = [];
+        if (!changes.Any())
         {
             return rowStateStatements.Values;
         }
 
-        foreach (DataRow row in changes.Rows)
+        foreach (ChangeTrackerEntry entry in changes)
         {
-            DataRow? deletedRowClone = null;
-            if (row.RowState == DataRowState.Unchanged || row.RowState == DataRowState.Detached)
-            {
-                continue;
-            }
-
             SqlStatement statement;
-            switch (row.RowState)
+            switch (entry.RowAction)
             {
-                case DataRowState.Added:
+                case DataRowAction.Add:
                     statement = GetOrCreateSqlStatement(
-                        changes,
-                        row,
+                        table,
+                        entry,
                         rowStateStatements,
                         _statementFactory.NewInsertStatement
                     );
                     break;
-                case DataRowState.Modified:
+                case DataRowAction.Change:
                     statement = GetOrCreateSqlStatement(
-                        changes,
-                        row,
+                        table,
+                        entry,
                         rowStateStatements,
                         _statementFactory.NewUpdateStatement
                     );
                     break;
-                case DataRowState.Deleted:
+                case DataRowAction.Delete:
                     statement = GetOrCreateSqlStatement(
-                        changes,
-                        row,
+                        table,
+                        entry,
                         rowStateStatements,
                         _statementFactory.NewDeleteStatement
-                    );
-                    deletedRowClone = ((BormDataSet)table.DataSet!).GetDeletedRowClone(
-                        table,
-                        changes.Rows.IndexOf(row)
                     );
                     break;
                 default:
@@ -146,7 +137,7 @@ internal sealed class BormDataAdapter
             }
 
             Debug.Assert(!string.IsNullOrEmpty(statement.Sql));
-            statement.BatchQueue.AddFromRow(deletedRowClone ?? row);
+            statement.BatchQueue.AddFromChange(entry);
         }
 
         return rowStateStatements.Values;

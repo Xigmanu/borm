@@ -54,6 +54,11 @@ internal sealed class NodeDataTable : DataTable
         return copy;
     }
 
+    public new IEnumerable<ChangeTrackerEntry> GetChanges()
+    {
+        return _changeTracker.GetChanges();
+    }
+
     public DataRelation? GetParentRelation(EntityNode node)
     {
         string relationName = $"{TableName}_{node.Name}";

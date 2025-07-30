@@ -21,8 +21,10 @@ internal sealed class EntityGraphDataSetMapper
         for (int i = 0; i < topSortedNodes.Length; i++)
         {
             EntityNode node = topSortedNodes[i];
-            CreateNodeTable(node);
-            dataSet.AddTable(_nodeTableMap[node]);
+            NodeDataTable table = CreateNodeTable(node);
+
+            dataSet.AddTable(table);
+            table.BeginInit();
         }
 
         foreach (NodeDataTable table in dataSet.Tables)
@@ -67,7 +69,7 @@ internal sealed class EntityGraphDataSetMapper
         return relations;
     }
 
-    private void CreateNodeTable(EntityNode node)
+    private NodeDataTable CreateNodeTable(EntityNode node)
     {
         NodeDataTable table = new(node.Name, node);
         DataColumn[] columns = new DataColumn[node.Columns.Count];
@@ -95,6 +97,6 @@ internal sealed class EntityGraphDataSetMapper
         table.Columns.AddRange(columns);
         table.PrimaryKey = [primaryKey!];
 
-        _nodeTableMap[node] = table;
+        return _nodeTableMap[node] = table;
     }
 }

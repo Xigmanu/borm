@@ -11,7 +11,8 @@ internal sealed class ChangeTracker
     {
         _changes = [];
     }
-
+    // TODO!!!
+    // 2. Rework transaction logic: add implicit (internal) and explicit (public) transactions for easier row insert tx id tracking
     public IEnumerable<ChangeTrackerEntry> GetChanges()
     {
         return _changes.Values.Where(change => change.RowAction != DataRowAction.Nothing);
