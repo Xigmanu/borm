@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Data.Common;
 using System.Diagnostics;
 using Borm.Model.Metadata;
 
@@ -65,7 +64,7 @@ internal sealed class ChangeTracker
         _changes.Add(entry);
     }
 
-    public void PendUpdate(Change change, long txId)
+    public void PendChange(Change change, long txId)
     {
         if (!_pendingChanges.TryGetValue(txId, out List<Change>? pendingChanges))
         {

@@ -46,11 +46,13 @@ internal sealed class Table
         }
 
         Change change = new(buffer, txId, RowAction.Delete);
-        _tracker.PendUpdate(change, txId);
+        _tracker.PendChange(change, txId);
     }
 
     public void Insert(object entity, long txId)
     {
+        Node.Validator?.Invoke(entity);
+
         ValueBuffer buffer = _node.Binding.ConvertToValueBuffer(entity);
         object primaryKey = buffer.GetPrimaryKey();
         if (_tracker.HasChange(primaryKey, txId))
@@ -61,7 +63,7 @@ internal sealed class Table
         ValueBuffer incoming = ResolveColumnValues(buffer, txId, isRecursiveInsert: true);
 
         Change change = new(incoming, txId, RowAction.Insert);
-        _tracker.PendUpdate(change, txId);
+        _tracker.PendChange(change, txId);
     }
 
     public IEnumerable<object> Select()
@@ -72,6 +74,8 @@ internal sealed class Table
 
     public void Update(object entity, long txId)
     {
+        Node.Validator?.Invoke(entity);
+
         ValueBuffer buffer = _node.Binding.ConvertToValueBuffer(entity);
         object primaryKey = buffer.GetPrimaryKey();
         if (!_tracker.HasChange(primaryKey, txId))
@@ -86,7 +90,7 @@ internal sealed class Table
         ValueBuffer incoming = ResolveColumnValues(buffer, txId, isRecursiveInsert: false);
 
         Change change = new(incoming, txId, RowAction.Update);
-        _tracker.PendUpdate(change, txId);
+        _tracker.PendChange(change, txId);
     }
 
     private void CheckConstraints(ColumnInfo column, object? columnValue, long txId)
