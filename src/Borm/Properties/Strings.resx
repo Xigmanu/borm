@@ -153,6 +153,9 @@
   <data name="NotDecoratedEntityType" xml:space="preserve">
     <value>Entity types must be decorated with the 'EntityAttribute'.</value>
   </data>
+  <data name="NullableConstraintViolation" xml:space="preserve">
+    <value>The column '{0}' in the table '{1}' cannot be set to null.</value>
+  </data>
   <data name="PrimaryKeyConstraintViolation" xml:space="preserve">
     <value>The table '{0}' already contains a row with the primary key '{1}'.</value>
   </data>
@@ -164,5 +167,8 @@
   </data>
   <data name="TypeNotSupported" xml:space="preserve">
     <value>Type '{0}' is not supported.</value>
+  </data>
+  <data name="UniqueConstraintViolation" xml:space="preserve">
+    <value>The table '{0}' already contains a row where the value of the column '{1}' is '{2}'.</value>
   </data>
 </root>

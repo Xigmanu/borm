@@ -109,6 +109,14 @@ public static class Strings
     }
 
     /// <summary>
+    /// The column '{columnName}' in the table '{tableName}' cannot be set to null.
+    /// </summary>
+    public static string NullableConstraintViolation(string columnName, string tableName)
+    {
+        return GetString([columnName, tableName]);
+    }
+
+    /// <summary>
     /// The table '{tableName}' already contains a row with the primary key '{primaryKey}'.
     /// </summary>
     public static string PrimaryKeyConstraintViolation(string tableName, object primaryKey)
@@ -140,7 +148,14 @@ public static class Strings
         return GetString([typeName]);
     }
 
-    private static string GetString(object[]? formatArgs, [CallerMemberName] string? resourceName = null)
+    /// <summary>
+    /// The table '{tableName}' already contains a row where the value of the column '{columnName}' is '{columnValue}'.
+    /// </summary>
+    public static string UniqueConstraintViolation(string tableName, string columnName, object? columnValue)
+    {
+        return GetString([tableName, columnName, columnValue]);
+    }
+    private static string GetString(object?[]? formatArgs, [CallerMemberName] string? resourceName = null)
     {
         string? msgFormat = ResourceManager.GetString(resourceName!);
         Debug.Assert(!string.IsNullOrEmpty(msgFormat), $"The resource with the name '{resourceName}' could not be found.");

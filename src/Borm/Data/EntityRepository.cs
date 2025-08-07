@@ -77,10 +77,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         ValueBuffer incoming = node.Binding.ConvertToValueBuffer(entity);
 
         // TODO Tx id
-        _table.Update(
-            incoming,
-            0
-        );
+        _table.Update(incoming, 0);
     }
 
     public void Update(T entity, Transaction transaction)

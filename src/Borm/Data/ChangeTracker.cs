@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Data.Common;
 using System.Diagnostics;
 using Borm.Model.Metadata;
 
@@ -47,9 +48,14 @@ internal sealed class ChangeTracker
         }
     }
 
-    public bool HasRow(object primaryKey)
+    public bool HasChange(object primaryKey, long txId)
     {
-        return _changes.Any(change => change.Buffer.GetPrimaryKey() == primaryKey);
+        return HasChange(txId, (buffer) => buffer.GetPrimaryKey() == primaryKey);
+    }
+
+    public bool HasChange(ColumnInfo column, object? columnValue, long txId)
+    {
+        return HasChange(txId, (buffer) => buffer[column] == columnValue);
     }
 
     public void InitInsert(ValueBuffer buffer, long txId)
@@ -112,5 +118,15 @@ internal sealed class ChangeTracker
         }
 
         return [.. resultMap.Values];
+    }
+
+    private bool HasChange(long txId, Func<ValueBuffer, bool> predicate)
+    {
+        if (_pendingChanges.TryGetValue(txId, out List<Change>? pendingChanges))
+        {
+            return pendingChanges.Any(change => predicate(change.Buffer));
+        }
+
+        return _changes.Any(change => predicate(change.Buffer));
     }
 }

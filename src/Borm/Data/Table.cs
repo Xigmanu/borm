@@ -8,6 +8,7 @@ namespace Borm.Data;
  * TODO
  *
  * 1. Implement equality comparison for HashSet
+ * 2. Rework object caching
  */
 internal sealed class Table
 {
@@ -23,7 +24,7 @@ internal sealed class Table
 
     public string Name { get; }
     internal TableSet Dependencies { get; } = new();
-    internal ObjectCache EntityCache => _entityCache; // TODO rework this maybe
+    internal ObjectCache EntityCache => _entityCache;
     internal EntityNode Node => _node;
 
     public void AcceptPendingChanges(long txId)
@@ -35,7 +36,7 @@ internal sealed class Table
     {
         ValueBuffer buffer = _node.Binding.ConvertToValueBuffer(entity);
         object primaryKey = buffer.GetPrimaryKey();
-        if (!_tracker.HasRow(primaryKey))
+        if (!_tracker.HasChange(primaryKey, txId))
         {
             throw new RowNotFoundException(
                 Strings.RowNotFound(Name, primaryKey),
@@ -52,12 +53,12 @@ internal sealed class Table
     {
         ValueBuffer buffer = _node.Binding.ConvertToValueBuffer(entity);
         object primaryKey = buffer.GetPrimaryKey();
-        if (_tracker.HasRow(primaryKey))
+        if (_tracker.HasChange(primaryKey, txId))
         {
             throw new ConstraintException(Strings.PrimaryKeyConstraintViolation(Name, primaryKey));
         }
 
-        ValueBuffer incoming = ResolveColumnValues(this, buffer, txId, isRecursiveInsert: true);
+        ValueBuffer incoming = ResolveColumnValues(buffer, txId, isRecursiveInsert: true);
 
         Change change = new(incoming, txId, RowAction.Insert);
         _tracker.PendUpdate(change, txId);
@@ -73,7 +74,7 @@ internal sealed class Table
     {
         ValueBuffer buffer = _node.Binding.ConvertToValueBuffer(entity);
         object primaryKey = buffer.GetPrimaryKey();
-        if (!_tracker.HasRow(primaryKey))
+        if (!_tracker.HasChange(primaryKey, txId))
         {
             throw new RowNotFoundException(
                 Strings.RowNotFound(Name, primaryKey),
@@ -82,42 +83,47 @@ internal sealed class Table
             );
         }
 
-        ColumnInfoCollection columns = _node.Columns;
-        ValueBuffer incoming = ResolveColumnValues(this, buffer, txId, isRecursiveInsert: false);
+        ValueBuffer incoming = ResolveColumnValues(buffer, txId, isRecursiveInsert: false);
 
         Change change = new(incoming, txId, RowAction.Update);
         _tracker.PendUpdate(change, txId);
     }
-    private static void CheckConstraints(ColumnInfo column, object columnValue)
-    {
-        switch (column.Constraints)
-        {
-            case Constraints.Unique:
 
-                break;
-            case Constraints.AllowDbNull:
-                if (columnValue == null)
-                {
-                    throw new Exception();
-                }
-                break;
+    private void CheckConstraints(ColumnInfo column, object? columnValue, long txId)
+    {
+        Constraints constraints = column.Constraints;
+        if (!constraints.HasFlag(Constraints.AllowDbNull) && columnValue == null)
+        {
+            throw new ConstraintException(Strings.NullableConstraintViolation(column.Name, Name));
+        }
+
+        if (
+            constraints.HasFlag(Constraints.Unique) && _tracker.HasChange(column, columnValue, txId)
+        )
+        {
+            throw new ConstraintException(
+                Strings.UniqueConstraintViolation(Name, column.Name, columnValue)
+            );
         }
     }
 
-    private static ValueBuffer ResolveColumnValues(
-        Table table,
-        ValueBuffer incoming,
-        long txId,
-        bool isRecursiveInsert
-    )
+    private ValueBuffer GetRowByPK(object primaryKey)
+    {
+        return _tracker
+            .GetChanges()
+            .First(change => change.Buffer.GetPrimaryKey() == primaryKey)
+            .Buffer;
+    }
+
+    private ValueBuffer ResolveColumnValues(ValueBuffer incoming, long txId, bool isRecursiveInsert)
     {
         ValueBuffer result = new();
-        foreach (KeyValuePair<ColumnInfo, object> kvp in incoming)
+        foreach (KeyValuePair<ColumnInfo, object?> kvp in incoming)
         {
             ColumnInfo column = kvp.Key;
-            object columnValue = kvp.Value;
+            object? columnValue = kvp.Value;
 
-            CheckConstraints(column, columnValue);
+            CheckConstraints(column, columnValue, txId);
 
             if (column.Reference == null || columnValue == null)
             {
@@ -125,13 +131,11 @@ internal sealed class Table
                 continue;
             }
 
-            Table dependency = table.Dependencies.First(dep =>
-                dep.Node.DataType == column.Reference
-            );
+            Table dependency = Dependencies.First(dep => dep.Node.DataType == column.Reference);
             EntityNode depNode = dependency.Node;
             if (column.DataType != depNode.DataType)
             {
-                if (!dependency._tracker.HasRow(columnValue))
+                if (!dependency._tracker.HasChange(columnValue, txId))
                 {
                     throw new RowNotFoundException(
                         Strings.RowNotFound(dependency.Name, columnValue),
@@ -154,14 +158,6 @@ internal sealed class Table
         }
 
         return result;
-    }
-
-    private ValueBuffer GetRowByPK(object primaryKey)
-    {
-        return _tracker
-            .GetChanges()
-            .First(change => change.Buffer.GetPrimaryKey() == primaryKey)
-            .Buffer;
     }
 
     private object SelectByBuffer(ValueBuffer buffer)
