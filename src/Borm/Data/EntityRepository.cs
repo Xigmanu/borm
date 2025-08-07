@@ -1,7 +1,4 @@
-﻿using System.Data;
-using Borm.Model.Metadata;
-
-namespace Borm.Data;
+﻿namespace Borm.Data;
 
 internal sealed class EntityRepository<T> : IEntityRepository<T>
     where T : class
@@ -19,7 +16,8 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        _table.Delete(entity, 0);
+        using ImplicitTransaction transaction = new(_table);
+        transaction.Execute(_table.Delete, entity);
     }
 
     public void Delete(T entity, Transaction transaction)
@@ -36,7 +34,8 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        _table.Insert(entity, 0);
+        using ImplicitTransaction transaction = new(_table);
+        transaction.Execute(_table.Insert, entity);
     }
 
     public void Insert(T entity, Transaction transaction)
@@ -73,11 +72,8 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        EntityNode node = _table.Node;
-        ValueBuffer incoming = node.Binding.ConvertToValueBuffer(entity);
-
-        // TODO Tx id
-        _table.Update(incoming, 0);
+        using ImplicitTransaction transaction = new(_table);
+        transaction.Execute(_table.Update, entity);
     }
 
     public void Update(T entity, Transaction transaction)
