@@ -9,7 +9,7 @@ public sealed class Transaction : IDisposable, IAsyncDisposable
     private static readonly SemaphoreSlim Semaphore = new(1, 1);
     private readonly DataContext _context;
     private readonly DataSet _dataSetCopy;
-    private readonly Queue<Action<NodeDataTable>> _tableOperationQueue;
+    private readonly Queue<Action<Table>> _tableOperationQueue;
     private readonly bool _writeOnCommit;
     private bool _committed;
     private Exception? _exception;
@@ -54,9 +54,9 @@ public sealed class Transaction : IDisposable, IAsyncDisposable
 
     internal static long NextId() => IdManager.Next();
 
-    internal void Execute(string tableName, Action<NodeDataTable> tableOperation)
+    internal void Execute(string tableName, Action<Table> tableOperation)
     {
-        NodeDataTable tableCopy = GetTableCopy(tableName);
+        Table tableCopy = GetTableCopy(tableName);
         try
         {
             tableOperation(tableCopy);
@@ -110,9 +110,9 @@ public sealed class Transaction : IDisposable, IAsyncDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private NodeDataTable GetTableCopy(string tableName)
+    private Table GetTableCopy(string tableName)
     {
-        return (NodeDataTable)_dataSetCopy.Tables[tableName]!;
+        return (Table)_dataSetCopy.Tables[tableName]!;
     }
 
     private static class IdManager

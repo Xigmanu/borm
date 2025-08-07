@@ -105,17 +105,17 @@ internal static class NodeDataTableRepositoryTestMocks
         nodeGraph.AddSuccessorSet(nodeB, [nodeA]);
         nodeGraph.AddSuccessorSet(nodeC, [nodeB]);
 
-        NodeDataTable tableA = new("entityA", nodeA);
+        Table tableA = new("entityA", nodeA);
         tableA.Columns.Add(new DataColumn("id", typeof(int)) { AllowDBNull = false });
         tableA.Columns.Add(new DataColumn("value", typeof(string)) { AllowDBNull = false });
         tableA.PrimaryKey = [tableA.Columns[0]];
 
-        NodeDataTable tableB = new("entityB", nodeB);
+        Table tableB = new("entityB", nodeB);
         tableB.Columns.Add(new DataColumn("id", typeof(int)) { AllowDBNull = false });
         tableB.Columns.Add(new DataColumn("entityA", typeof(int)) { AllowDBNull = false });
         tableB.PrimaryKey = [tableB.Columns[0]];
 
-        NodeDataTable tableC = new("entityC", nodeC);
+        Table tableC = new("entityC", nodeC);
         tableC.Columns.Add(new DataColumn("id", typeof(int)) { AllowDBNull = false });
         tableC.Columns.Add(new DataColumn("entityB", typeof(int)) { AllowDBNull = false });
         tableC.PrimaryKey = [tableC.Columns[0]];

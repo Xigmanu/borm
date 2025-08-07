@@ -7,7 +7,7 @@ namespace Borm.Model;
 internal sealed class EntityGraphDataSetMapper
 {
     private readonly EntityNodeGraph _nodeGraph;
-    private readonly Dictionary<EntityNode, NodeDataTable> _nodeTableMap;
+    private readonly Dictionary<EntityNode, Table> _nodeTableMap;
 
     public EntityGraphDataSetMapper(EntityNodeGraph nodeGraph)
     {
@@ -21,13 +21,13 @@ internal sealed class EntityGraphDataSetMapper
         for (int i = 0; i < topSortedNodes.Length; i++)
         {
             EntityNode node = topSortedNodes[i];
-            NodeDataTable table = CreateNodeTable(node);
+            Table table = CreateNodeTable(node);
 
             dataSet.AddTable(table);
             table.BeginInit();
         }
 
-        foreach (NodeDataTable table in dataSet.Tables)
+        foreach (Table table in dataSet.Tables)
         {
             DataRelation[] relations = CreateDataRelations(table);
             if (relations.Length != 0)
@@ -37,7 +37,7 @@ internal sealed class EntityGraphDataSetMapper
         }
     }
 
-    private DataRelation[] CreateDataRelations(NodeDataTable table)
+    private DataRelation[] CreateDataRelations(Table table)
     {
         EntityNode node = table.Node;
         EntityNode[] successors = _nodeGraph.GetSuccessors(node);
@@ -49,7 +49,7 @@ internal sealed class EntityGraphDataSetMapper
             ColumnInfo fkColumnInfo = node.Columns.First(column =>
                 column.Reference == successor.DataType
             );
-            NodeDataTable parentTable = _nodeTableMap[successor];
+            Table parentTable = _nodeTableMap[successor];
             DataColumn parentPrimaryKey = parentTable.PrimaryKey[0];
 
             DataColumn foreignKey = new($"{fkColumnInfo.Name}", parentPrimaryKey.DataType)
@@ -69,9 +69,9 @@ internal sealed class EntityGraphDataSetMapper
         return relations;
     }
 
-    private NodeDataTable CreateNodeTable(EntityNode node)
+    private Table CreateNodeTable(EntityNode node)
     {
-        NodeDataTable table = new(node.Name, node);
+        Table table = new(node.Name, node);
         DataColumn[] columns = new DataColumn[node.Columns.Count];
         DataColumn? primaryKey = null;
 

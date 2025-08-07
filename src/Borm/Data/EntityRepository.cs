@@ -1,45 +1,30 @@
 ﻿using System.Data;
 using Borm.Model.Metadata;
-using Borm.Properties;
 
 namespace Borm.Data;
 
 internal sealed class EntityRepository<T> : IEntityRepository<T>
     where T : class
 {
-    private readonly EntityNodeGraph _nodeGraph;
     private readonly SemaphoreSlim _semaphore;
-    private readonly NodeDataTable _table;
+    private readonly Table _table;
 
-    public EntityRepository(NodeDataTable table, EntityNodeGraph nodeGraph)
+    public EntityRepository(Table table)
     {
         _table = table;
         _semaphore = new(1, 1);
-        _nodeGraph = nodeGraph;
     }
 
     public void Delete(T entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        EntityNode node = _table.Node;
-        ValueBuffer buffer = node.Binding.ConvertToValueBuffer(entity);
-        ColumnInfo primaryKeyColumn = node.GetPrimaryKey();
-
-        object primaryKey = buffer[primaryKeyColumn];
-        VersionedDataRow row = _table.GetRowByPK(primaryKey);
-
-        row.InsertTx = Transaction.NextId();
-        row.Delete();
-        _table.EntityCache.Remove(entity);
+        _table.Delete(entity, 0);
     }
 
     public void Delete(T entity, Transaction transaction)
     {
-        transaction.Execute(
-            _table.TableName,
-            (table) => new EntityRepository<T>(table, _nodeGraph).Delete(entity)
-        );
+        throw new NotImplementedException();
     }
 
     public Task DeleteAsync(T entity)
@@ -50,15 +35,13 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     public void Insert(T entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
-        _ = InsertRecursively(_table, entity);
+
+        _table.Insert(entity, 0);
     }
 
     public void Insert(T entity, Transaction transaction)
     {
-        transaction.Execute(
-            _table.TableName,
-            (table) => new EntityRepository<T>(table, _nodeGraph).Insert(entity)
-        );
+        throw new NotImplementedException();
     }
 
     public Task InsertAsync(T entity)
@@ -68,24 +51,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
 
     public IEnumerable<T> Select()
     {
-        List<T> entities = [.. _table.EntityCache.Values.Cast<T>()];
-        if (entities.Count != 0)
-        {
-            return entities;
-        }
-
-        foreach (DataRow row in _table.Rows)
-        {
-            if (row.RowState != DataRowState.Deleted)
-            {
-                T entity = (T)ReadRowRecursively(_table.Node, row, out object primaryKeyValue);
-                entities.Add(entity);
-
-                _table.EntityCache.Add(primaryKeyValue, entity);
-            }
-        }
-
-        return entities;
+        return _table.Select().Cast<T>();
     }
 
     public IEnumerable<R> Select<R>(Func<T, R> selector)
@@ -108,47 +74,18 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         ArgumentNullException.ThrowIfNull(entity);
 
         EntityNode node = _table.Node;
-        node.Validator?.Invoke(entity);
+        ValueBuffer incoming = node.Binding.ConvertToValueBuffer(entity);
 
-        ValueBuffer buffer = node.Binding.ConvertToValueBuffer(entity);
-        ColumnInfo primaryKeyColumn = node.GetPrimaryKey();
-
-        object primaryKey = buffer[primaryKeyColumn];
-        VersionedDataRow row = _table.GetRowByPK(primaryKey);
-
-        foreach (KeyValuePair<ColumnInfo, object> entryPair in buffer)
-        {
-            ColumnInfo column = entryPair.Key;
-            object newValue = entryPair.Value;
-
-            if (column.Reference == null)
-            {
-                row[column.Name] = newValue;
-                continue;
-            }
-
-            EntityNode? parentNode = _nodeGraph[column.DataType];
-            if (parentNode == null)
-            {
-                row[column.Name] = entryPair.Value;
-                continue;
-            }
-
-            ColumnInfo parentPrimaryKey = parentNode.GetPrimaryKey();
-            ValueBuffer parentBuffer = parentNode.Binding.ConvertToValueBuffer(entryPair.Value);
-            row[column.Name] = parentBuffer[parentPrimaryKey];
-        }
-
-        row.InsertTx = Transaction.NextId();
-        _table.EntityCache.Update(primaryKey, entity);
+        // TODO Tx id
+        _table.Update(
+            incoming,
+            0
+        );
     }
 
     public void Update(T entity, Transaction transaction)
     {
-        transaction.Execute(
-            _table.TableName,
-            (table) => new EntityRepository<T>(table, _nodeGraph).Update(entity)
-        );
+        throw new NotImplementedException();
     }
 
     public Task UpdateAsync(T entity)
@@ -167,86 +104,5 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         {
             _semaphore.Release();
         }
-    }
-
-    private object InsertRecursively(NodeDataTable table, object entity)
-    {
-        EntityNode node = table.Node;
-        node.Validator?.Invoke(entity);
-
-        ValueBuffer buffer = node.Binding.ConvertToValueBuffer(entity);
-        ColumnInfo primaryKeyColumn = node.GetPrimaryKey();
-
-        object primaryKey = buffer[primaryKeyColumn];
-        if (table.Rows.Contains(primaryKey))
-        {
-            if (_table.TableName == table.TableName)
-            {
-                throw new ConstraintException(
-                    Strings.PrimaryKeyConstraintViolation(table.TableName, primaryKey)
-                );
-            }
-            return primaryKey;
-        }
-
-        IEnumerable<ColumnInfo> foreignKeys = node.Columns.Where(column =>
-            column.Reference != null
-        );
-        foreach (ColumnInfo foreignKey in foreignKeys)
-        {
-            EntityNode? parentNode = _nodeGraph[foreignKey.DataType];
-            if (parentNode == null)
-            {
-                continue;
-            }
-
-            DataRelation parentRelation =
-                _table.GetParentRelation(parentNode)
-                ?? throw new InvalidOperationException(
-                    Strings.MissingExpectedDataRelation(parentNode, node)
-                );
-
-            object parentEntity = buffer[foreignKey];
-            buffer[foreignKey] = InsertRecursively(
-                (NodeDataTable)parentRelation.ParentTable,
-                parentEntity
-            );
-        }
-
-        VersionedDataRow newRow = table.NewRow();
-        newRow.InsertTx = Transaction.NextId();
-        buffer.LoadIntoRow(newRow);
-        table.Rows.Add(newRow);
-
-        return primaryKey;
-    }
-
-    private object ReadRowRecursively(EntityNode node, DataRow row, out object primaryKey)
-    {
-        ValueBuffer buffer = ValueBuffer.FromDataRow(node, row);
-        primaryKey = buffer[node.GetPrimaryKey()];
-
-        IEnumerable<ColumnInfo> foreignKeys = node.Columns.Where(column =>
-            column.Reference != null
-        );
-        foreach (ColumnInfo foreignKey in foreignKeys)
-        {
-            EntityNode? parentNode = _nodeGraph[foreignKey.DataType];
-            if (parentNode == null)
-            {
-                continue;
-            }
-
-            DataRelation parentRelation =
-                _table.GetParentRelation(parentNode)
-                ?? throw new InvalidOperationException(
-                    Strings.MissingExpectedDataRelation(parentNode, node)
-                );
-
-            DataRow parentRow = row.GetParentRow(parentRelation)!;
-            buffer[foreignKey] = ReadRowRecursively(parentNode, parentRow, out _);
-        }
-
-        return node.Binding.MaterializeEntity(buffer);
     }
 }

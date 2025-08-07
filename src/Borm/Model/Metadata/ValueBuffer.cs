@@ -1,14 +1,13 @@
 ﻿using System.Collections;
-using System.Data;
 using System.Runtime.CompilerServices;
 
 namespace Borm.Model.Metadata;
 
-internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object>>
+internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object?>>
 {
-    private readonly Dictionary<ColumnInfo, object> _valueMap = [];
+    private readonly Dictionary<ColumnInfo, object?> _valueMap = [];
 
-    public object this[ColumnInfo column]
+    public object? this[ColumnInfo column]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => _valueMap[column];
@@ -16,17 +15,19 @@ internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object>
         set => _valueMap[column] = value;
     }
 
-    public static ValueBuffer FromDataRow(EntityNode node, DataRow row)
+    public object?[] GetColumnOrderedData()
     {
-        ValueBuffer buffer = new();
-        foreach (ColumnInfo column in node.Columns)
+        List<object?> ret = new(_valueMap.Count);
+        IEnumerable<ColumnInfo> ordered = _valueMap.Keys.OrderBy(col => col.Index);
+        foreach (ColumnInfo column in ordered)
         {
-            buffer[column] = row[column.Name];
+            ret.Add(_valueMap[column]);
         }
-        return buffer;
+
+        return [.. ret];
     }
 
-    public IEnumerator<KeyValuePair<ColumnInfo, object>> GetEnumerator()
+    public IEnumerator<KeyValuePair<ColumnInfo, object?>> GetEnumerator()
     {
         return _valueMap.GetEnumerator();
     }
@@ -36,11 +37,10 @@ internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object>
         return GetEnumerator();
     }
 
-    public void LoadIntoRow(DataRow row)
+    public object GetPrimaryKey()
     {
-        foreach (KeyValuePair<ColumnInfo, object> keyValue in _valueMap)
-        {
-            row[keyValue.Key.Name] = keyValue.Value;
-        }
+        return _valueMap
+            .First(keyVal => keyVal.Key.Constraints.HasFlag(Constraints.PrimaryKey))
+            .Value!;
     }
 }

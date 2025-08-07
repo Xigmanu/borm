@@ -11,7 +11,7 @@ public sealed class BormDataSetTest
     {
         // Arrange
         string dataSetName = "test_data";
-        NodeDataTable table = CreateTable();
+        Table table = CreateTable();
         BormDataSet dataSet = new(dataSetName);
 
         // Act
@@ -47,9 +47,9 @@ public sealed class BormDataSetTest
         int id = 1;
         string name = "foo";
 
-        NodeDataTable table = CreateTable();
+        Table table = CreateTable();
         table.Rows.Add(id, name);
-        NodeDataTable table1 = new();
+        Table table1 = new();
         table1.Columns.Add("id", typeof(int));
         table1.PrimaryKey = [table1.Columns[0]];
         table1.Columns.Add("fk", typeof(int));
@@ -66,12 +66,12 @@ public sealed class BormDataSetTest
         Assert.Equal(dataSet.Tables.Count, copy.Tables.Count);
         Assert.Equal(dataSet.Relations.Count, copy.Relations.Count);
 
-        foreach (NodeDataTable expectedTable in dataSet.Tables)
+        foreach (Table expectedTable in dataSet.Tables)
         {
             DataTable? actual = copy.Tables[expectedTable.TableName];
 
             Assert.NotNull(actual);
-            Assert.IsType<NodeDataTable>(actual);
+            Assert.IsType<Table>(actual);
             Assert.Equal(expectedTable.TableName, actual.TableName);
             Assert.Equal(expectedTable.Rows.Count, actual.Rows.Count);
         }
@@ -82,7 +82,7 @@ public sealed class BormDataSetTest
     {
         // Arrange
         string dataSetName = "test_data";
-        NodeDataTable table = CreateTable();
+        Table table = CreateTable();
         object?[] itemArray0 = [1, "foo"];
         object?[] itemArray1 = [2, "bar"];
         table.Rows.Add(itemArray0);
@@ -104,10 +104,10 @@ public sealed class BormDataSetTest
         Assert.Equal(itemArray1, deletedClonedRow1.ItemArray);
     }
 
-    private static NodeDataTable CreateTable()
+    private static Table CreateTable()
     {
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-        NodeDataTable table = new("some", null);
+        Table table = new("some", null);
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
         DataColumn pkColumn = new("id", typeof(int));
         DataColumn nameColumn = new("name", typeof(string));

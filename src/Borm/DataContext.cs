@@ -49,7 +49,7 @@ public sealed class DataContext : IDisposable
         EntityNode node =
             _nodeGraph[entityType]
             ?? throw new ArgumentException(Strings.MissingTableForEntity(entityType.FullName!));
-        NodeDataTable? table = _dataSet.Tables[node.Name] as NodeDataTable;
+        Table? table = _dataSet.Tables[node.Name] as Table;
         Debug.Assert(table != null);
 
         return new EntityRepository<T>(table, _nodeGraph);
@@ -162,6 +162,6 @@ public sealed class DataContext : IDisposable
             _context = context;
         }
 
-        public DataTable[] Tables => [.. _context._dataSet.Tables.Cast<NodeDataTable>()];
+        public DataTable[] Tables => [.. _context._dataSet.Tables.Cast<Table>()];
     }
 }

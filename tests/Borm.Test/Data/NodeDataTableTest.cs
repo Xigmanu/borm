@@ -24,7 +24,7 @@ public sealed class NodeDataTableTest
                 [new ColumnInfo(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null)]
             )
         );
-        NodeDataTable table = new("foo", node);
+        Table table = new("foo", node);
         table.Columns.Add("id", typeof(int));
 
         // Act
@@ -52,9 +52,9 @@ public sealed class NodeDataTableTest
                 [new ColumnInfo(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null)]
             )
         );
-        NodeDataTable table = new("foo", node);
+        Table table = new("foo", node);
         table.Columns.Add("id", typeof(int));
-        NodeDataTable table1 = new("bar", node1);
+        Table table1 = new("bar", node1);
         table1.Columns.Add("id", typeof(int));
         string relName = "foo_bar";
 

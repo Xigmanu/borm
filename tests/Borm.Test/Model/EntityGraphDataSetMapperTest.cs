@@ -26,8 +26,8 @@ public sealed class EntityGraphDataSetMapperTest
 
         for (int i = 0; i < expectedDataSet.Tables.Count; i++)
         {
-            NodeDataTable expectedTable = (NodeDataTable)expectedDataSet.Tables[i];
-            NodeDataTable actualTable = (NodeDataTable)actualDataSet.Tables[i];
+            Table expectedTable = (Table)expectedDataSet.Tables[i];
+            Table actualTable = (Table)actualDataSet.Tables[i];
 
             Assert.Equal(expectedTable.TableName, actualTable.TableName);
             Assert.Equal(expectedTable.Columns.Count, actualTable.Columns.Count);
@@ -62,8 +62,8 @@ public sealed class EntityGraphDataSetMapperTest
         {
             BormDataSet dataSet = new();
 
-            NodeDataTable simpleTable = CreateTable(SimpleNode);
-            NodeDataTable fkTable = CreateTable(FKNode);
+            Table simpleTable = CreateTable(SimpleNode);
+            Table fkTable = CreateTable(FKNode);
 
             dataSet.Tables.AddRange([simpleTable, fkTable]);
 
@@ -122,9 +122,9 @@ public sealed class EntityGraphDataSetMapperTest
             return new EntityNode("table1", typeof(int), columns0);
         }
 
-        private static NodeDataTable CreateTable(EntityNode node)
+        private static Table CreateTable(EntityNode node)
         {
-            NodeDataTable table = new(node.Name, node);
+            Table table = new(node.Name, node);
             DataColumn[] columns = new DataColumn[node.Columns.Count];
             for (int i = 0; i < columns.Length; i++)
             {

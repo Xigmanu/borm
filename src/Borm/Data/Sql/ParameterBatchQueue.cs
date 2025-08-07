@@ -33,7 +33,7 @@ public sealed class ParameterBatchQueue
         }
     }
 
-    internal void AddFromChange(ChangeTrackerEntry entry)
+    internal void AddFromChange(Change entry)
     {
         object?[] values = new object[entry.Data.Length];
         Array.Copy(entry.Data, values, values.Length);

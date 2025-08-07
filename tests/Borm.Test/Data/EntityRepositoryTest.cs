@@ -12,7 +12,7 @@ public sealed class EntityRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable table = (NodeDataTable)dataSet.Tables["entityA"]!;
+        Table table = (Table)dataSet.Tables["entityA"]!;
         EntityRepository<EntityA> repository = new(table, nodeGraph);
 
         int id = 1;
@@ -41,7 +41,7 @@ public sealed class EntityRepositoryTest
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
         EntityRepository<EntityA> repository = new(
-            (NodeDataTable)dataSet.Tables["entityA"]!,
+            (Table)dataSet.Tables["entityA"]!,
             nodeGraph
         );
 
@@ -58,7 +58,7 @@ public sealed class EntityRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable table = (NodeDataTable)dataSet.Tables["entityA"]!;
+        Table table = (Table)dataSet.Tables["entityA"]!;
         EntityRepository<EntityA> repository = new(table, nodeGraph);
 
         int id = 1;
@@ -79,10 +79,10 @@ public sealed class EntityRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable tableA = (NodeDataTable)dataSet.Tables["entityA"]!;
+        Table tableA = (Table)dataSet.Tables["entityA"]!;
         tableA.Rows.Add(1, "foo");
-        NodeDataTable tableB = (NodeDataTable)dataSet.Tables["entityB"]!;
-        NodeDataTable tableC = (NodeDataTable)dataSet.Tables["entityC"]!;
+        Table tableB = (Table)dataSet.Tables["entityB"]!;
+        Table tableC = (Table)dataSet.Tables["entityC"]!;
         EntityRepository<EntityC> repository = new(tableC, nodeGraph);
 
         int id = 1;
@@ -106,7 +106,7 @@ public sealed class EntityRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable table = (NodeDataTable)dataSet.Tables["entityA"]!;
+        Table table = (Table)dataSet.Tables["entityA"]!;
         EntityRepository<EntityA> repository = new(table, nodeGraph);
 
         int id = 1;
@@ -128,9 +128,9 @@ public sealed class EntityRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable tableA = (NodeDataTable)dataSet.Tables["entityA"]!;
+        Table tableA = (Table)dataSet.Tables["entityA"]!;
         tableA.Rows.Add(1, "foo");
-        NodeDataTable tableB = (NodeDataTable)dataSet.Tables["entityB"]!;
+        Table tableB = (Table)dataSet.Tables["entityB"]!;
         EntityRepository<EntityB> repository = new(tableB, nodeGraph);
 
         int id = 1;
@@ -153,7 +153,7 @@ public sealed class EntityRepositoryTest
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
         EntityRepository<EntityA> repository = new(
-            (NodeDataTable)dataSet.Tables["entityA"]!,
+            (Table)dataSet.Tables["entityA"]!,
             nodeGraph
         );
 
@@ -170,7 +170,7 @@ public sealed class EntityRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable table = (NodeDataTable)dataSet.Tables["entityA"]!;
+        Table table = (Table)dataSet.Tables["entityA"]!;
         EntityRepository<EntityA> repository = new(table, nodeGraph);
 
         EntityA entity = new(1, EntityAValidator.InvalidValue);
@@ -188,9 +188,9 @@ public sealed class EntityRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable tableA = (NodeDataTable)dataSet.Tables["entityA"]!;
+        Table tableA = (Table)dataSet.Tables["entityA"]!;
         tableA.Rows.Add(1, "foo");
-        NodeDataTable tableC = (NodeDataTable)dataSet.Tables["entityC"]!;
+        Table tableC = (Table)dataSet.Tables["entityC"]!;
         EntityRepository<EntityC> repository = new(tableC, nodeGraph);
 
         dataSet.Relations.Clear();
@@ -212,7 +212,7 @@ public sealed class EntityRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable table = (NodeDataTable)dataSet.Tables["entityA"]!;
+        Table table = (Table)dataSet.Tables["entityA"]!;
         EntityRepository<EntityA> repository = new(table, nodeGraph);
 
         int id = 1;
@@ -238,9 +238,9 @@ public sealed class EntityRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable tableA = (NodeDataTable)dataSet.Tables["entityA"]!;
-        NodeDataTable tableB = (NodeDataTable)dataSet.Tables["entityB"]!;
-        NodeDataTable tableC = (NodeDataTable)dataSet.Tables["entityC"]!;
+        Table tableA = (Table)dataSet.Tables["entityA"]!;
+        Table tableB = (Table)dataSet.Tables["entityB"]!;
+        Table tableC = (Table)dataSet.Tables["entityC"]!;
         tableA.Rows.Add(1, "foo");
         tableB.Rows.Add(1, 1);
         tableC.Rows.Add(1, 1);
@@ -262,7 +262,7 @@ public sealed class EntityRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable table = (NodeDataTable)dataSet.Tables["entityA"]!;
+        Table table = (Table)dataSet.Tables["entityA"]!;
         EntityRepository<EntityA> repository = new(table, nodeGraph);
 
         int id = 1;
@@ -293,8 +293,8 @@ public sealed class EntityRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable tableA = (NodeDataTable)dataSet.Tables["entityA"]!;
-        NodeDataTable tableB = (NodeDataTable)dataSet.Tables["entityB"]!;
+        Table tableA = (Table)dataSet.Tables["entityA"]!;
+        Table tableB = (Table)dataSet.Tables["entityB"]!;
         tableA.Rows.Add(1, "foo");
         tableB.Rows.Add(1, 1);
         EntityRepository<EntityB> repository = new(tableB, nodeGraph);
@@ -314,9 +314,9 @@ public sealed class EntityRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable tableA = (NodeDataTable)dataSet.Tables["entityA"]!;
-        NodeDataTable tableB = (NodeDataTable)dataSet.Tables["entityB"]!;
-        NodeDataTable tableC = (NodeDataTable)dataSet.Tables["entityC"]!;
+        Table tableA = (Table)dataSet.Tables["entityA"]!;
+        Table tableB = (Table)dataSet.Tables["entityB"]!;
+        Table tableC = (Table)dataSet.Tables["entityC"]!;
         tableA.Rows.Add(1, "foo");
         tableB.Rows.Add(1, 1);
         tableC.Rows.Add(1, 1);
@@ -338,7 +338,7 @@ public sealed class EntityRepositoryTest
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
         EntityRepository<EntityA> repository = new(
-            (NodeDataTable)dataSet.Tables["entityA"]!,
+            (Table)dataSet.Tables["entityA"]!,
             nodeGraph
         );
 
@@ -355,7 +355,7 @@ public sealed class EntityRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable table = (NodeDataTable)dataSet.Tables["entityA"]!;
+        Table table = (Table)dataSet.Tables["entityA"]!;
         EntityRepository<EntityA> repository = new(table, nodeGraph);
 
         int id = 1;
@@ -377,9 +377,9 @@ public sealed class EntityRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable tableA = (NodeDataTable)dataSet.Tables["entityA"]!;
-        NodeDataTable tableB = (NodeDataTable)dataSet.Tables["entityB"]!;
-        NodeDataTable tableC = (NodeDataTable)dataSet.Tables["entityC"]!;
+        Table tableA = (Table)dataSet.Tables["entityA"]!;
+        Table tableB = (Table)dataSet.Tables["entityB"]!;
+        Table tableC = (Table)dataSet.Tables["entityC"]!;
         tableA.Rows.Add(1, "foo");
         tableB.Rows.Add(1, 1);
         tableB.Rows.Add(2, 1);
@@ -406,7 +406,7 @@ public sealed class EntityRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable table = (NodeDataTable)dataSet.Tables["entityA"]!;
+        Table table = (Table)dataSet.Tables["entityA"]!;
         EntityRepository<EntityA> repository = new(table, nodeGraph);
 
         int id = 1;
@@ -435,8 +435,8 @@ public sealed class EntityRepositoryTest
     {
         // Arrange
         (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
-        NodeDataTable tableA = (NodeDataTable)dataSet.Tables["entityA"]!;
-        NodeDataTable tableB = (NodeDataTable)dataSet.Tables["entityB"]!;
+        Table tableA = (Table)dataSet.Tables["entityA"]!;
+        Table tableB = (Table)dataSet.Tables["entityB"]!;
         tableA.Rows.Add(1, "foo");
         tableA.Rows.Add(2, "bar");
         tableB.Rows.Add(1, 1);

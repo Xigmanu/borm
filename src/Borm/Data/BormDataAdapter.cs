@@ -42,7 +42,7 @@ internal sealed class BormDataAdapter
             DataTable table = dataSet.Tables[sorted[i].Name]!;
             SqlStatement statement = _statementFactory.NewSelectAllStatement(table);
             using IDataReader dataReader = _executor.ExecuteReader(statement);
-            ((NodeDataTable)table).Load(dataReader);
+            ((Table)table).Load(dataReader);
         }
         dataSet.AcceptChanges();
     }
@@ -53,7 +53,7 @@ internal sealed class BormDataAdapter
         for (int i = 0; i < sorted.Length; i++)
         {
             DataTable table = dataSet.Tables[sorted[i].Name]!;
-            IEnumerable<SqlStatement> statements = CreateUpdateStatements((NodeDataTable)table);
+            IEnumerable<SqlStatement> statements = CreateUpdateStatements((Table)table);
             foreach (SqlStatement statement in statements)
             {
                 _executor.ExecuteBatch(statement);
@@ -67,7 +67,7 @@ internal sealed class BormDataAdapter
         for (int i = 0; i < sorted.Length; i++)
         {
             DataTable table = dataSet.Tables[sorted[i].Name]!;
-            IEnumerable<SqlStatement> statements = CreateUpdateStatements((NodeDataTable)table);
+            IEnumerable<SqlStatement> statements = CreateUpdateStatements((Table)table);
             foreach (SqlStatement statement in statements)
             {
                 await _executor.ExecuteBatchAsync(statement);
@@ -77,7 +77,7 @@ internal sealed class BormDataAdapter
 
     private static SqlStatement GetOrCreateSqlStatement(
         DataTable table,
-        ChangeTrackerEntry entry,
+        Change entry,
         Dictionary<DataRowAction, SqlStatement> rowStateStatements,
         Func<DataTable, SqlStatement> factoryMethod
     )
@@ -93,17 +93,17 @@ internal sealed class BormDataAdapter
     }
 
     private Dictionary<DataRowAction, SqlStatement>.ValueCollection CreateUpdateStatements(
-        NodeDataTable table
+        Table table
     )
     {
-        IEnumerable<ChangeTrackerEntry> changes = table.GetChanges();
+        IEnumerable<Change> changes = table.GetChanges();
         Dictionary<DataRowAction, SqlStatement> rowStateStatements = [];
         if (!changes.Any())
         {
             return rowStateStatements.Values;
         }
 
-        foreach (ChangeTrackerEntry entry in changes)
+        foreach (Change entry in changes)
         {
             SqlStatement statement;
             switch (entry.RowAction)
