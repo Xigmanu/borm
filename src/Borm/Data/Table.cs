@@ -29,6 +29,10 @@ internal sealed class Table
 
     public void AcceptPendingChanges(long txId)
     {
+        foreach (Table dependency in Dependencies)
+        {
+            dependency.AcceptPendingChanges(txId);
+        }
         _tracker.AcceptPendingChanges(txId);
     }
 

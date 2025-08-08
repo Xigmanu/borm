@@ -1,17 +1,23 @@
-﻿using System.Data;
-using System.Runtime.CompilerServices;
-using Borm.Data;
+﻿using Borm.Data;
 
 namespace Borm;
 
-public sealed class Transaction : IDisposable, IAsyncDisposable
+public sealed class Transaction : InternalTransaction, IAsyncDisposable
 {
-    private static readonly SemaphoreSlim Semaphore = new(1, 1);
-    private readonly List<Table> _tables;
     private readonly bool _writeOnCommit;
 
-    internal Transaction()
+    internal Transaction(bool writeOnCommit)
     {
+        _writeOnCommit = writeOnCommit;
+    }
 
+    protected override void CommitPendingChanges()
+    {
+        throw new NotImplementedException();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        throw new NotImplementedException();
     }
 }

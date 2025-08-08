@@ -16,8 +16,8 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        using ImplicitTransaction transaction = new(_table);
-        transaction.Execute(_table.Delete, entity);
+        using InternalTransaction transaction = new();
+        transaction.Execute(_table, _table.Delete, entity);
     }
 
     public void Delete(T entity, Transaction transaction)
@@ -34,8 +34,8 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        using ImplicitTransaction transaction = new(_table);
-        transaction.Execute(_table.Insert, entity);
+        using InternalTransaction transaction = new();
+        transaction.Execute(_table, _table.Insert, entity);
     }
 
     public void Insert(T entity, Transaction transaction)
@@ -72,8 +72,8 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     {
         ArgumentNullException.ThrowIfNull(entity);
 
-        using ImplicitTransaction transaction = new(_table);
-        transaction.Execute(_table.Update, entity);
+        using InternalTransaction transaction = new();
+        transaction.Execute(_table, _table.Update, entity);
     }
 
     public void Update(T entity, Transaction transaction)
