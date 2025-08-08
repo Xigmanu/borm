@@ -8,33 +8,24 @@ using Borm.Reflection;
 
 namespace Borm;
 
-public sealed class DataContext : IDisposable
+public sealed class DataContext
 {
-    private const string DefaultDataStoreName = "borm_data";
-
     private readonly BormConfiguration _configuration;
-    private readonly BormDataSet _dataSet;
+    private readonly List<Table> _tables;
     private EntityNodeGraph? _nodeGraph;
 
     public DataContext(BormConfiguration configuration)
     {
         _configuration = configuration;
-        _dataSet = new BormDataSet(DefaultDataStoreName);
+        _tables = [];
         _nodeGraph = null;
     }
 
     public event EventHandler? Initialized;
 
-    internal BormDataSet DataSet => _dataSet;
-
     public Transaction BeginTransaction()
     {
-        return new Transaction(this, _configuration.TransactionWriteOnCommit);
-    }
-
-    public void Dispose()
-    {
-        _dataSet.Dispose();
+        throw new NotImplementedException();
     }
 
     public IEntityRepository<T> GetRepository<T>()
@@ -86,7 +77,8 @@ public sealed class DataContext : IDisposable
         });
 
         _nodeGraph = EntityNodeGraphFactory.Create(entityNodes);
-        new EntityGraphDataSetMapper(_nodeGraph).LoadMapping(_dataSet);
+        List<Table> tables = new TableCreator(_nodeGraph).MakeTables();
+        _tables.AddRange(tables);
 
         // For now EndInit is called to simply finish the table initialization
         // Later though: TODO check and load data from the database. EndInit is to be called afterwards in order not to screw up the change tracking

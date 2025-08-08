@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System.Collections.Frozen;
+using System.Data;
 using System.Diagnostics;
 using Borm.Data.Sql;
 using Borm.Model.Metadata;
@@ -22,38 +23,36 @@ internal sealed class BormDataAdapter
         _statementFactory = statementFactory;
     }
 
-    public void CreateTables(BormDataSet dataSet)
+    public void CreateTables(IEnumerable<Table> tables)
     {
         EntityNode[] sorted = _nodeGraph.ReversedTopSort();
         for (int i = 0; i < sorted.Length; i++)
         {
-            DataTable table = dataSet.Tables[sorted[i].Name]!;
+            Table table = tables.First(table => table.Node == sorted[i]);
             SqlStatement statement = _statementFactory.NewCreateTableStatement(table);
             _executor.ExecuteBatch(statement);
-            table.EndInit();
         }
     }
 
-    public void Load(BormDataSet dataSet)
+    public void Load(IEnumerable<Table> tables)
     {
         EntityNode[] sorted = _nodeGraph.ReversedTopSort();
         for (int i = 0; i < sorted.Length; i++)
         {
-            DataTable table = dataSet.Tables[sorted[i].Name]!;
+            Table table = tables.First(table => table.Node == sorted[i]);
             SqlStatement statement = _statementFactory.NewSelectAllStatement(table);
             using IDataReader dataReader = _executor.ExecuteReader(statement);
-            ((Table)table).Load(dataReader);
+            table.Load(dataReader);
         }
-        dataSet.AcceptChanges();
     }
 
-    public void Update(BormDataSet dataSet)
+    public void Update(IEnumerable<Table> tables)
     {
         EntityNode[] sorted = _nodeGraph.ReversedTopSort();
         for (int i = 0; i < sorted.Length; i++)
         {
-            DataTable table = dataSet.Tables[sorted[i].Name]!;
-            IEnumerable<SqlStatement> statements = CreateUpdateStatements((Table)table);
+            Table table = tables.First(table => table.Node == sorted[i]);
+            IEnumerable<SqlStatement> statements = CreateUpdateStatements(table);
             foreach (SqlStatement statement in statements)
             {
                 _executor.ExecuteBatch(statement);
@@ -61,13 +60,13 @@ internal sealed class BormDataAdapter
         }
     }
 
-    public async Task UpdateAsync(BormDataSet dataSet)
+    public async Task UpdateAsync(IEnumerable<Table> tables)
     {
         EntityNode[] sorted = _nodeGraph.ReversedTopSort();
         for (int i = 0; i < sorted.Length; i++)
         {
-            DataTable table = dataSet.Tables[sorted[i].Name]!;
-            IEnumerable<SqlStatement> statements = CreateUpdateStatements((Table)table);
+            Table table = tables.First(table => table.Node == sorted[i]);
+            IEnumerable<SqlStatement> statements = CreateUpdateStatements(table);
             foreach (SqlStatement statement in statements)
             {
                 await _executor.ExecuteBatchAsync(statement);
@@ -76,10 +75,10 @@ internal sealed class BormDataAdapter
     }
 
     private static SqlStatement GetOrCreateSqlStatement(
-        DataTable table,
+        Table table,
         Change entry,
-        Dictionary<DataRowAction, SqlStatement> rowStateStatements,
-        Func<DataTable, SqlStatement> factoryMethod
+        Dictionary<RowAction, SqlStatement> rowStateStatements,
+        Func<Table, SqlStatement> factoryMethod
     )
     {
         if (rowStateStatements.TryGetValue(entry.RowAction, out SqlStatement? cached))
@@ -92,12 +91,10 @@ internal sealed class BormDataAdapter
         return statement;
     }
 
-    private Dictionary<DataRowAction, SqlStatement>.ValueCollection CreateUpdateStatements(
-        Table table
-    )
+    private Dictionary<RowAction, SqlStatement>.ValueCollection CreateUpdateStatements(Table table)
     {
         IEnumerable<Change> changes = table.GetChanges();
-        Dictionary<DataRowAction, SqlStatement> rowStateStatements = [];
+        Dictionary<RowAction, SqlStatement> rowStateStatements = [];
         if (!changes.Any())
         {
             return rowStateStatements.Values;
@@ -108,7 +105,7 @@ internal sealed class BormDataAdapter
             SqlStatement statement;
             switch (entry.RowAction)
             {
-                case DataRowAction.Add:
+                case RowAction.Insert:
                     statement = GetOrCreateSqlStatement(
                         table,
                         entry,
@@ -116,7 +113,7 @@ internal sealed class BormDataAdapter
                         _statementFactory.NewInsertStatement
                     );
                     break;
-                case DataRowAction.Change:
+                case RowAction.Update:
                     statement = GetOrCreateSqlStatement(
                         table,
                         entry,
@@ -124,7 +121,7 @@ internal sealed class BormDataAdapter
                         _statementFactory.NewUpdateStatement
                     );
                     break;
-                case DataRowAction.Delete:
+                case RowAction.Delete:
                     statement = GetOrCreateSqlStatement(
                         table,
                         entry,

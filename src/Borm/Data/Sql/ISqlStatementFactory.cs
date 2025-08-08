@@ -1,14 +1,12 @@
-﻿using System.Data;
-
-namespace Borm.Data.Sql;
+﻿namespace Borm.Data.Sql;
 
 public interface ISqlStatementFactory
 {
-    SqlStatement NewCreateTableStatement(DataTable dataTable);
-    SqlStatement NewDeleteStatement(DataTable dataTable);
+    SqlStatement NewCreateTableStatement(ITable table);
+    SqlStatement NewDeleteStatement(ITable table);
 
-    SqlStatement NewInsertStatement(DataTable dataTable);
+    SqlStatement NewInsertStatement(ITable table);
 
-    SqlStatement NewSelectAllStatement(DataTable dataTable);
-    SqlStatement NewUpdateStatement(DataTable dataTable);
+    SqlStatement NewSelectAllStatement(ITable table);
+    SqlStatement NewUpdateStatement(ITable table);
 }

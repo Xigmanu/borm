@@ -1,35 +1,37 @@
 ﻿using System.Data;
+using Borm.Model;
 using Borm.Model.Metadata;
 using Borm.Properties;
 
 namespace Borm.Data;
 
-/*
- * TODO
- *
- * 1. Implement equality comparison for HashSet
- * 2. Rework object caching
- */
-internal sealed class Table
+internal sealed class Table : ITable
 {
     private readonly ObjectCache _entityCache = new();
     private readonly EntityNode _node;
     private readonly ChangeTracker _tracker = new();
 
-    public Table(string name, EntityNode node)
+    public Table(EntityNode node, IReadOnlyDictionary<IColumn, ITable> relations)
     {
         _node = node;
-        Name = name;
+        Relations = relations;
     }
 
-    public string Name { get; }
-    internal TableSet Dependencies { get; } = new();
+    public IEnumerable<IColumn> Columns => Node.Columns;
+
+    public string Name => _node.Name;
+
+    public IColumn PrimaryKey => Node.GetPrimaryKey();
+
+    public IReadOnlyDictionary<IColumn, ITable> Relations { get; }
+
     internal ObjectCache EntityCache => _entityCache;
+
     internal EntityNode Node => _node;
 
     public void AcceptPendingChanges(long txId)
     {
-        foreach (Table dependency in Dependencies)
+        foreach (Table dependency in Relations.Values.Cast<Table>())
         {
             dependency.AcceptPendingChanges(txId);
         }
@@ -51,6 +53,11 @@ internal sealed class Table
 
         Change change = new(buffer, txId, RowAction.Delete);
         _tracker.PendChange(change, txId);
+    }
+
+    public IEnumerable<Change> GetChanges()
+    {
+        return _tracker.GetChanges();
     }
 
     public void Insert(object entity, long txId)
@@ -97,6 +104,11 @@ internal sealed class Table
         _tracker.PendChange(change, txId);
     }
 
+    internal void Load(IDataReader dataReader)
+    {
+        throw new NotImplementedException();
+    }
+
     private void CheckConstraints(ColumnInfo column, object? columnValue, long txId)
     {
         Constraints constraints = column.Constraints;
@@ -139,7 +151,7 @@ internal sealed class Table
                 continue;
             }
 
-            Table dependency = Dependencies.First(dep => dep.Node.DataType == column.Reference);
+            Table dependency = (Table)Relations[column];
             EntityNode depNode = dependency.Node;
             if (column.DataType != depNode.DataType)
             {
@@ -183,7 +195,7 @@ internal sealed class Table
                 continue;
             }
 
-            Table depTable = Dependencies.First(table => table.Node.DataType == reference);
+            Table depTable = (Table)Relations[column];
             ValueBuffer depBuffer = depTable.GetRowByPK(columnValue);
             object depObj = depTable.SelectByBuffer(depBuffer);
 

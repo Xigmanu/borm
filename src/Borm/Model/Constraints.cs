@@ -1,7 +1,7 @@
-﻿namespace Borm.Model.Metadata;
+﻿namespace Borm.Model;
 
 [Flags]
-internal enum Constraints
+public enum Constraints
 {
     None = 0,
     PrimaryKey = 2,

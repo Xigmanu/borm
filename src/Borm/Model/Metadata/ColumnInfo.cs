@@ -1,6 +1,8 @@
-﻿namespace Borm.Model.Metadata;
+﻿using Borm.Data;
 
-internal sealed class ColumnInfo
+namespace Borm.Model.Metadata;
+
+internal sealed class ColumnInfo : IColumn
 {
     public ColumnInfo(
         int index,
@@ -19,6 +21,7 @@ internal sealed class ColumnInfo
         PropertyName = propertyName;
     }
 
+    public Constraints Constraints { get; }
     public Type DataType { get; }
 
     public int Index { get; }
@@ -28,6 +31,4 @@ internal sealed class ColumnInfo
     public string PropertyName { get; }
 
     public Type? Reference { get; }
-
-    internal Constraints Constraints { get; }
 }
