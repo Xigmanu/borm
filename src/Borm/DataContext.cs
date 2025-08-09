@@ -1,5 +1,4 @@
-﻿using System.Data;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Borm.Data;
 using Borm.Model;
 using Borm.Model.Metadata;
@@ -11,14 +10,18 @@ namespace Borm;
 public sealed class DataContext
 {
     private readonly BormConfiguration _configuration;
-    private readonly List<Table> _tables;
-    private EntityNodeGraph? _nodeGraph;
+    private readonly BormDataAdapter _dataAdapter;
+    private readonly TableGraph _tableGraph;
 
     public DataContext(BormConfiguration configuration)
     {
         _configuration = configuration;
-        _tables = [];
-        _nodeGraph = null;
+        _tableGraph = new();
+        _dataAdapter = new(
+            configuration.CommandExecutor,
+            _tableGraph,
+            configuration.SqlStatementFactory
+        );
     }
 
     public event EventHandler? Initialized;
@@ -31,19 +34,18 @@ public sealed class DataContext
     public IEntityRepository<T> GetRepository<T>()
         where T : class
     {
-        if (_nodeGraph == null)
+        if (_tableGraph == null)
         {
             throw new InvalidOperationException(Strings.DataContextNotInitialized());
         }
 
         Type entityType = typeof(T);
-        EntityNode node =
-            _nodeGraph[entityType]
+        Table table =
+            _tableGraph[entityType]
             ?? throw new ArgumentException(Strings.MissingTableForEntity(entityType.FullName!));
-        Table? table = _dataSet.Tables[node.Name] as Table;
         Debug.Assert(table != null);
 
-        return new EntityRepository<T>(table, _nodeGraph);
+        return new EntityRepository<T>(table);
     }
 
     public void Initialize()
@@ -76,84 +78,31 @@ public sealed class DataContext
             }
         });
 
-        _nodeGraph = EntityNodeGraphFactory.Create(entityNodes);
-        List<Table> tables = new TableCreator(_nodeGraph).MakeTables();
-        _tables.AddRange(tables);
-
-        // For now EndInit is called to simply finish the table initialization
-        // Later though: TODO check and load data from the database. EndInit is to be called afterwards in order not to screw up the change tracking
+        IEnumerable<Table> tables = TableFactory.Create(entityNodes);
+        _tableGraph.AddTableRange(tables);
 
         BormDataAdapter adapter = new(
             _configuration.CommandExecutor,
-            _nodeGraph,
+            _tableGraph,
             _configuration.SqlStatementFactory
         );
-        adapter.CreateTables(_dataSet);
+        adapter.CreateTables();
 
-        OnInitialized();
-    }
-
-    public void RejectChanges()
-    {
-        _dataSet.RejectChanges();
+        OnInitialized(); //TODO Replace this with a trigger
     }
 
     public void SaveChanges()
     {
-        if (_nodeGraph == null)
-        {
-            throw new InvalidOperationException(Strings.DataContextNotInitialized());
-        }
-        if (_dataSet.GetChanges() == null)
-        {
-            return;
-        }
-
-        BormDataAdapter adapter = new(
-            _configuration.CommandExecutor,
-            _nodeGraph,
-            _configuration.SqlStatementFactory
-        );
-
-        adapter.Update(_dataSet);
-        _dataSet.AcceptChanges();
+        _dataAdapter.Update();
     }
 
     public async Task SaveChangesAsync()
     {
-        if (_nodeGraph == null)
-        {
-            throw new InvalidOperationException(Strings.DataContextNotInitialized());
-        }
-        if (!_dataSet.HasChanges())
-        {
-            return;
-        }
-
-        BormDataAdapter adapter = new(
-            _configuration.CommandExecutor,
-            _nodeGraph,
-            _configuration.SqlStatementFactory
-        );
-
-        await adapter.UpdateAsync(_dataSet);
-        _dataSet.AcceptChanges();
+        await _dataAdapter.UpdateAsync();
     }
 
     private void OnInitialized()
     {
         Initialized?.Invoke(this, EventArgs.Empty);
-    }
-
-    internal sealed class DataContextDebugView
-    {
-        private readonly DataContext _context;
-
-        public DataContextDebugView(DataContext context)
-        {
-            _context = context;
-        }
-
-        public DataTable[] Tables => [.. _context._dataSet.Tables.Cast<Table>()];
     }
 }

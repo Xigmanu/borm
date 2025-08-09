@@ -103,8 +103,8 @@ internal sealed class EntityNodeValidator
     )
     {
         Type dataType = columnInfo.Constraints.HasFlag(Constraints.AllowDbNull)
-            ? UnwrapNullableType(columnInfo.DataType)
-            : columnInfo.DataType;
+            ? columnInfo.DataType
+            : columnInfo.PropertyType;
 
         Type reference = columnInfo.Reference!;
         EntityNode? successor = _nodes.FirstOrDefault(node => node.DataType.Equals(reference));

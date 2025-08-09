@@ -15,7 +15,7 @@ internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object?
         set => _valueMap[column] = value;
     }
 
-    public object?[] GetColumnOrderedData()
+    public object?[] ToColumnOrderedArray()
     {
         List<object?> ret = new(_valueMap.Count);
         IEnumerable<ColumnInfo> ordered = _valueMap.Keys.OrderBy(col => col.Index);

@@ -11,9 +11,6 @@ internal sealed class ChangeTracker
     private readonly List<Change> _changes = [];
     private readonly Dictionary<long, List<Change>> _pendingChanges = [];
 
-    // TODO!!!
-    // 2. Rework transaction logic: add implicit (internal) and explicit (public) transactions for easier row insert tx id tracking
-
     public void AcceptPendingChanges(long txId)
     {
         if (
@@ -57,11 +54,22 @@ internal sealed class ChangeTracker
         return HasChange(txId, (buffer) => buffer[column] == columnValue);
     }
 
-    public void InitInsert(ValueBuffer buffer, long txId)
+    public void LoadFromDataSource(ValueBuffer buffer, long txId)
     {
         Debug.Assert(txId == -1);
-        Change entry = new(buffer, txId, RowAction.None);
+        Change entry = new(buffer, txId, RowAction.None, isWrittenToDb: true);
         _changes.Add(entry);
+    }
+
+    public void MarkChangesAsWritten()
+    {
+        _changes.ForEach(change =>
+        {
+            if (!change.IsWrittenToDb)
+            {
+                change.IsWrittenToDb = true;
+            }
+        });
     }
 
     public void PendChange(Change change, long txId)
@@ -69,6 +77,7 @@ internal sealed class ChangeTracker
         if (!_pendingChanges.TryGetValue(txId, out List<Change>? pendingChanges))
         {
             _pendingChanges[txId] = [change];
+            return;
         }
         Debug.Assert(pendingChanges != null);
 

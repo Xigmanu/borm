@@ -13,7 +13,7 @@ public sealed class EntityNodeGraphTest
         EntityNode node0 = new("foo", typeof(float), new ColumnInfoCollection([column]));
         EntityNode node1 = new("bar", typeof(double), new ColumnInfoCollection([column]));
 
-        EntityNodeGraph nodeGraph = new();
+        TableGraph nodeGraph = new();
         nodeGraph.AddSuccessorSet(node0, []);
         nodeGraph.AddSuccessorSet(node1, [node0]);
 
@@ -35,7 +35,7 @@ public sealed class EntityNodeGraphTest
         EntityNode node0 = new("foo", typeof(float), new ColumnInfoCollection([column]));
         EntityNode node1 = new("bar", typeof(double), new ColumnInfoCollection([column]));
 
-        EntityNodeGraph nodeGraph = new();
+        TableGraph nodeGraph = new();
         nodeGraph.AddSuccessorSet(node0, []);
 
         // Act
@@ -51,7 +51,7 @@ public sealed class EntityNodeGraphTest
         // Arrange
         ColumnInfo column = new(0, "foo", "Foo", typeof(int), Constraints.None, null);
         EntityNode node = new("foo", typeof(object), new ColumnInfoCollection([column]));
-        EntityNodeGraph nodeGraph = new();
+        TableGraph nodeGraph = new();
         nodeGraph.AddSuccessorSet(node, []);
 
         // Act
@@ -68,7 +68,7 @@ public sealed class EntityNodeGraphTest
         // Arrange
         ColumnInfo column = new(0, "foo", "Foo", typeof(int), Constraints.None, null);
         EntityNode node = new("foo", typeof(object), new ColumnInfoCollection([column]));
-        EntityNodeGraph nodeGraph = new();
+        TableGraph nodeGraph = new();
         nodeGraph.AddSuccessorSet(node, []);
 
         // Act
@@ -88,12 +88,12 @@ public sealed class EntityNodeGraphTest
 
         EntityNode[] expected = [node0, node1];
 
-        EntityNodeGraph nodeGraph = new();
+        TableGraph nodeGraph = new();
         nodeGraph.AddSuccessorSet(node1, [node0]);
         nodeGraph.AddSuccessorSet(node0, []);
 
         // Act
-        EntityNode[] actual = nodeGraph.ReversedTopSort();
+        EntityNode[] actual = nodeGraph.TopSort();
 
         // Assert
         Assert.Equal(expected.Length, actual.Length);

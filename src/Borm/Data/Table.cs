@@ -38,6 +38,11 @@ internal sealed class Table : ITable
         _tracker.AcceptPendingChanges(txId);
     }
 
+    public void MarkChangesAsWritten()
+    {
+        _tracker.MarkChangesAsWritten();
+    }
+
     public void Delete(object entity, long txId)
     {
         ValueBuffer buffer = _node.Binding.ConvertToValueBuffer(entity);
@@ -55,9 +60,19 @@ internal sealed class Table : ITable
         _tracker.PendChange(change, txId);
     }
 
+    public override bool Equals(object? obj)
+    {
+        return obj is Table other && other._node.Equals(_node);
+    }
+
     public IEnumerable<Change> GetChanges()
     {
         return _tracker.GetChanges();
+    }
+
+    public override int GetHashCode()
+    {
+        return _node.GetHashCode();
     }
 
     public void Insert(object entity, long txId)

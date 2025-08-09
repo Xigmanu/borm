@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Diagnostics;
+using Borm.Model.Metadata;
 
 namespace Borm.Data.Sql;
 
@@ -35,8 +36,8 @@ public sealed class ParameterBatchQueue
 
     internal void AddFromChange(Change entry)
     {
-        object?[] values = new object[entry.Data.Length];
-        Array.Copy(entry.Data, values, values.Length);
-        _values.Add(values);
+        ValueBuffer buffer = entry.Buffer;
+        object?[] bufArr = buffer.ToColumnOrderedArray();
+        _values.Add(bufArr);
     }
 }

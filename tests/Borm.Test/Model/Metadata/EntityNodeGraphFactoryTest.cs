@@ -31,7 +31,7 @@ public sealed class EntityNodeGraphFactoryTest
         EntityNode[] nodes = [node0, node1];
 
         // Act
-        EntityNodeGraph graph = EntityNodeGraphFactory.Create(nodes);
+        TableGraph graph = TableFactory.Create(nodes);
 
         // Assert
         Assert.Equal(nodes.Length, graph.NodeCount);

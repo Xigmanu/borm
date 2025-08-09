@@ -11,7 +11,7 @@ public sealed class EntityRepositoryTest
     public void Delete_RemovesRow_WithSimpleEntity()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         Table table = (Table)dataSet.Tables["entityA"]!;
         EntityRepository<EntityA> repository = new(table, nodeGraph);
 
@@ -39,7 +39,7 @@ public sealed class EntityRepositoryTest
     public void Delete_ShouldThrowArgumentNullException_WhenEntityIsNull()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         EntityRepository<EntityA> repository = new(
             (Table)dataSet.Tables["entityA"]!,
             nodeGraph
@@ -57,7 +57,7 @@ public sealed class EntityRepositoryTest
     public void Delete_ShouldThrowRowNotFoundException_WhenRowDoesNotExist()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         Table table = (Table)dataSet.Tables["entityA"]!;
         EntityRepository<EntityA> repository = new(table, nodeGraph);
 
@@ -78,7 +78,7 @@ public sealed class EntityRepositoryTest
     public void Insert_ShouldInsertEntityValue_WithComplexFKEntity()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         Table tableA = (Table)dataSet.Tables["entityA"]!;
         tableA.Rows.Add(1, "foo");
         Table tableB = (Table)dataSet.Tables["entityB"]!;
@@ -105,7 +105,7 @@ public sealed class EntityRepositoryTest
     public void Insert_ShouldInsertEntityValue_WithSimpleEntity()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         Table table = (Table)dataSet.Tables["entityA"]!;
         EntityRepository<EntityA> repository = new(table, nodeGraph);
 
@@ -127,7 +127,7 @@ public sealed class EntityRepositoryTest
     public void Insert_ShouldInsertEntityValue_WithSimpleFKEntity()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         Table tableA = (Table)dataSet.Tables["entityA"]!;
         tableA.Rows.Add(1, "foo");
         Table tableB = (Table)dataSet.Tables["entityB"]!;
@@ -151,7 +151,7 @@ public sealed class EntityRepositoryTest
     public void Insert_ShouldThrowArgumentNullException_WhenEntityIsNull()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         EntityRepository<EntityA> repository = new(
             (Table)dataSet.Tables["entityA"]!,
             nodeGraph
@@ -169,7 +169,7 @@ public sealed class EntityRepositoryTest
     public void Insert_ShouldThrowException_WhenEntityFailsValidation()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         Table table = (Table)dataSet.Tables["entityA"]!;
         EntityRepository<EntityA> repository = new(table, nodeGraph);
 
@@ -187,7 +187,7 @@ public sealed class EntityRepositoryTest
     public void Insert_ShouldThrowInvalidOperationException_WhenNoDataRelationExistsBetweenTables()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         Table tableA = (Table)dataSet.Tables["entityA"]!;
         tableA.Rows.Add(1, "foo");
         Table tableC = (Table)dataSet.Tables["entityC"]!;
@@ -211,7 +211,7 @@ public sealed class EntityRepositoryTest
     public void Insert_ThrowConstraintException_WhenRowWithProvidedPKExists()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         Table table = (Table)dataSet.Tables["entityA"]!;
         EntityRepository<EntityA> repository = new(table, nodeGraph);
 
@@ -237,7 +237,7 @@ public sealed class EntityRepositoryTest
     public void Select_ShouldReadRowAndMaterializeEntity_WithComplexFKEntity()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         Table tableA = (Table)dataSet.Tables["entityA"]!;
         Table tableB = (Table)dataSet.Tables["entityB"]!;
         Table tableC = (Table)dataSet.Tables["entityC"]!;
@@ -261,7 +261,7 @@ public sealed class EntityRepositoryTest
     public void Select_ShouldReadRowAndMaterializeEntity_WithSimpleEntity()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         Table table = (Table)dataSet.Tables["entityA"]!;
         EntityRepository<EntityA> repository = new(table, nodeGraph);
 
@@ -292,7 +292,7 @@ public sealed class EntityRepositoryTest
     public void Select_ShouldReadRowAndMaterializeEntity_WithSimpleFKEntity()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         Table tableA = (Table)dataSet.Tables["entityA"]!;
         Table tableB = (Table)dataSet.Tables["entityB"]!;
         tableA.Rows.Add(1, "foo");
@@ -313,7 +313,7 @@ public sealed class EntityRepositoryTest
     public void Select_ShouldThrowInvalidOperationException_WhenNoDataRelationExistsBetweenTables()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         Table tableA = (Table)dataSet.Tables["entityA"]!;
         Table tableB = (Table)dataSet.Tables["entityB"]!;
         Table tableC = (Table)dataSet.Tables["entityC"]!;
@@ -336,7 +336,7 @@ public sealed class EntityRepositoryTest
     public void Update_ShouldThrowArgumentNullException_WhenEntityIsNull()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         EntityRepository<EntityA> repository = new(
             (Table)dataSet.Tables["entityA"]!,
             nodeGraph
@@ -354,7 +354,7 @@ public sealed class EntityRepositoryTest
     public void Update_ShouldThrowRowNotFoundException_WhenRowDoesNotExist()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         Table table = (Table)dataSet.Tables["entityA"]!;
         EntityRepository<EntityA> repository = new(table, nodeGraph);
 
@@ -376,7 +376,7 @@ public sealed class EntityRepositoryTest
     public void Update_ShouldUpdateRow_WithComplexFKEntity()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         Table tableA = (Table)dataSet.Tables["entityA"]!;
         Table tableB = (Table)dataSet.Tables["entityB"]!;
         Table tableC = (Table)dataSet.Tables["entityC"]!;
@@ -405,7 +405,7 @@ public sealed class EntityRepositoryTest
     public void Update_ShouldUpdateRow_WithSimpleEntity()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         Table table = (Table)dataSet.Tables["entityA"]!;
         EntityRepository<EntityA> repository = new(table, nodeGraph);
 
@@ -434,7 +434,7 @@ public sealed class EntityRepositoryTest
     public void Update_ShouldUpdateRow_WithSimpleFKEntity()
     {
         // Arrange
-        (BormDataSet dataSet, EntityNodeGraph nodeGraph) = CreateTestData();
+        (BormDataSet dataSet, TableGraph nodeGraph) = CreateTestData();
         Table tableA = (Table)dataSet.Tables["entityA"]!;
         Table tableB = (Table)dataSet.Tables["entityB"]!;
         tableA.Rows.Add(1, "foo");

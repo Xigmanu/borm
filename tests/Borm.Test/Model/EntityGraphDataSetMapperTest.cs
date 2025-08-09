@@ -11,7 +11,7 @@ public sealed class EntityGraphDataSetMapperTest
     public void LoadMapping_CreatesAndLoadsTableSchemaIntoDataSet_WithEntityNodeGraphAndEmptyDataSet()
     {
         // Arrange
-        EntityNodeGraph nodeGraph = TestData.CreateNodeGraph();
+        TableGraph nodeGraph = TestData.CreateNodeGraph();
         BormDataSet expectedDataSet = TestData.CreateDataSet();
 
         BormDataSet actualDataSet = new();
@@ -77,9 +77,9 @@ public sealed class EntityGraphDataSetMapperTest
             return dataSet;
         }
 
-        public static EntityNodeGraph CreateNodeGraph()
+        public static TableGraph CreateNodeGraph()
         {
-            EntityNodeGraph nodeGraph = new();
+            TableGraph nodeGraph = new();
 
             nodeGraph.AddSuccessorSet(SimpleNode, []);
             nodeGraph.AddSuccessorSet(FKNode, [SimpleNode]);

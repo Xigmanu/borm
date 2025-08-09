@@ -1,5 +1,4 @@
-﻿using System.Collections.Frozen;
-using System.Data;
+﻿using System.Data;
 using System.Diagnostics;
 using Borm.Data.Sql;
 using Borm.Model.Metadata;
@@ -9,63 +8,60 @@ namespace Borm.Data;
 internal sealed class BormDataAdapter
 {
     private readonly IDbStatementExecutor _executor;
-    private readonly EntityNodeGraph _nodeGraph;
     private readonly ISqlStatementFactory _statementFactory;
+    private readonly TableGraph _tableGraph;
 
     public BormDataAdapter(
         IDbStatementExecutor executor,
-        EntityNodeGraph nodeGraph,
+        TableGraph tableGraph,
         ISqlStatementFactory statementFactory
     )
     {
         _executor = executor;
-        _nodeGraph = nodeGraph;
+        _tableGraph = tableGraph;
         _statementFactory = statementFactory;
     }
 
-    public void CreateTables(IEnumerable<Table> tables)
+    public void CreateTables()
     {
-        EntityNode[] sorted = _nodeGraph.ReversedTopSort();
-        for (int i = 0; i < sorted.Length; i++)
+        IEnumerable<Table> sorted = _tableGraph.TopSort();
+        foreach (Table table in sorted)
         {
-            Table table = tables.First(table => table.Node == sorted[i]);
             SqlStatement statement = _statementFactory.NewCreateTableStatement(table);
             _executor.ExecuteBatch(statement);
         }
     }
 
-    public void Load(IEnumerable<Table> tables)
+    public void Load()
     {
-        EntityNode[] sorted = _nodeGraph.ReversedTopSort();
-        for (int i = 0; i < sorted.Length; i++)
+        IEnumerable<Table> sorted = _tableGraph.TopSort();
+        foreach (Table table in sorted)
         {
-            Table table = tables.First(table => table.Node == sorted[i]);
             SqlStatement statement = _statementFactory.NewSelectAllStatement(table);
             using IDataReader dataReader = _executor.ExecuteReader(statement);
             table.Load(dataReader);
         }
     }
 
-    public void Update(IEnumerable<Table> tables)
+    public void Update()
     {
-        EntityNode[] sorted = _nodeGraph.ReversedTopSort();
-        for (int i = 0; i < sorted.Length; i++)
+        IEnumerable<Table> sorted = _tableGraph.TopSort();
+        foreach (Table table in sorted)
         {
-            Table table = tables.First(table => table.Node == sorted[i]);
             IEnumerable<SqlStatement> statements = CreateUpdateStatements(table);
             foreach (SqlStatement statement in statements)
             {
                 _executor.ExecuteBatch(statement);
             }
+            table.MarkChangesAsWritten();
         }
     }
 
-    public async Task UpdateAsync(IEnumerable<Table> tables)
+    public async Task UpdateAsync()
     {
-        EntityNode[] sorted = _nodeGraph.ReversedTopSort();
-        for (int i = 0; i < sorted.Length; i++)
+        IEnumerable<Table> sorted = _tableGraph.TopSort();
+        foreach (Table table in sorted)
         {
-            Table table = tables.First(table => table.Node == sorted[i]);
             IEnumerable<SqlStatement> statements = CreateUpdateStatements(table);
             foreach (SqlStatement statement in statements)
             {

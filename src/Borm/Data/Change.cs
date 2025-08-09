@@ -5,26 +5,24 @@ namespace Borm.Data;
 internal sealed class Change
 {
     private readonly ValueBuffer _buffer;
-    private readonly bool _isWrittenToDb;
     private readonly RowAction _rowAction;
     private readonly long _txId;
 
-    public Change(ValueBuffer buffer, long txId, bool isWrittenToDb, RowAction rowAction)
+    public Change(ValueBuffer buffer, long txId, RowAction rowAction, bool isWrittenToDb)
     {
         _txId = txId;
-        _isWrittenToDb = isWrittenToDb;
+        IsWrittenToDb = isWrittenToDb;
         _rowAction = rowAction;
         _buffer = buffer;
     }
 
     public Change(ValueBuffer buffer, long txId, RowAction rowAction)
-        : this(buffer, txId, isWrittenToDb: false, rowAction) { }
+        : this(buffer, txId, rowAction, isWrittenToDb: false) { }
 
+    public bool IsWrittenToDb { get; set; }
     public RowAction RowAction => _rowAction;
 
     internal ValueBuffer Buffer => _buffer;
-
-    public bool IsWrittenToDb => _isWrittenToDb;
 
     public override bool Equals(object? obj)
     {
@@ -48,7 +46,7 @@ internal sealed class Change
         }
 
         RowAction rowAction;
-        if (_isWrittenToDb)
+        if (IsWrittenToDb)
         {
             rowAction = incoming._rowAction;
         }
@@ -61,6 +59,6 @@ internal sealed class Change
             rowAction = RowAction.Insert;
         }
 
-        return new Change(incoming._buffer, incoming._txId, _isWrittenToDb, rowAction);
+        return new Change(incoming._buffer, incoming._txId, rowAction, IsWrittenToDb);
     }
 }
