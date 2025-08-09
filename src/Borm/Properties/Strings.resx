@@ -135,15 +135,6 @@
   <data name="InvalidEntityTypeConstructor" xml:space="preserve">
     <value>The type '{0}' does not have a public constructor that would initialise all columns.</value>
   </data>
-  <data name="MissingColumnInCopiedTable" xml:space="preserve">
-    <value>The table '{0}' created from the copied dataset does not contain the expected column '{1}'.</value>
-  </data>
-  <data name="MissingEntityNode" xml:space="preserve">
-    <value>The entity node '{0}' was not found in the graph.</value>
-  </data>
-  <data name="MissingExpectedDataRelation" xml:space="preserve">
-    <value>The expected data relation between the parent node '{0}' and the child node '{1}' could not be found.</value>
-  </data>
   <data name="MissingPrimaryKey" xml:space="preserve">
     <value>Entity '{0}' has no primary key.</value>
   </data>
@@ -161,9 +152,6 @@
   </data>
   <data name="RowNotFound" xml:space="preserve">
     <value>Table '{0}' does not contain row with the primary key '{1}'.</value>
-  </data>
-  <data name="SqlStatementParameterRowMapping" xml:space="preserve">
-    <value>Missing SQL parameter for required column '{1}' in table '{0}'.</value>
   </data>
   <data name="TypeNotSupported" xml:space="preserve">
     <value>Type '{0}' is not supported.</value>

@@ -61,30 +61,6 @@ public static class Strings
     }
 
     /// <summary>
-    /// The table '{tableName}' created from the copied dataset does not contain the expected column '{columnName}'.
-    /// </summary>
-    public static string MissingColumnInCopiedTable(string tableName, string columnName)
-    {
-        return GetString([tableName, columnName]);
-    }
-
-    /// <summary>
-    /// The entity node '{entityName}' was not found in the graph.
-    /// </summary>
-    public static string MissingEntityNode(string entityName)
-    {
-        return GetString([entityName]);
-    }
-
-    /// <summary>
-    /// The expected data relation between the parent node '{parentNode}' and the child node '{childNode}' could not be found.
-    /// </summary>
-    public static string MissingExpectedDataRelation(object parentNode, object childNode)
-    {
-        return GetString([parentNode, childNode]);
-    }
-
-    /// <summary>
     /// Entity '{entityName}' has no primary key.
     /// </summary>
     public static string MissingPrimaryKey(string entityName)
@@ -130,14 +106,6 @@ public static class Strings
     public static string RowNotFound(string tableName, object primaryKey)
     {
         return GetString([tableName, primaryKey]);
-    }
-
-    /// <summary>
-    /// Missing SQL parameter for required column '{columnName}' in table '{tableName}'.
-    /// </summary>
-    public static string SqlStatementParameterRowMapping(string columnName, string tableName)
-    {
-        return GetString([columnName, tableName]);
     }
 
     /// <summary>
