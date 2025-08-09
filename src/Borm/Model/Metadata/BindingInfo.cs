@@ -57,7 +57,7 @@ internal sealed class BindingInfo
         );
         ConstantExpression nullValue = Expression.Constant(null, column.PropertyType);
         return Expression.Condition(isDbNull, nullValue, convertValue);
-    } // (Guid?)(buffer[column] == DBNull.Value ? null : buffer[column])
+    }
 
     private Func<ValueBuffer, object> CreateConstructorMaterializer()
     {

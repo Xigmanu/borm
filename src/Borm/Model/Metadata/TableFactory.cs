@@ -2,26 +2,40 @@
 
 namespace Borm.Model.Metadata;
 
-internal static class TableFactory
+internal sealed class TableFactory
 {
-    public static IEnumerable<Table> Create(IEnumerable<EntityNode> nodes)
+    private readonly IEnumerable<EntityNode> _nodes;
+    private readonly Dictionary<EntityNode, Table> _createdTableMap;
+
+    public TableFactory(IEnumerable<EntityNode> nodes)
     {
-        return nodes.Select(node => CreateTable(node, nodes));
+        _nodes = nodes;
+        _createdTableMap = [];
     }
 
-    private static Table CreateTable(EntityNode node, IEnumerable<EntityNode> nodes)
+    public IEnumerable<Table> Create()
     {
+        return _nodes.Select(CreateTable);
+    }
+
+    private Table CreateTable(EntityNode node)
+    {
+        if (_createdTableMap.TryGetValue(node, out Table? cached))
+        {
+            return cached;
+        }
+
         Dictionary<IColumn, ITable> relationMap = [];
         foreach (ColumnInfo column in node.Columns)
         {
             if (column.Reference != null)
             {
-                EntityNode dependencyNode = nodes.First(n => n.DataType == column.Reference);
-                Table dependency = CreateTable(dependencyNode, nodes);
+                EntityNode dependencyNode = _nodes.First(n => n.DataType == column.Reference);
+                Table dependency = CreateTable(dependencyNode);
                 relationMap[column] = dependency;
             }
         }
 
-        return new Table(node, relationMap);
+        return _createdTableMap[node] = new Table(node, relationMap);
     }
 }

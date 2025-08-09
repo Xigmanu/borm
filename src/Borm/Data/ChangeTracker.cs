@@ -46,12 +46,12 @@ internal sealed class ChangeTracker
 
     public bool HasChange(object primaryKey, long txId)
     {
-        return HasChange(txId, (buffer) => buffer.GetPrimaryKey() == primaryKey);
+        return HasChange(txId, (buffer) => buffer.GetPrimaryKey().Equals(primaryKey));
     }
 
-    public bool HasChange(ColumnInfo column, object? columnValue, long txId)
+    public bool HasChange(ColumnInfo column, object columnValue, long txId)
     {
-        return HasChange(txId, (buffer) => buffer[column] == columnValue);
+        return HasChange(txId, (buffer) => buffer[column].Equals(columnValue));
     }
 
     public void LoadFromDataSource(ValueBuffer buffer, long txId)
@@ -65,10 +65,7 @@ internal sealed class ChangeTracker
     {
         _changes.ForEach(change =>
         {
-            if (!change.IsWrittenToDb)
-            {
-                change.IsWrittenToDb = true;
-            }
+            change.MarkAsWritten();
         });
     }
 

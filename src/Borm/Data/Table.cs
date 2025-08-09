@@ -124,7 +124,7 @@ internal sealed class Table : ITable
         throw new NotImplementedException();
     }
 
-    private void CheckConstraints(ColumnInfo column, object? columnValue, long txId)
+    private void CheckConstraints(ColumnInfo column, object columnValue, long txId)
     {
         Constraints constraints = column.Constraints;
         if (!constraints.HasFlag(Constraints.AllowDbNull) && columnValue == null)
@@ -153,14 +153,14 @@ internal sealed class Table : ITable
     private ValueBuffer ResolveColumnValues(ValueBuffer incoming, long txId, bool isRecursiveInsert)
     {
         ValueBuffer result = new();
-        foreach (KeyValuePair<ColumnInfo, object?> kvp in incoming)
+        foreach (KeyValuePair<ColumnInfo, object> kvp in incoming)
         {
             ColumnInfo column = kvp.Key;
-            object? columnValue = kvp.Value;
+            object columnValue = kvp.Value;
 
             CheckConstraints(column, columnValue, txId);
 
-            if (column.Reference == null || columnValue == null)
+            if (column.Reference == null || columnValue == DBNull.Value)
             {
                 result[column] = columnValue;
                 continue;
@@ -198,13 +198,13 @@ internal sealed class Table : ITable
     private object SelectByBuffer(ValueBuffer buffer)
     {
         ValueBuffer tempBuffer = new();
-        foreach (KeyValuePair<ColumnInfo, object?> kvp in buffer)
+        foreach (KeyValuePair<ColumnInfo, object> kvp in buffer)
         {
             ColumnInfo column = kvp.Key;
-            object? columnValue = kvp.Value;
+            object columnValue = kvp.Value;
 
             Type? reference = column.Reference;
-            if (reference == null || reference != column.DataType || columnValue == null)
+            if (reference == null || reference != column.DataType || columnValue == DBNull.Value)
             {
                 tempBuffer[column] = columnValue;
                 continue;

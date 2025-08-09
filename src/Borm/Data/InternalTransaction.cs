@@ -8,7 +8,7 @@ public class InternalTransaction : IDisposable
     private readonly List<Table> _changedTables;
     private readonly Queue<(Action<object, long>, object)> operationQueue;
     private bool _isDisposed;
-    private int attempt;
+    private int _attempt;
 
     internal InternalTransaction()
     {
@@ -17,7 +17,7 @@ public class InternalTransaction : IDisposable
         operationQueue = [];
         _changedTables = [];
         _isDisposed = false;
-        attempt = 0;
+        _attempt = 0;
     }
 
     protected InternalTransaction(InternalTransaction original)
@@ -27,7 +27,7 @@ public class InternalTransaction : IDisposable
         operationQueue = original.operationQueue;
         _changedTables = original._changedTables;
         _isDisposed = false;
-        attempt = original.attempt++;
+        _attempt = ++original._attempt;
     }
 
     public void Dispose()
@@ -51,8 +51,11 @@ public class InternalTransaction : IDisposable
             _changedTables.ForEach(table => table.AcceptPendingChanges(id));
             return;
         }
-
-        if (attempt >= MaxRetries)
+        if (exception is not TransactionIdMismatchException)
+        {
+            throw new Exception("TODO", exception);
+        }
+        if (_attempt >= MaxRetries)
         {
             throw new Exception();
         }

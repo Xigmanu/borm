@@ -5,13 +5,14 @@ namespace Borm.Data;
 internal sealed class Change
 {
     private readonly ValueBuffer _buffer;
-    private readonly RowAction _rowAction;
     private readonly long _txId;
+    private bool _isWrittenToDb;
+    private RowAction _rowAction;
 
     public Change(ValueBuffer buffer, long txId, RowAction rowAction, bool isWrittenToDb)
     {
         _txId = txId;
-        IsWrittenToDb = isWrittenToDb;
+        _isWrittenToDb = isWrittenToDb;
         _rowAction = rowAction;
         _buffer = buffer;
     }
@@ -19,7 +20,7 @@ internal sealed class Change
     public Change(ValueBuffer buffer, long txId, RowAction rowAction)
         : this(buffer, txId, rowAction, isWrittenToDb: false) { }
 
-    public bool IsWrittenToDb { get; set; }
+    public bool IsWrittenToDb => _isWrittenToDb;
     public RowAction RowAction => _rowAction;
 
     internal ValueBuffer Buffer => _buffer;
@@ -34,6 +35,12 @@ internal sealed class Change
         return _buffer.GetPrimaryKey().GetHashCode();
     }
 
+    public void MarkAsWritten()
+    {
+        _isWrittenToDb = true;
+        _rowAction = RowAction.None;
+    }
+
     public Change? Merge(Change incoming)
     {
         if (_txId == incoming._txId)
@@ -42,7 +49,7 @@ internal sealed class Change
         }
         if (_txId > incoming._txId)
         {
-            throw new InvalidOperationException(); // TODO this should trigger a rerun for transactions
+            throw new TransactionIdMismatchException("TODO", _txId, incoming._txId); // TODO this should trigger a rerun for transactions
         }
 
         RowAction rowAction;

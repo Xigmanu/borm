@@ -78,7 +78,7 @@ public sealed class DataContext
             }
         });
 
-        IEnumerable<Table> tables = TableFactory.Create(entityNodes);
+        IEnumerable<Table> tables = new TableFactory(entityNodes).Create();
         _tableGraph.AddTableRange(tables);
 
         BormDataAdapter adapter = new(

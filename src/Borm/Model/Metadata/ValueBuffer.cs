@@ -3,11 +3,11 @@ using System.Runtime.CompilerServices;
 
 namespace Borm.Model.Metadata;
 
-internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object?>>
+internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object>>
 {
-    private readonly Dictionary<ColumnInfo, object?> _valueMap = [];
+    private readonly Dictionary<ColumnInfo, object> _valueMap = [];
 
-    public object? this[ColumnInfo column]
+    public object this[ColumnInfo column]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => _valueMap[column];
@@ -15,9 +15,9 @@ internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object?
         set => _valueMap[column] = value;
     }
 
-    public object?[] ToColumnOrderedArray()
+    public object[] ToColumnOrderedArray()
     {
-        List<object?> ret = new(_valueMap.Count);
+        List<object> ret = new(_valueMap.Count);
         IEnumerable<ColumnInfo> ordered = _valueMap.Keys.OrderBy(col => col.Index);
         foreach (ColumnInfo column in ordered)
         {
@@ -27,7 +27,7 @@ internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object?
         return [.. ret];
     }
 
-    public IEnumerator<KeyValuePair<ColumnInfo, object?>> GetEnumerator()
+    public IEnumerator<KeyValuePair<ColumnInfo, object>> GetEnumerator()
     {
         return _valueMap.GetEnumerator();
     }

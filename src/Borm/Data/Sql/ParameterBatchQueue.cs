@@ -37,7 +37,7 @@ public sealed class ParameterBatchQueue
     internal void AddFromChange(Change entry)
     {
         ValueBuffer buffer = entry.Buffer;
-        object?[] bufArr = buffer.ToColumnOrderedArray();
+        object[] bufArr = buffer.ToColumnOrderedArray();
         _values.Add(bufArr);
     }
 }
