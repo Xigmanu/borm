@@ -2,22 +2,24 @@
 
 namespace Borm;
 
-public sealed class Transaction : InternalTransaction, IAsyncDisposable
+public sealed class Transaction : InternalTransaction
 {
+    private readonly DataContext _context;
     private readonly bool _writeOnCommit;
 
-    internal Transaction(bool writeOnCommit)
+    internal Transaction(DataContext context, bool writeOnCommit)
     {
+        _context = context;
         _writeOnCommit = writeOnCommit;
     }
 
     protected override void CommitPendingChanges()
     {
-        throw new NotImplementedException();
-    }
+        base.CommitPendingChanges();
 
-    public ValueTask DisposeAsync()
-    {
-        throw new NotImplementedException();
+        if (_writeOnCommit)
+        {
+            _context.SaveChanges();
+        }
     }
 }

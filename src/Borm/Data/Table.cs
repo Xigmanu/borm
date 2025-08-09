@@ -92,7 +92,7 @@ internal sealed class Table : ITable
         _tracker.PendChange(change, txId);
     }
 
-    public IEnumerable<object> Select()
+    public IEnumerable<object> SelectAll()
     {
         IEnumerable<Change> changes = _tracker.GetChanges();
         return changes.Select(change => SelectByBuffer(change.Buffer));

@@ -28,7 +28,7 @@ public sealed class DataContext
 
     public Transaction BeginTransaction()
     {
-        throw new NotImplementedException();
+        return new Transaction(this, _configuration.TransactionWriteOnCommit);
     }
 
     public IEntityRepository<T> GetRepository<T>()
@@ -96,9 +96,9 @@ public sealed class DataContext
         _dataAdapter.Update();
     }
 
-    public async Task SaveChangesAsync()
+    public Task SaveChangesAsync()
     {
-        await _dataAdapter.UpdateAsync();
+        return _dataAdapter.UpdateAsync();
     }
 
     private void OnInitialized()

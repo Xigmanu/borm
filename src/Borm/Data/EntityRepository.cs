@@ -14,43 +14,37 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
 
     public void Delete(T entity)
     {
-        ArgumentNullException.ThrowIfNull(entity);
-
-        using InternalTransaction transaction = new();
-        transaction.Execute(_table, _table.Delete, entity);
+        Execute(entity, _table.Delete);
     }
 
     public void Delete(T entity, Transaction transaction)
     {
-        throw new NotImplementedException();
+        Execute(entity, _table.Delete, transaction);
     }
 
-    public Task DeleteAsync(T entity)
+    public ValueTask DeleteAsync(T entity)
     {
-        return ExecuteInLock(() => Delete(entity));
+        return ExecuteAsync(entity, _table.Delete);
     }
 
     public void Insert(T entity)
     {
-        ArgumentNullException.ThrowIfNull(entity);
-
-        using InternalTransaction transaction = new();
-        transaction.Execute(_table, _table.Insert, entity);
+        Execute(entity, _table.Insert);
     }
 
     public void Insert(T entity, Transaction transaction)
     {
-        throw new NotImplementedException();
+        Execute(entity, _table.Insert, transaction);
     }
 
-    public Task InsertAsync(T entity)
+    public ValueTask InsertAsync(T entity)
     {
-        return ExecuteInLock(() => Insert(entity));
+        return ExecuteAsync(entity, _table.Insert);
     }
 
     public IEnumerable<T> Select()
     {
-        return _table.Select().Cast<T>();
+        return _table.SelectAll().Cast<T>();
     }
 
     public IEnumerable<R> Select<R>(Func<T, R> selector)
@@ -60,38 +54,48 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
 
     public Task<IEnumerable<T>> SelectAsync()
     {
-        return Task.Run(Select);
+        return Task.FromResult(Select());
     }
 
     public Task<IEnumerable<R>> SelectAsync<R>(Func<T, R> selector)
     {
-        return Task.Run(() => Select(selector));
+        return Task.FromResult(Select(selector));
     }
 
     public void Update(T entity)
     {
-        ArgumentNullException.ThrowIfNull(entity);
-
-        using InternalTransaction transaction = new();
-        transaction.Execute(_table, _table.Update, entity);
+        Execute(entity, _table.Update);
     }
 
     public void Update(T entity, Transaction transaction)
     {
-        throw new NotImplementedException();
+        Execute(entity, _table.Update, transaction);
     }
 
-    public Task UpdateAsync(T entity)
+    public ValueTask UpdateAsync(T entity)
     {
-        return ExecuteInLock(() => Update(entity));
+        return ExecuteAsync(entity, _table.Update);
     }
 
-    private async Task ExecuteInLock(Action action)
+    private void Execute(T entity, Action<object, long> operation, InternalTransaction transaction)
     {
-        await _semaphore.WaitAsync();
+        ArgumentNullException.ThrowIfNull(entity);
+        transaction.Execute(_table, operation, entity);
+    }
+
+    private void Execute(T entity, Action<object, long> operation)
+    {
+        using InternalTransaction transaction = new();
+        Execute(entity, operation, transaction);
+    }
+
+    private async ValueTask ExecuteAsync(T entity, Action<object, long> operation)
+    {
+        await _semaphore.WaitAsync().ConfigureAwait(false);
         try
         {
-            action();
+            using InternalTransaction transaction = new();
+            Execute(entity, operation, transaction);
         }
         finally
         {
