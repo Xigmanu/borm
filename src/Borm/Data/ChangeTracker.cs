@@ -4,6 +4,7 @@ using Borm.Model.Metadata;
 
 namespace Borm.Data;
 
+[DebuggerDisplay("Changes={_changes}")]
 internal sealed class ChangeTracker
 {
     private static readonly object _lock = new();
@@ -23,9 +24,9 @@ internal sealed class ChangeTracker
 
         try
         {
-            List<Change> merged = Merge(_changes, pendingChanges);
             lock (_lock)
             {
+                List<Change> merged = Merge(_changes, pendingChanges);
                 _changes.Clear();
                 _changes.AddRange(merged);
             }
@@ -54,32 +55,26 @@ internal sealed class ChangeTracker
         return HasChange(txId, (buffer) => buffer[column].Equals(columnValue));
     }
 
-    public void LoadFromDataSource(ValueBuffer buffer, long txId)
-    {
-        Debug.Assert(txId == -1);
-        Change entry = new(buffer, txId, RowAction.None, isWrittenToDb: true);
-        _changes.Add(entry);
-    }
-
     public void MarkChangesAsWritten()
     {
-        _changes.ForEach(change =>
+        _changes.RemoveAll(change => change.RowAction == RowAction.Delete);
+        foreach (Change change in _changes)
         {
             change.MarkAsWritten();
-        });
+        }
     }
 
-    public void PendChange(Change change, long txId)
+    public void PendChange(Change change)
     {
+        long txId = change.TxId;
         if (!_pendingChanges.TryGetValue(txId, out List<Change>? pendingChanges))
         {
-            _pendingChanges[txId] = [change];
-            return;
+            pendingChanges = [.. _changes]; //TODO Initial row ids has to be retained up until a commit
+            _pendingChanges[txId] = pendingChanges;
         }
-        Debug.Assert(pendingChanges != null);
 
         Change? existing = pendingChanges.FirstOrDefault(existing =>
-            existing.Buffer.GetPrimaryKey() == change.Buffer.GetPrimaryKey()
+            existing.Buffer.GetPrimaryKey().Equals(change.Buffer.GetPrimaryKey())
         );
         if (existing == null)
         {
@@ -118,6 +113,10 @@ internal sealed class ChangeTracker
             }
             else
             {
+                if (change.RowAction != RowAction.Insert)
+                {
+                    throw new Exception("Oh no, stinky");
+                }
                 resultMap[key] = change;
             }
         }

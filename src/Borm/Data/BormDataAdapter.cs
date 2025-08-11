@@ -1,4 +1,4 @@
-﻿using System.Data;
+﻿using System.Data.Common;
 using System.Diagnostics;
 using Borm.Data.Sql;
 using Borm.Model.Metadata;
@@ -35,11 +35,12 @@ internal sealed class BormDataAdapter
     public void Load()
     {
         IEnumerable<Table> sorted = _tableGraph.TopSort();
+        using InternalTransaction transaction = new(); 
         foreach (Table table in sorted)
         {
             SqlStatement statement = _statementFactory.NewSelectAllStatement(table);
-            using IDataReader dataReader = _executor.ExecuteReader(statement);
-            table.Load(dataReader);
+            using DbDataReader dataReader = _executor.ExecuteReader(statement);
+            transaction.Execute(table, (arg, txId) => table.Load((DbDataReader)arg, txId), dataReader);
         }
     }
 

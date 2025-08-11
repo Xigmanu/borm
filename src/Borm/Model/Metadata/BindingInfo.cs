@@ -107,7 +107,7 @@ internal sealed class BindingInfo
 
             IndexExpression indexer = Expression.MakeIndex(
                 valueBufferVar,
-                valueBufferType.GetProperty("Item"),
+                valueBufferType.GetProperty("Item", [typeof(ColumnInfo)]),
                 [key]
             );
 

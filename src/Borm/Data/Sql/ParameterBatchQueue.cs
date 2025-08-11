@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Data.Common;
 using System.Diagnostics;
 using Borm.Model.Metadata;
 
@@ -6,7 +7,7 @@ namespace Borm.Data.Sql;
 
 public sealed class ParameterBatchQueue
 {
-    private readonly List<object?[]> _values;
+    private readonly List<ValueBuffer> _values;
     private int _currentIdx;
 
     public ParameterBatchQueue()
@@ -25,19 +26,19 @@ public sealed class ParameterBatchQueue
 
     public void SetParameterValues(IDbCommand dbCommand)
     {
-        object?[] values = _values[_currentIdx];
-        for (int i = 0; i < values.Length; i++)
+        ValueBuffer buffer = _values[_currentIdx];
+        IDataParameterCollection parameters = dbCommand.Parameters;
+        for (int i = 0; i < parameters.Count; i++)
         {
-            IDbDataParameter? param = dbCommand.Parameters[i] as IDbDataParameter;
+            IDbDataParameter? param = parameters[i] as IDbDataParameter;
             Debug.Assert(param != null);
-            param.Value = values[i];
+            string columnName = param.ParameterName[1..]; // remove the prefix
+            param.Value = buffer[columnName];
         }
     }
 
     internal void AddFromChange(Change entry)
     {
-        ValueBuffer buffer = entry.Buffer;
-        object[] bufArr = buffer.ToColumnOrderedArray();
-        _values.Add(bufArr);
+        _values.Add(entry.Buffer);
     }
 }

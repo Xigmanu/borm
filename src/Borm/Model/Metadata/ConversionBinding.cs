@@ -13,10 +13,10 @@ internal sealed class ConversionBinding
     )
     {
         MaterializeEntity = materializeEntity;
-        ConvertToValueBuffer = convertToValueBuffer;
+        ToValueBuffer = convertToValueBuffer;
     }
 
-    internal Func<object, ValueBuffer> ConvertToValueBuffer { get; }
+    internal Func<object, ValueBuffer> ToValueBuffer { get; }
 
     internal Func<ValueBuffer, object> MaterializeEntity { get; }
 }

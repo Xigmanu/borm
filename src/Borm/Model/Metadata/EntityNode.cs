@@ -26,6 +26,15 @@ internal sealed class EntityNode
 
     public string Name => _name;
 
+    public ColumnInfo PrimaryKey
+    {
+        get
+        {
+            return _columns.FirstOrDefault(column => column.Constraints == Constraints.PrimaryKey)
+                ?? throw new InvalidOperationException(Strings.MissingPrimaryKey(_name));
+        }
+    }
+
     internal ConversionBinding Binding { get; set; }
     internal ColumnInfoCollection Columns => _columns;
     internal Action<object>? Validator { get; set; }
@@ -38,11 +47,5 @@ internal sealed class EntityNode
     public override int GetHashCode()
     {
         return _name.GetHashCode();
-    }
-
-    public ColumnInfo GetPrimaryKey()
-    {
-        return _columns.FirstOrDefault(column => column.Constraints == Constraints.PrimaryKey)
-            ?? throw new InvalidOperationException(Strings.MissingPrimaryKey(_name));
     }
 }

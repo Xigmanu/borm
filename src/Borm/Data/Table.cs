@@ -1,63 +1,55 @@
 ﻿using System.Data;
-using Borm.Model;
+using System.Data.Common;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Borm.Model.Metadata;
 using Borm.Properties;
 
 namespace Borm.Data;
 
+[DebuggerTypeProxy(typeof(TableDebugView))]
 internal sealed class Table : ITable
 {
-    private readonly ObjectCache _entityCache = new();
+    private readonly ConstraintChecker _constraintChecker;
+    private readonly EntityCache _entityCache = new();
+    private readonly EntityMaterializer _materializer;
     private readonly EntityNode _node;
     private readonly ChangeTracker _tracker = new();
 
-    public Table(EntityNode node, IReadOnlyDictionary<IColumn, ITable> relations)
+    public Table(EntityNode node, IReadOnlyDictionary<IColumn, ITable> foreignKeyRelations)
     {
         _node = node;
-        Relations = relations;
+        _constraintChecker = new(_tracker, node.Name);
+        _materializer = new(node, foreignKeyRelations);
+        ForeignKeyRelations = foreignKeyRelations;
     }
 
     public IEnumerable<IColumn> Columns => Node.Columns;
-
+    public IReadOnlyDictionary<IColumn, ITable> ForeignKeyRelations { get; }
     public string Name => _node.Name;
-
-    public IColumn PrimaryKey => Node.GetPrimaryKey();
-
-    public IReadOnlyDictionary<IColumn, ITable> Relations { get; }
-
-    internal ObjectCache EntityCache => _entityCache;
-
+    public IColumn PrimaryKey => Node.PrimaryKey;
+    internal EntityCache EntityCache => _entityCache;
+    internal EntityMaterializer Materializer => _materializer;
     internal EntityNode Node => _node;
 
     public void AcceptPendingChanges(long txId)
     {
-        foreach (Table dependency in Relations.Values.Cast<Table>())
+        foreach (Table dependency in ForeignKeyRelations.Values.Cast<Table>())
         {
             dependency.AcceptPendingChanges(txId);
         }
         _tracker.AcceptPendingChanges(txId);
     }
 
-    public void MarkChangesAsWritten()
-    {
-        _tracker.MarkChangesAsWritten();
-    }
-
     public void Delete(object entity, long txId)
     {
-        ValueBuffer buffer = _node.Binding.ConvertToValueBuffer(entity);
+        ValueBuffer buffer = _node.Binding.ToValueBuffer(entity);
         object primaryKey = buffer.GetPrimaryKey();
-        if (!_tracker.HasChange(primaryKey, txId))
-        {
-            throw new RowNotFoundException(
-                Strings.RowNotFound(Name, primaryKey),
-                Node.DataType,
-                primaryKey
-            );
-        }
+
+        AssertRowExists(txId, primaryKey);
 
         Change change = new(buffer, txId, RowAction.Delete);
-        _tracker.PendChange(change, txId);
+        _tracker.PendChange(change);
     }
 
     public override bool Equals(object? obj)
@@ -77,33 +69,82 @@ internal sealed class Table : ITable
 
     public void Insert(object entity, long txId)
     {
-        Node.Validator?.Invoke(entity);
+        _node.Validator?.Invoke(entity);
 
-        ValueBuffer buffer = _node.Binding.ConvertToValueBuffer(entity);
+        ValueBuffer buffer = _node.Binding.ToValueBuffer(entity);
         object primaryKey = buffer.GetPrimaryKey();
+
         if (_tracker.HasChange(primaryKey, txId))
         {
             throw new ConstraintException(Strings.PrimaryKeyConstraintViolation(Name, primaryKey));
         }
 
-        ValueBuffer incoming = ResolveColumnValues(buffer, txId, isRecursiveInsert: true);
+        ValueBuffer resolved = ResolveForeignKeys(buffer, txId, isRecursiveInsert: true);
+        Change change = new(resolved, txId, RowAction.Insert);
+        _tracker.PendChange(change);
+    }
 
-        Change change = new(incoming, txId, RowAction.Insert);
-        _tracker.PendChange(change, txId);
+    public void MarkChangesAsWritten()
+    {
+        _tracker.MarkChangesAsWritten();
     }
 
     public IEnumerable<object> SelectAll()
     {
         IEnumerable<Change> changes = _tracker.GetChanges();
-        return changes.Select(change => SelectByBuffer(change.Buffer));
+        return changes.Select(change => _materializer.FromBuffer(change.Buffer));
     }
 
     public void Update(object entity, long txId)
     {
         Node.Validator?.Invoke(entity);
 
-        ValueBuffer buffer = _node.Binding.ConvertToValueBuffer(entity);
+        ValueBuffer buffer = _node.Binding.ToValueBuffer(entity);
         object primaryKey = buffer.GetPrimaryKey();
+
+        AssertRowExists(txId, primaryKey);
+
+        ValueBuffer incoming = ResolveForeignKeys(buffer, txId, isRecursiveInsert: false);
+
+        Change change = new(incoming, txId, RowAction.Update);
+        _tracker.PendChange(change);
+    }
+
+    internal ValueBuffer GetRowByPrimaryKey(object primaryKey)
+    {
+        return _tracker
+            .GetChanges()
+            .First(change => change.Buffer.GetPrimaryKey() == primaryKey)
+            .Buffer;
+    }
+
+    internal void Load(DbDataReader dataReader, long txId)
+    {
+        Debug.Assert(txId == InternalTransaction.InitId);
+        if (!dataReader.HasRows)
+        {
+            return;
+        }
+
+        ColumnInfoCollection schemaColumns = _node.Columns;
+        IEnumerable<string> dbColumnNames = dataReader.GetColumnSchema().Select(c => c.ColumnName);
+
+        while (dataReader.Read())
+        {
+            ValueBuffer rowBuffer = new();
+            foreach (string dbColumnName in dbColumnNames)
+            {
+                ColumnInfo schemaColumn = schemaColumns[dbColumnName]; // This might throw an exception when migrating
+                rowBuffer[schemaColumn] = dataReader.GetValue(dbColumnName);
+            }
+
+            Change initChange = new(rowBuffer, txId, RowAction.None, isWrittenToDb: true);
+            _tracker.PendChange(initChange);
+        }
+    }
+
+    private void AssertRowExists(long txId, object primaryKey)
+    {
         if (!_tracker.HasChange(primaryKey, txId))
         {
             throw new RowNotFoundException(
@@ -112,81 +153,38 @@ internal sealed class Table : ITable
                 primaryKey
             );
         }
-
-        ValueBuffer incoming = ResolveColumnValues(buffer, txId, isRecursiveInsert: false);
-
-        Change change = new(incoming, txId, RowAction.Update);
-        _tracker.PendChange(change, txId);
     }
 
-    internal void Load(IDataReader dataReader)
-    {
-        throw new NotImplementedException();
-    }
-
-    private void CheckConstraints(ColumnInfo column, object columnValue, long txId)
-    {
-        Constraints constraints = column.Constraints;
-        if (!constraints.HasFlag(Constraints.AllowDbNull) && columnValue == null)
-        {
-            throw new ConstraintException(Strings.NullableConstraintViolation(column.Name, Name));
-        }
-
-        if (
-            constraints.HasFlag(Constraints.Unique) && _tracker.HasChange(column, columnValue, txId)
-        )
-        {
-            throw new ConstraintException(
-                Strings.UniqueConstraintViolation(Name, column.Name, columnValue)
-            );
-        }
-    }
-
-    private ValueBuffer GetRowByPK(object primaryKey)
-    {
-        return _tracker
-            .GetChanges()
-            .First(change => change.Buffer.GetPrimaryKey() == primaryKey)
-            .Buffer;
-    }
-
-    private ValueBuffer ResolveColumnValues(ValueBuffer incoming, long txId, bool isRecursiveInsert)
+    private ValueBuffer ResolveForeignKeys(ValueBuffer incoming, long txId, bool isRecursiveInsert)
     {
         ValueBuffer result = new();
-        foreach (KeyValuePair<ColumnInfo, object> kvp in incoming)
+
+        foreach ((ColumnInfo column, object columnValue) in incoming)
         {
-            ColumnInfo column = kvp.Key;
-            object columnValue = kvp.Value;
+            _constraintChecker.Check(column, columnValue, txId);
 
-            CheckConstraints(column, columnValue, txId);
-
-            if (column.Reference == null || columnValue == DBNull.Value)
+            if (column.Reference == null || columnValue.Equals(DBNull.Value))
             {
                 result[column] = columnValue;
                 continue;
             }
 
-            Table dependency = (Table)Relations[column];
-            EntityNode depNode = dependency.Node;
+            Table dependencyTable = (Table)ForeignKeyRelations[column];
+            EntityNode depNode = dependencyTable.Node;
+
             if (column.DataType != depNode.DataType)
             {
-                if (!dependency._tracker.HasChange(columnValue, txId))
-                {
-                    throw new RowNotFoundException(
-                        Strings.RowNotFound(dependency.Name, columnValue),
-                        dependency.Node.DataType,
-                        columnValue
-                    );
-                }
+                dependencyTable.AssertRowExists(txId, primaryKey: columnValue);
             }
             else
             {
-                ValueBuffer fkBuffer = depNode.Binding.ConvertToValueBuffer(columnValue);
+                ValueBuffer fkBuffer = depNode.Binding.ToValueBuffer(columnValue);
                 if (isRecursiveInsert)
                 {
-                    dependency.Insert(fkBuffer, txId);
+                    dependencyTable.Insert(fkBuffer, txId);
                 }
-                columnValue = fkBuffer.GetPrimaryKey();
+                result[column] = fkBuffer.GetPrimaryKey();
+                continue;
             }
 
             result[column] = columnValue;
@@ -195,28 +193,22 @@ internal sealed class Table : ITable
         return result;
     }
 
-    private object SelectByBuffer(ValueBuffer buffer)
+    [ExcludeFromCodeCoverage(Justification = "Debugger display proxy")]
+    internal sealed class TableDebugView
     {
-        ValueBuffer tempBuffer = new();
-        foreach (KeyValuePair<ColumnInfo, object> kvp in buffer)
+        private readonly Table _table;
+
+        public TableDebugView(Table table)
         {
-            ColumnInfo column = kvp.Key;
-            object columnValue = kvp.Value;
-
-            Type? reference = column.Reference;
-            if (reference == null || reference != column.DataType || columnValue == DBNull.Value)
-            {
-                tempBuffer[column] = columnValue;
-                continue;
-            }
-
-            Table depTable = (Table)Relations[column];
-            ValueBuffer depBuffer = depTable.GetRowByPK(columnValue);
-            object depObj = depTable.SelectByBuffer(depBuffer);
-
-            tempBuffer[column] = depObj;
+            _table = table;
         }
 
-        return Node.Binding.MaterializeEntity(tempBuffer);
+        public ChangeTracker ChangeTracker => _table._tracker;
+        public IEnumerable<IColumn> Columns => _table.Columns;
+        public EntityNode EntityNode => _table._node;
+        public IReadOnlyDictionary<IColumn, ITable> ForeignKeyRelations =>
+            _table.ForeignKeyRelations;
+        public string Name => _table.Name;
+        public IColumn PrimaryKey => _table.PrimaryKey;
     }
 }

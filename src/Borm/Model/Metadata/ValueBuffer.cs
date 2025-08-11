@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Runtime.CompilerServices;
 
 namespace Borm.Model.Metadata;
 
@@ -9,23 +8,12 @@ internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object>
 
     public object this[ColumnInfo column]
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => _valueMap[column];
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => _valueMap[column] = value;
     }
 
-    public object[] ToColumnOrderedArray()
-    {
-        List<object> ret = new(_valueMap.Count);
-        IEnumerable<ColumnInfo> ordered = _valueMap.Keys.OrderBy(col => col.Index);
-        foreach (ColumnInfo column in ordered)
-        {
-            ret.Add(_valueMap[column]);
-        }
-
-        return [.. ret];
-    }
+    public object this[string columnName] =>
+        _valueMap.First(kvp => kvp.Key.Name == columnName).Value;
 
     public IEnumerator<KeyValuePair<ColumnInfo, object>> GetEnumerator()
     {

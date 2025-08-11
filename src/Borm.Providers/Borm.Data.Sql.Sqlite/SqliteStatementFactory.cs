@@ -38,7 +38,7 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
                 columnDefinitionBuilder.Append(
                     column.Constraints.HasFlag(Constraints.AllowDbNull) ? "NULL" : "NOT NULL"
                 );
-                if (table.Relations.TryGetValue(column, out ITable? parentTable))
+                if (table.ForeignKeyRelations.TryGetValue(column, out ITable? parentTable))
                 {
                     columnDefinitionBuilder.AppendFormat(
                         " REFERENCES {0}({1})",

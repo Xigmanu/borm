@@ -2,19 +2,23 @@
 
 public class InternalTransaction : IDisposable
 {
+    internal const long InitId = -1;
+
     protected readonly long id;
     protected Exception? exception;
+
     private const int MaxRetries = 3;
+
     private readonly List<Table> _changedTables;
-    private readonly Queue<(Action<object, long>, object)> operationQueue;
-    private bool _isDisposed;
+    private readonly Queue<(Action<object, long>, object)> _operationQueue;
     private int _attempt;
+    private bool _isDisposed;
 
     internal InternalTransaction()
     {
         id = IdProvider.Next();
         exception = null;
-        operationQueue = [];
+        _operationQueue = [];
         _changedTables = [];
         _isDisposed = false;
         _attempt = 0;
@@ -24,7 +28,7 @@ public class InternalTransaction : IDisposable
     {
         id = IdProvider.Next();
         exception = null;
-        operationQueue = original.operationQueue;
+        _operationQueue = original._operationQueue;
         _changedTables = original._changedTables;
         _isDisposed = false;
         _attempt = ++original._attempt;
@@ -36,9 +40,9 @@ public class InternalTransaction : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    internal virtual void Execute(Table table, Action<object, long> tableOperation, object entity)
+    internal virtual void Execute(Table table, Action<object, long> tableOperation, object arg)
     {
-        if (Execute(tableOperation, entity))
+        if (Execute(tableOperation, arg))
         {
             _changedTables.Add(table);
         }
@@ -81,14 +85,14 @@ public class InternalTransaction : IDisposable
 
     protected void RunQueuedOperations()
     {
-        for (int i = 0; i < operationQueue.Count; i++)
+        for (int i = 0; i < _operationQueue.Count; i++)
         {
-            (Action<object, long> operation, object entity) = operationQueue.Dequeue();
-            _ = Execute(operation, entity);
+            (Action<object, long> operation, object arg) = _operationQueue.Dequeue();
+            _ = Execute(operation, arg);
         }
     }
 
-    private bool Execute(Action<object, long> tableOperation, object entity)
+    private bool Execute(Action<object, long> tableOperation, object arg)
     {
         if (exception != null)
         {
@@ -97,8 +101,8 @@ public class InternalTransaction : IDisposable
 
         try
         {
-            operationQueue.Enqueue((tableOperation, entity));
-            tableOperation(entity, id);
+            _operationQueue.Enqueue((tableOperation, arg));
+            tableOperation(arg, id);
         }
         catch (Exception ex)
         {

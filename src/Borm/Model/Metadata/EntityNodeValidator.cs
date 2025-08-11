@@ -118,7 +118,7 @@ internal sealed class EntityNodeValidator
 
         bool isFKValid =
             dataType.Equals(columnInfo.Reference)
-            || dataType.Equals(successor.GetPrimaryKey().DataType);
+            || dataType.Equals(successor.PrimaryKey.DataType);
 
         return isFKValid
             ? null

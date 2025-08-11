@@ -23,6 +23,7 @@ internal sealed class Change
     public bool IsWrittenToDb => _isWrittenToDb;
     public RowAction RowAction => _rowAction;
 
+    public long TxId => _txId;
     internal ValueBuffer Buffer => _buffer;
 
     public override bool Equals(object? obj)
@@ -49,7 +50,11 @@ internal sealed class Change
         }
         if (_txId > incoming._txId)
         {
-            throw new TransactionIdMismatchException("TODO", _txId, incoming._txId); // TODO this should trigger a rerun for transactions
+            throw new TransactionIdMismatchException(
+                "Row was modified by another transaction",
+                _txId,
+                incoming._txId
+            );
         }
 
         RowAction rowAction;

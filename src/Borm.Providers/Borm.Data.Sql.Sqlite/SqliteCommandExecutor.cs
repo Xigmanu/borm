@@ -90,7 +90,7 @@ public sealed class SqliteCommandExecutor : IDbStatementExecutor
         await connection.CloseAsync();
     }
 
-    public IDataReader ExecuteReader(SqlStatement statement)
+    public DbDataReader ExecuteReader(SqlStatement statement)
     {
         using SqliteConnection connection = new(_connectionString);
         using SqliteTransaction transaction = connection.BeginTransaction();

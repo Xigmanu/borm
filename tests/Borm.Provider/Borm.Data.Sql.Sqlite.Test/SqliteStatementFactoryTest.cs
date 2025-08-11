@@ -132,30 +132,4 @@ public class SqliteStatementFactoryTest
         }
         return res;
     }
-
-    private static DataSet CreateTestDataSet()
-    {
-        DataTable dataTable0 = new("simple");
-        DataColumn first0 = new("id", typeof(Guid)) { AllowDBNull = false };
-        DataColumn second0 = new("name", typeof(string)) { AllowDBNull = false };
-        DataColumn third0 = new("num_entries", typeof(int)) { AllowDBNull = false };
-        DataColumn fourth0 = new("amount", typeof(double)) { AllowDBNull = false };
-
-        dataTable0.Columns.AddRange([first0, second0, third0, fourth0]);
-        dataTable0.PrimaryKey = [first0];
-
-        DataTable dataTable1 = new("relational");
-        DataColumn first1 = new("id", typeof(Guid)) { AllowDBNull = false };
-        DataColumn second1 = new("comment", typeof(string));
-        DataColumn third1 = new("simple_fk", typeof(Guid)) { AllowDBNull = false };
-
-        dataTable1.Columns.AddRange([first1, second1, third1]);
-        dataTable1.PrimaryKey = [first1];
-
-        DataSet dataSet = new("test");
-        dataSet.Tables.AddRange([dataTable0, dataTable1]);
-        dataSet.Relations.Add("relational_simple", dataTable0.PrimaryKey[0], dataTable1.Columns[2]);
-
-        return dataSet;
-    }
 }
