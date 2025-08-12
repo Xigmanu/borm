@@ -1,6 +1,6 @@
 ﻿namespace Borm.Data;
 
-internal sealed class TransactionIdMismatchException : InvalidOperationException
+public sealed class TransactionIdMismatchException : InvalidOperationException
 {
     public TransactionIdMismatchException(string message, long currentTxId, long incomingTxId)
         : base(message)

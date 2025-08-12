@@ -4,26 +4,26 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Borm.Model.Metadata;
 
-internal sealed class EntityNodeValidator
+internal sealed class EntityMetadataValidator
 {
-    private readonly IEnumerable<EntityNode> _nodes;
+    private readonly IEnumerable<EntityInfo> _entityInfos;
 
-    public EntityNodeValidator(IEnumerable<EntityNode> nodes)
+    public EntityMetadataValidator(IEnumerable<EntityInfo> entityInfos)
     {
-        _nodes = nodes;
+        _entityInfos = entityInfos;
     }
 
-    public bool IsValid(EntityNode node, [NotNullWhen(false)] out Exception? exception)
+    public bool IsValid(EntityInfo entityInfo, [NotNullWhen(false)] out Exception? exception)
     {
-        exception = ValidatePrimaryKeyColumn(node);
+        exception = ValidatePrimaryKeyColumn(entityInfo);
         if (exception != null)
         {
             return false;
         }
 
-        foreach (ColumnInfo columnInfo in node.Columns)
+        foreach (ColumnInfo columnInfo in entityInfo.Columns)
         {
-            exception = ValidateColumnIndex(node, columnInfo);
+            exception = ValidateColumnIndex(entityInfo, columnInfo);
             if (exception != null)
             {
                 return false;
@@ -31,7 +31,7 @@ internal sealed class EntityNodeValidator
 
             if (columnInfo.Reference != null)
             {
-                exception = ValidateForeignKeyColumn(node, columnInfo);
+                exception = ValidateForeignKeyColumn(entityInfo, columnInfo);
                 if (exception != null)
                 {
                     return false;
@@ -42,47 +42,34 @@ internal sealed class EntityNodeValidator
         return true;
     }
 
-    private static Type UnwrapNullableType(Type type)
-    {
-        if (!type.IsValueType)
-        {
-            return type;
-        }
-
-        Type? underlying = Nullable.GetUnderlyingType(type);
-        Debug.Assert(underlying != null);
-
-        return underlying;
-    }
-
     private static InvalidOperationException? ValidateColumnIndex(
-        EntityNode node,
+        EntityInfo entityInfo,
         ColumnInfo columnInfo
     )
     {
-        bool isIndexValid = node.Columns.Count > columnInfo.Index && columnInfo.Index >= 0;
+        bool isIndexValid = entityInfo.Columns.Count > columnInfo.Index && columnInfo.Index >= 0;
         return isIndexValid
             ? null
             : new InvalidOperationException(
-                $"Invalid column index {columnInfo.Index} in entity {node.DataType.FullName}. Valid range is [0, {node.Columns.Count})"
+                $"Invalid column index {columnInfo.Index} in entity {entityInfo.DataType.FullName}. Valid range is [0, {entityInfo.Columns.Count})"
             );
     }
 
-    private static Exception? ValidatePrimaryKeyColumn(EntityNode node)
+    private static Exception? ValidatePrimaryKeyColumn(EntityInfo entityInfo)
     {
-        IEnumerable<ColumnInfo> primaryKeys = node.Columns.Where(column =>
+        IEnumerable<ColumnInfo> primaryKeys = entityInfo.Columns.Where(column =>
             column.Constraints.HasFlag(Constraints.PrimaryKey)
         );
         if (!primaryKeys.Any())
         {
             return new MissingPrimaryKeyException(
-                $"Entity {node.DataType.FullName} has no primary key"
+                $"Entity {entityInfo.DataType.FullName} has no primary key"
             );
         }
         if (primaryKeys.Count() > 1)
         {
             return new InvalidOperationException(
-                $"Entity {node.DataType.FullName} has multiple primary keys"
+                $"Entity {entityInfo.DataType.FullName} has multiple primary keys"
             );
         }
 
@@ -90,7 +77,7 @@ internal sealed class EntityNodeValidator
         if (primaryKey.Constraints.HasFlag(Constraints.AllowDbNull))
         {
             return new InvalidOperationException(
-                $"Primary key cannot be nullable. Entity: {node.DataType.FullName}"
+                $"Primary key cannot be nullable. Entity: {entityInfo.DataType.FullName}"
             );
         }
 
@@ -98,7 +85,7 @@ internal sealed class EntityNodeValidator
     }
 
     private InvalidOperationException? ValidateForeignKeyColumn(
-        EntityNode node,
+        EntityInfo entityInfo,
         ColumnInfo columnInfo
     )
     {
@@ -107,7 +94,7 @@ internal sealed class EntityNodeValidator
             : columnInfo.PropertyType;
 
         Type reference = columnInfo.Reference!;
-        EntityNode? successor = _nodes.FirstOrDefault(node => node.DataType.Equals(reference));
+        EntityInfo? successor = _entityInfos.FirstOrDefault(m => m.DataType.Equals(reference));
         if (successor == null)
         {
             return new NodeNotFoundException(
@@ -117,13 +104,12 @@ internal sealed class EntityNodeValidator
         }
 
         bool isFKValid =
-            dataType.Equals(columnInfo.Reference)
-            || dataType.Equals(successor.PrimaryKey.DataType);
+            dataType.Equals(columnInfo.Reference) || dataType.Equals(successor.PrimaryKey.DataType);
 
         return isFKValid
             ? null
             : new InvalidOperationException(
-                $"The foreign key property must be of the referenced type or the type of its primary key. Entity: {node.DataType.FullName}"
+                $"The foreign key property must be of the referenced type or the type of its primary key. Entity: {entityInfo.DataType.FullName}"
             );
     }
 }

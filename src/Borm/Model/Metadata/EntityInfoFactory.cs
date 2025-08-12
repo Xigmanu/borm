@@ -3,9 +3,9 @@ using Borm.Reflection;
 
 namespace Borm.Model.Metadata;
 
-internal static class EntityNodeFactory
+internal static class EntityInfoFactory
 {
-    public static EntityNode Create(ReflectedTypeInfo entityInfo)
+    public static EntityInfo Create(ReflectedTypeInfo entityInfo)
     {
         EntityAttribute entityAttribute = entityInfo.Attribute;
         string name = entityAttribute.Name ?? CreateDefaultName(entityInfo.Type.Name);
@@ -15,7 +15,7 @@ internal static class EntityNodeFactory
             .OrderBy(columnInfo => columnInfo.Index);
         ColumnInfoCollection columnCollection = new(columns);
 
-        return new EntityNode(name, entityInfo.Type, columnCollection);
+        return new EntityInfo(name, entityInfo.Type, columnCollection);
     }
 
     private static ColumnInfo CreateColumnInfo(Property property)

@@ -5,26 +5,48 @@ namespace Borm.Data;
 internal sealed class Change
 {
     private readonly ValueBuffer _buffer;
-    private readonly long _txId;
+    private readonly long _readTxId;
+    private readonly long _writeTxId;
     private bool _isWrittenToDb;
     private RowAction _rowAction;
 
-    public Change(ValueBuffer buffer, long txId, RowAction rowAction, bool isWrittenToDb)
+    private Change(
+        ValueBuffer buffer,
+        long readTxId,
+        long writeTxId,
+        bool isWrittenToDb,
+        RowAction rowAction
+    )
     {
-        _txId = txId;
+        _buffer = buffer;
+        _readTxId = readTxId;
+        _writeTxId = writeTxId;
         _isWrittenToDb = isWrittenToDb;
         _rowAction = rowAction;
-        _buffer = buffer;
     }
 
-    public Change(ValueBuffer buffer, long txId, RowAction rowAction)
-        : this(buffer, txId, rowAction, isWrittenToDb: false) { }
-
     public bool IsWrittenToDb => _isWrittenToDb;
+
     public RowAction RowAction => _rowAction;
 
-    public long TxId => _txId;
+    public long WriteTxId => _writeTxId;
+
     internal ValueBuffer Buffer => _buffer;
+
+    public static Change InitChange(ValueBuffer buffer, long txId)
+    {
+        return new Change(buffer, txId, txId, isWrittenToDb: true, RowAction.None);
+    }
+
+    public static Change NewChange(ValueBuffer buffer, long txId)
+    {
+        return new Change(buffer, txId, txId, isWrittenToDb: false, RowAction.Insert);
+    }
+
+    public Change Delete(ValueBuffer buffer, long writeTxId)
+    {
+        return new Change(buffer, _readTxId, writeTxId, _isWrittenToDb, RowAction.Delete);
+    }
 
     public override bool Equals(object? obj)
     {
@@ -42,18 +64,23 @@ internal sealed class Change
         _rowAction = RowAction.None;
     }
 
-    public Change? Merge(Change incoming)
+    public Change? Merge(Change incoming, bool isCommit)
     {
-        if (_txId == incoming._txId)
+        // No change has been made to a row => ignore the incoming
+        if (_writeTxId == incoming._writeTxId)
         {
             return this;
         }
-        if (_txId > incoming._txId)
+
+        // Normally, if the read IDs of both changes are equal,
+        // it means that the row was not modified by another transaction while the incoming transaction was open.
+        // Here, I attempt to trigger a 'rerun' for the transaction.
+        if (_readTxId > incoming._readTxId)
         {
             throw new TransactionIdMismatchException(
                 "Row was modified by another transaction",
-                _txId,
-                incoming._txId
+                _readTxId,
+                incoming._readTxId
             );
         }
 
@@ -64,6 +91,8 @@ internal sealed class Change
         }
         else
         {
+            // If a row is added and then deleted within the same transaction scope, no actual changes have been made.
+            // Remove the dangling entry.
             if (incoming._rowAction == RowAction.Delete)
             {
                 return null;
@@ -71,6 +100,17 @@ internal sealed class Change
             rowAction = RowAction.Insert;
         }
 
-        return new Change(incoming._buffer, incoming._txId, rowAction, IsWrittenToDb);
+        return new Change(
+            incoming._buffer,
+            isCommit ? incoming._writeTxId : _readTxId,
+            incoming._writeTxId,
+            IsWrittenToDb,
+            rowAction
+        );
+    }
+
+    public Change Update(ValueBuffer buffer, long writeTxId)
+    {
+        return new Change(buffer, _readTxId, writeTxId, _isWrittenToDb, RowAction.Update);
     }
 }

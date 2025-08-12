@@ -24,7 +24,7 @@ internal sealed class TableGraph
 
     public void AddTable(Table table)
     {
-        Type entityType = table.Node.DataType;
+        Type entityType = table.EntityInfo.DataType;
         if (!_tables.ContainsKey(entityType))
         {
             _tables[entityType] = table;

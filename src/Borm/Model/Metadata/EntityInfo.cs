@@ -1,15 +1,17 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Borm.Properties;
 
 namespace Borm.Model.Metadata;
 
+[DebuggerTypeProxy(typeof(EntityInfoDebugView))]
 [DebuggerDisplay("Name = {Name}, DataType = {DataType.FullName}")]
-internal sealed class EntityNode
+internal sealed class EntityInfo
 {
     private readonly ColumnInfoCollection _columns;
     private readonly string _name;
 
-    public EntityNode(string name, Type dataType, ColumnInfoCollection columns)
+    public EntityInfo(string name, Type dataType, ColumnInfoCollection columns)
     {
         if (columns.Count == 0)
         {
@@ -41,11 +43,27 @@ internal sealed class EntityNode
 
     public override bool Equals(object? obj)
     {
-        return obj is EntityNode other && _name == other.Name;
+        return obj is EntityInfo other && _name == other.Name;
     }
 
     public override int GetHashCode()
     {
         return _name.GetHashCode();
+    }
+
+    [ExcludeFromCodeCoverage(Justification = "Debugger display proxy")]
+    internal sealed class EntityInfoDebugView
+    {
+        private readonly EntityInfo _entityInfo;
+
+        public EntityInfoDebugView(EntityInfo entityInfo)
+        {
+            _entityInfo = entityInfo;
+        }
+
+        public ColumnInfo[] Columns => [.. _entityInfo.Columns];
+        public Type DataType => _entityInfo.DataType;
+        public string Name => _entityInfo.Name;
+        public ColumnInfo PrimaryKey => _entityInfo.PrimaryKey;
     }
 }

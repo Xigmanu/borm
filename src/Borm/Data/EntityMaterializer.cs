@@ -4,12 +4,15 @@ namespace Borm.Data;
 
 internal sealed class EntityMaterializer
 {
+    private readonly EntityInfo _entityInfo;
     private readonly IReadOnlyDictionary<IColumn, ITable> _fKRelations;
-    private readonly EntityNode _node;
 
-    public EntityMaterializer(EntityNode node, IReadOnlyDictionary<IColumn, ITable> fKRelations)
+    public EntityMaterializer(
+        EntityInfo entityInfo,
+        IReadOnlyDictionary<IColumn, ITable> fKRelations
+    )
     {
-        _node = node;
+        _entityInfo = entityInfo;
         _fKRelations = fKRelations;
     }
 
@@ -34,6 +37,6 @@ internal sealed class EntityMaterializer
             tempBuffer[column] = depTable.Materializer.FromBuffer(depBuffer);
         }
 
-        return _node.Binding.MaterializeEntity(tempBuffer);
+        return _entityInfo.Binding.MaterializeEntity(tempBuffer);
     }
 }

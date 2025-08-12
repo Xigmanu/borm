@@ -141,6 +141,9 @@
   <data name="MissingTableForEntity" xml:space="preserve">
     <value>The data context does not contain a table for the entity of type '{0}'.</value>
   </data>
+  <data name="ModificationOfNonExistingRow" xml:space="preserve">
+    <value>The transaction attempted to modify a row that had been removed by another transaction.</value>
+  </data>
   <data name="NotDecoratedEntityType" xml:space="preserve">
     <value>Entity types must be decorated with the 'EntityAttribute'.</value>
   </data>
@@ -152,6 +155,12 @@
   </data>
   <data name="RowNotFound" xml:space="preserve">
     <value>Table '{0}' does not contain row with the primary key '{1}'.</value>
+  </data>
+  <data name="TransactionFailed" xml:space="preserve">
+    <value>The transaction failed because one of the operations within it threw an exception.</value>
+  </data>
+  <data name="TransactionMaxRerunsExceeded" xml:space="preserve">
+    <value>The maximum number of reruns for a transaction has been exceeded.</value>
   </data>
   <data name="TypeNotSupported" xml:space="preserve">
     <value>Type '{0}' is not supported.</value>

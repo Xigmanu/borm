@@ -1,6 +1,8 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Borm.Model.Metadata;
+using Borm.Properties;
 
 namespace Borm.Data;
 
@@ -45,16 +47,6 @@ internal sealed class ChangeTracker
         }
     }
 
-    public bool HasChange(object primaryKey, long txId)
-    {
-        return HasChange(txId, (buffer) => buffer.GetPrimaryKey().Equals(primaryKey));
-    }
-
-    public bool HasChange(ColumnInfo column, object columnValue, long txId)
-    {
-        return HasChange(txId, (buffer) => buffer[column].Equals(columnValue));
-    }
-
     public void MarkChangesAsWritten()
     {
         _changes.RemoveAll(change => change.RowAction == RowAction.Delete);
@@ -66,11 +58,11 @@ internal sealed class ChangeTracker
 
     public void PendChange(Change change)
     {
-        long txId = change.TxId;
-        if (!_pendingChanges.TryGetValue(txId, out List<Change>? pendingChanges))
+        long writeTxId = change.WriteTxId;
+        if (!_pendingChanges.TryGetValue(writeTxId, out List<Change>? pendingChanges))
         {
-            pendingChanges = [.. _changes]; //TODO Initial row ids has to be retained up until a commit
-            _pendingChanges[txId] = pendingChanges;
+            pendingChanges = [.. _changes];
+            _pendingChanges[writeTxId] = pendingChanges;
         }
 
         Change? existing = pendingChanges.FirstOrDefault(existing =>
@@ -82,12 +74,29 @@ internal sealed class ChangeTracker
             return;
         }
 
-        Change? merged = existing.Merge(change);
+        Change? merged = existing.Merge(change, false);
         pendingChanges.Remove(existing);
         if (merged != null)
         {
             pendingChanges.Add(merged);
         }
+    }
+
+    public bool TryGetChange(object primaryKey, long txId, [NotNullWhen(true)] out Change? change)
+    {
+        change = FindChange(txId, (buffer) => buffer.GetPrimaryKey().Equals(primaryKey));
+        return change != null;
+    }
+
+    public bool TryGetChange(
+        ColumnInfo column,
+        object columnValue,
+        long txId,
+        [NotNullWhen(true)] out Change? change
+    )
+    {
+        change = FindChange(txId, (buffer) => buffer[column].Equals(columnValue));
+        return change != null;
     }
 
     private static List<Change> Merge(List<Change> original, List<Change> incoming)
@@ -101,7 +110,7 @@ internal sealed class ChangeTracker
             object key = change.Buffer.GetPrimaryKey();
             if (resultMap.TryGetValue(key, out Change? existing))
             {
-                Change? merged = existing.Merge(change);
+                Change? merged = existing.Merge(change, true);
                 if (merged != null)
                 {
                     resultMap[key] = merged;
@@ -115,7 +124,7 @@ internal sealed class ChangeTracker
             {
                 if (change.RowAction != RowAction.Insert)
                 {
-                    throw new Exception("Oh no, stinky");
+                    throw new InvalidOperationException(Strings.ModificationOfNonExistingRow());
                 }
                 resultMap[key] = change;
             }
@@ -124,13 +133,13 @@ internal sealed class ChangeTracker
         return [.. resultMap.Values];
     }
 
-    private bool HasChange(long txId, Func<ValueBuffer, bool> predicate)
+    private Change? FindChange(long txId, Func<ValueBuffer, bool> predicate)
     {
         if (_pendingChanges.TryGetValue(txId, out List<Change>? pendingChanges))
         {
-            return pendingChanges.Any(change => predicate(change.Buffer));
+            return pendingChanges.FirstOrDefault(change => predicate(change.Buffer));
         }
 
-        return _changes.Any(change => predicate(change.Buffer));
+        return _changes.FirstOrDefault(change => predicate(change.Buffer));
     }
 }

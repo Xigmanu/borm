@@ -57,38 +57,33 @@ public sealed class DataContext
             return;
         }
 
-        List<EntityNode> entityNodes = new(typeInfos.Count());
+        List<EntityInfo> entityInfos = new(typeInfos.Count());
         foreach (ReflectedTypeInfo typeInfo in typeInfos)
         {
-            EntityNode node = EntityNodeFactory.Create(typeInfo);
+            EntityInfo entityInfo = EntityInfoFactory.Create(typeInfo);
 
-            BindingInfo bindingInfo = new(typeInfo.Type, node.Columns);
-            node.Binding = bindingInfo.CreateBinding();
-            node.Validator = model.GetValidatorFunc(typeInfo.Type);
+            BindingInfo bindingInfo = new(typeInfo.Type, entityInfo.Columns);
+            entityInfo.Binding = bindingInfo.CreateBinding();
+            entityInfo.Validator = model.GetValidatorFunc(typeInfo.Type);
 
-            entityNodes.Add(node);
+            entityInfos.Add(entityInfo);
         }
 
-        EntityNodeValidator validator = new(entityNodes);
-        entityNodes.ForEach(node =>
+        EntityMetadataValidator validator = new(entityInfos);
+        entityInfos.ForEach(info =>
         {
-            if (!validator.IsValid(node, out Exception? exception))
+            if (!validator.IsValid(info, out Exception? exception))
             {
                 throw exception;
             }
         });
 
-        IEnumerable<Table> tables = new TableGraphBuilder(entityNodes).BuildAll();
+        IEnumerable<Table> tables = new TableGraphBuilder(entityInfos).BuildAll();
         _tableGraph.AddTableRange(tables);
 
-        BormDataAdapter adapter = new(
-            _configuration.CommandExecutor,
-            _tableGraph,
-            _configuration.SqlStatementFactory
-        );
-        adapter.CreateTables();
+        _dataAdapter.CreateTables();
 
-        OnInitialized(); //TODO Replace this with a trigger
+        OnInitialized(); //TODO Replace this with a trigger... I think
     }
 
     public void SaveChanges()

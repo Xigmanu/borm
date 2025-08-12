@@ -1,4 +1,7 @@
-﻿namespace Borm.Data;
+﻿using System.Diagnostics;
+using Borm.Properties;
+
+namespace Borm.Data;
 
 public class InternalTransaction : IDisposable
 {
@@ -12,6 +15,8 @@ public class InternalTransaction : IDisposable
     private readonly List<Table> _changedTables;
     private readonly Queue<(Action<object, long>, object)> _operationQueue;
     private int _attempt;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private bool _isDisposed;
 
     internal InternalTransaction()
@@ -50,22 +55,29 @@ public class InternalTransaction : IDisposable
 
     protected virtual void CommitPendingChanges()
     {
-        if (exception == null)
+        if (exception != null)
         {
-            _changedTables.ForEach(table => table.AcceptPendingChanges(id));
-            return;
-        }
-        if (exception is not TransactionIdMismatchException)
-        {
-            throw new Exception("TODO", exception);
-        }
-        if (_attempt >= MaxRetries)
-        {
-            throw new Exception();
+            Debug.Assert(exception is not TransactionIdMismatchException);
+            throw new InvalidOperationException(Strings.TransactionFailed(), exception);
         }
 
-        using InternalTransaction retryTx = new(this);
-        retryTx.RunQueuedOperations();
+        try
+        {
+            foreach (Table changedTable in _changedTables)
+            {
+                changedTable.AcceptPendingChanges(id);
+            }
+        }
+        catch (TransactionIdMismatchException ex)
+        {
+            if (_attempt >= MaxRetries)
+            {
+                throw new InvalidOperationException(Strings.TransactionMaxRerunsExceeded(), ex);
+            }
+
+            using InternalTransaction retryTx = new(this);
+            retryTx.RunQueuedOperations();
+        }
     }
 
     protected virtual void Dispose(bool disposing)
