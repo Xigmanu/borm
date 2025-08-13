@@ -1,12 +1,10 @@
-﻿using Borm.Model;
+﻿using Borm.Data;
+using Borm.Model;
 
-namespace Borm.Data.Sql.Sqlite.Tests.Mocks;
+namespace Borm.Tests.Common;
 
-internal sealed class TestTable : ITable
+public sealed class TestTable : ITable
 {
-    public static readonly TestTable AddressesTable = CreateAddressesTable();
-    public static readonly TestTable PersonsTable = CreatePersonsTable();
-
     public TestTable(
         IEnumerable<IColumn> columns,
         string name,
@@ -27,7 +25,7 @@ internal sealed class TestTable : ITable
 
     public IColumn PrimaryKey { get; }
 
-    private static TestTable CreateAddressesTable()
+    internal static TestTable CreateAddressesTable()
     {
         string tableNameA = "addresses";
         List<IColumn> columnsA =
@@ -41,7 +39,7 @@ internal sealed class TestTable : ITable
         return new TestTable(columnsA, tableNameA, columnsA[0], new Dictionary<IColumn, ITable>());
     }
 
-    private static TestTable CreatePersonsTable()
+    internal static TestTable CreatePersonsTable()
     {
         string tableNameB = "persons";
         List<IColumn> columnsB =
@@ -52,7 +50,7 @@ internal sealed class TestTable : ITable
             new TestColumn("address", typeof(int), Constraints.AllowDbNull),
         ];
 
-        Dictionary<IColumn, ITable> fkRelations = new() { [columnsB[^1]] = AddressesTable };
+        Dictionary<IColumn, ITable> fkRelations = new() { [columnsB[^1]] = CreateAddressesTable() };
 
         return new TestTable(columnsB, tableNameB, columnsB[0], fkRelations);
     }

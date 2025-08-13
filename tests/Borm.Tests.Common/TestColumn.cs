@@ -1,9 +1,9 @@
-﻿
+﻿using Borm.Data;
 using Borm.Model;
 
-namespace Borm.Data.Sql.Sqlite.Tests.Mocks;
+namespace Borm.Tests.Common;
 
-internal sealed class TestColumn : IColumn
+public sealed class TestColumn : IColumn
 {
     public TestColumn(string name, Type dataType, Constraints constraints)
     {
