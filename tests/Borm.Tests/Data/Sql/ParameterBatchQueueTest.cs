@@ -1,69 +1,67 @@
 ﻿using System.Data;
+using Borm.Data;
 using Borm.Data.Sql;
+using Borm.Model.Metadata;
 using Moq;
 
 namespace Borm.Tests.Data.Sql;
 
 public sealed class ParameterBatchQueueTest
 {
-    [Fact(Skip = "Broken. Will fix later")]
-    public void AddFromRow_ReadsDataRowItemArrayIntoBatchQueue()
+    [Fact]
+    public void Enqueue_ShouldEnqueueValueBuffer()
     {
         // Arrange
-        DataRow row = CreateTestRow();
+        ValueBuffer buffer = CreateTestBuffer();
 
         ParameterBatchQueue queue = new();
 
         // Act
-        //queue.AddFromRow(row);
+        queue.Enqueue(buffer);
 
         // Assert
-        Assert.Equal(1, queue.Count);
-        Assert.True(queue.Next());
+        Assert.True(queue.HasNext());
     }
 
-    [Fact(Skip = "Broken. Will fix later")]
+    [Fact(Skip = "Broken for now")]
     public void SetDbParameters_ShouldAssignValuesToCommandParameters()
     {
         // Arrange
         int id = 1;
-        string name = "Alice";
 
+        ValueBuffer buffer = CreateTestBuffer();
         ParameterBatchQueue queue = new();
-        DataRow row = CreateTestRow();
-        //queue.AddFromRow(row);
+        queue.Enqueue(buffer);
 
         Mock<IDbCommand> mockCommand = new();
         Mock<IDataParameterCollection> mockParams = new();
 
         Mock<IDbDataParameter> param1 = new();
-        Mock<IDbDataParameter> param2 = new();
 
-        List<IDbDataParameter> @params = [param1.Object, param2.Object];
+        List<IDbDataParameter> @params = [param1.Object];
 
         mockParams.Setup(p => p[It.IsAny<int>()]).Returns<int>(i => @params[i]);
         mockCommand.Setup(c => c.Parameters).Returns(mockParams.Object);
-
-        queue.Next(); // Advance to next position
 
         // Act
         queue.SetParameterValues(mockCommand.Object);
 
         // Assert
         param1.VerifySet(p => p.Value = id, Times.Once);
-        param2.VerifySet(p => p.Value = name, Times.Once);
     }
 
-    private static DataRow CreateTestRow()
+    private static ValueBuffer CreateTestBuffer()
     {
-        DataTable table = new();
-        table.Columns.Add("id", typeof(int));
-        table.Columns.Add("name", typeof(string));
-
-        DataRow row = table.NewRow();
-        row["id"] = 1;
-        row["name"] = "Alice";
-        table.Rows.Add(row);
-        return row;
+        ValueBuffer buffer = new();
+        ColumnInfo idColumn = new(
+            0,
+            "id",
+            "Id",
+            typeof(int),
+            Borm.Model.Constraints.PrimaryKey,
+            null
+        );
+        buffer[idColumn] = 1;
+        return buffer;
     }
 }

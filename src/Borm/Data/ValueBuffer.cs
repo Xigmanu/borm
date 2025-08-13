@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using Borm.Model;
+using Borm.Model.Metadata;
+using System.Collections;
 
-namespace Borm.Model.Metadata;
+namespace Borm.Data;
 
 internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object>>
 {

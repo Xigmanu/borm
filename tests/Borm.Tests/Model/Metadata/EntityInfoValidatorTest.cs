@@ -4,7 +4,7 @@ using Borm.Model.Metadata;
 
 namespace Borm.Tests.Model.Metadata;
 
-public sealed class EntityNodeValidatorTest
+public sealed class EntityInfoValidatorTest
 {
     [Theory]
     [InlineData(-1)]
@@ -18,12 +18,12 @@ public sealed class EntityNodeValidatorTest
                 new ColumnInfo(index, "bar", "Bar", typeof(string), Constraints.AllowDbNull, null),
             ]
         );
-        EntityNode node = new("foo", typeof(object), columns);
+        EntityInfo info = new("foo", typeof(object), columns);
 
-        EntityNodeValidator validator = new([node]);
+        EntityInfoValidator validator = new([info]);
 
         // Act
-        bool isValid = validator.IsValid(node, out Exception? exception);
+        bool isValid = validator.IsValid(info, out Exception? exception);
 
         // Assert
         Assert.False(isValid);
@@ -51,13 +51,13 @@ public sealed class EntityNodeValidatorTest
             [new ColumnInfo(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null)]
         );
 
-        EntityNode node0 = new("foo", typeof(EntityA), columns0);
-        EntityNode node1 = new("foo", typeof(EntityB), columns1);
+        EntityInfo info0 = new("foo", typeof(EntityA), columns0);
+        EntityInfo info1 = new("foo", typeof(EntityB), columns1);
 
-        EntityNodeValidator validator = new([node0, node1]);
+        EntityInfoValidator validator = new([info0, info1]);
 
         // Act
-        bool isValid = validator.IsValid(node0, out Exception? exception);
+        bool isValid = validator.IsValid(info0, out Exception? exception);
 
         // Assert
         Assert.False(isValid);
@@ -74,12 +74,12 @@ public sealed class EntityNodeValidatorTest
                 new ColumnInfo(1, "bar", "Bar", typeof(int), Constraints.PrimaryKey, null),
             ]
         );
-        EntityNode node = new("foo", typeof(EntityA), columns);
+        EntityInfo info = new("foo", typeof(EntityA), columns);
 
-        EntityNodeValidator validator = new([node]);
+        EntityInfoValidator validator = new([info]);
 
         // Act
-        bool isValid = validator.IsValid(node, out Exception? exception);
+        bool isValid = validator.IsValid(info, out Exception? exception);
 
         // Assert
         Assert.False(isValid);
@@ -102,12 +102,12 @@ public sealed class EntityNodeValidatorTest
                 ),
             ]
         );
-        EntityNode node = new("foo", typeof(EntityA), columns);
+        EntityInfo info = new("foo", typeof(EntityA), columns);
 
-        EntityNodeValidator validator = new([node]);
+        EntityInfoValidator validator = new([info]);
 
         // Act
-        bool isValid = validator.IsValid(node, out Exception? exception);
+        bool isValid = validator.IsValid(info, out Exception? exception);
 
         // Assert
         Assert.False(isValid);
@@ -121,12 +121,12 @@ public sealed class EntityNodeValidatorTest
         ColumnInfoCollection columns = new(
             [new ColumnInfo(0, "foo", "Foo", typeof(int), Constraints.None, null)]
         );
-        EntityNode node = new("foo", typeof(EntityA), columns);
+        EntityInfo info = new("foo", typeof(EntityA), columns);
 
-        EntityNodeValidator validator = new([node]);
+        EntityInfoValidator validator = new([info]);
 
         // Act
-        bool isValid = validator.IsValid(node, out Exception? exception);
+        bool isValid = validator.IsValid(info, out Exception? exception);
 
         // Assert
         Assert.False(isValid);
@@ -150,12 +150,12 @@ public sealed class EntityNodeValidatorTest
                 ),
             ]
         );
-        EntityNode node0 = new("foo", typeof(EntityA), columns0);
+        EntityInfo info = new("foo", typeof(EntityA), columns0);
 
-        EntityNodeValidator validator = new([node0]);
+        EntityInfoValidator validator = new([info]);
 
         // Act
-        bool isValid = validator.IsValid(node0, out Exception? exception);
+        bool isValid = validator.IsValid(info, out Exception? exception);
 
         // Assert
         Assert.False(isValid);
@@ -178,13 +178,13 @@ public sealed class EntityNodeValidatorTest
             [new ColumnInfo(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null)]
         );
 
-        EntityNode node0 = new("foo", typeof(EntityA), columns0);
-        EntityNode node1 = new("foo", typeof(EntityB), columns1);
+        EntityInfo info0 = new("foo", typeof(EntityA), columns0);
+        EntityInfo info1 = new("foo", typeof(EntityB), columns1);
 
-        EntityNodeValidator validator = new([node0, node1]);
+        EntityInfoValidator validator = new([info0, info1]);
 
         // Act
-        bool isValid = validator.IsValid(node0, out Exception? exception);
+        bool isValid = validator.IsValid(info0, out Exception? exception);
 
         // Assert
         Assert.True(isValid);

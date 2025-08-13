@@ -29,7 +29,7 @@ public sealed class SqliteCommandExecutor : IDbStatementExecutor
             ParameterBatchQueue batchQueue = statement.BatchQueue;
             if (batchQueue.Count > 0)
             {
-                while (batchQueue.Next())
+                while (batchQueue.HasNext())
                 {
                     batchQueue.SetParameterValues(command);
                     _ = command.ExecuteNonQuery();
@@ -67,7 +67,7 @@ public sealed class SqliteCommandExecutor : IDbStatementExecutor
             ParameterBatchQueue batchQueue = statement.BatchQueue;
             if (batchQueue.Count > 0)
             {
-                while (batchQueue.Next())
+                while (batchQueue.HasNext())
                 {
                     batchQueue.SetParameterValues(command);
                     await command.ExecuteNonQueryAsync();

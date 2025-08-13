@@ -4,13 +4,13 @@ using Borm.Reflection;
 
 namespace Borm.Tests.Model.Metadata;
 
-public sealed class EntityNodeFactoryTest
+public sealed class EntityInfoFactoryTest
 {
     [Fact]
     public void Create_ReturnsNewEntityNode_WithReflectedInformation()
     {
         // Arrange
-        Type type = typeof(EntityNodeFactoryTest);
+        Type type = typeof(EntityInfoFactoryTest);
         EntityAttribute attribute = new("foo");
 
         Property pKColumn = new("id", new PrimaryKeyAttribute(0), false, typeof(int));
@@ -32,17 +32,17 @@ public sealed class EntityNodeFactoryTest
         ReflectedTypeInfo reflectedInfo = new(type, attribute, columns);
 
         // Act
-        EntityNode node = EntityNodeFactory.Create(reflectedInfo);
+        EntityInfo info = EntityInfoFactory.Create(reflectedInfo);
 
         // Assert
 
-        Assert.Equal(attribute.Name, node.Name);
-        Assert.Equal(type, node.DataType);
-        Assert.Equal(columns.Length, node.Columns.Count);
+        Assert.Equal(attribute.Name, info.Name);
+        Assert.Equal(type, info.DataType);
+        Assert.Equal(columns.Length, info.Columns.Count);
         for (int i = 0; i < columns.Length; i++)
         {
             Property column = columns[i];
-            ColumnInfo actual = node.Columns.ElementAt(i);
+            ColumnInfo actual = info.Columns.ElementAt(i);
 
             Assert.Equal(column.Name, actual.PropertyName);
             Assert.Equal(column.Type, actual.DataType);

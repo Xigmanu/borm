@@ -3,7 +3,7 @@ using Borm.Model.Metadata;
 
 namespace Borm.Tests.Model.Metadata;
 
-public sealed class EntityNodeTest
+public sealed class EntityInfoTest
 {
     [Fact]
     public void Constructor_ThrowsArgumentException_WhenColumnCollectionIsEmpty()
@@ -13,7 +13,7 @@ public sealed class EntityNodeTest
 
         // Act
         Exception exception = Record.Exception(
-            () => _ = new EntityNode("foo", typeof(object), columns)
+            () => _ = new EntityInfo("foo", typeof(object), columns)
         );
 
         // Assert
@@ -21,30 +21,30 @@ public sealed class EntityNodeTest
     }
 
     [Fact]
-    public void GetPrimaryKey_ReturnsPrimaryKeyColumn()
+    public void PrimaryKey_ReturnsPrimaryKeyColumn()
     {
         // Arrange
         ColumnInfo pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
         ColumnInfoCollection columns = new([pkColumn]);
-        EntityNode node = new("foo", typeof(object), columns);
+        EntityInfo info = new("foo", typeof(object), columns);
 
         // Act
-        ColumnInfo actualPk = node.GetPrimaryKey();
+        ColumnInfo actualPk = info.PrimaryKey;
 
         // Assert
         Assert.Equal(pkColumn.Name, actualPk.Name);
     }
 
     [Fact]
-    public void GetPrimaryKey_ThrowsInvalidOperationException_WhenEntityNodeHasNoPrimaryKey()
+    public void PrimaryKey_ThrowsInvalidOperationException_WhenEntityNodeHasNoPrimaryKey()
     {
         // Arrange
         ColumnInfo pkColumn = new(0, "id", "Id", typeof(int), Constraints.None, null);
         ColumnInfoCollection columns = new([pkColumn]);
-        EntityNode node = new("foo", typeof(object), columns);
+        EntityInfo info = new("foo", typeof(object), columns);
 
         // Act
-        Exception exception = Record.Exception(() => _ = node.GetPrimaryKey());
+        Exception exception = Record.Exception(() => _ = info.PrimaryKey);
 
         // Assert
         Assert.IsType<InvalidOperationException>(exception);

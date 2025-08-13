@@ -69,7 +69,7 @@ public sealed class DataContext
             entityInfos.Add(entityInfo);
         }
 
-        EntityMetadataValidator validator = new(entityInfos);
+        EntityInfoValidator validator = new(entityInfos);
         entityInfos.ForEach(info =>
         {
             if (!validator.IsValid(info, out Exception? exception))

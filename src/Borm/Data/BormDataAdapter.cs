@@ -131,7 +131,7 @@ internal sealed class BormDataAdapter
             }
 
             Debug.Assert(!string.IsNullOrEmpty(statement.Sql));
-            statement.BatchQueue.AddFromChange(entry);
+            statement.BatchQueue.Enqueue(entry.Buffer);
         }
 
         return rowStateStatements.Values;

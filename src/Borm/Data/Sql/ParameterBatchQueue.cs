@@ -1,31 +1,27 @@
 ﻿using System.Data;
 using System.Diagnostics;
-using Borm.Model.Metadata;
 
 namespace Borm.Data.Sql;
 
 public sealed class ParameterBatchQueue
 {
-    private readonly List<ValueBuffer> _values;
-    private int _currentIdx;
+    private readonly Queue<ValueBuffer> _values;
 
     public ParameterBatchQueue()
     {
         _values = [];
-        _currentIdx = -1;
     }
 
     public int Count => _values.Count;
 
-    public bool Next()
+    public bool HasNext()
     {
-        _currentIdx++;
-        return _values.Count > _currentIdx;
+        return _values.TryPeek(out _);
     }
 
     public void SetParameterValues(IDbCommand dbCommand)
     {
-        ValueBuffer buffer = _values[_currentIdx];
+        ValueBuffer buffer = _values.Dequeue();
         IDataParameterCollection parameters = dbCommand.Parameters;
         for (int i = 0; i < parameters.Count; i++)
         {
@@ -36,8 +32,8 @@ public sealed class ParameterBatchQueue
         }
     }
 
-    internal void AddFromChange(Change entry)
+    internal void Enqueue(ValueBuffer buffer)
     {
-        _values.Add(entry.Buffer);
+        _values.Enqueue(buffer);
     }
 }

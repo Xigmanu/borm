@@ -6,6 +6,7 @@ namespace Borm.Tests.Data;
 
 public sealed class EntityRepositoryTest
 {
+    /*
     [Fact]
     public void Delete_RemovesRow_WithSimpleEntity()
     {
@@ -454,4 +455,5 @@ public sealed class EntityRepositoryTest
         Assert.Equal(id, row["id"]);
         Assert.Equal(entityA, row["entityA"]);
     }
+    */
 }

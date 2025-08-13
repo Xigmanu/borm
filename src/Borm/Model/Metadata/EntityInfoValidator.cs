@@ -4,11 +4,11 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Borm.Model.Metadata;
 
-internal sealed class EntityMetadataValidator
+internal sealed class EntityInfoValidator
 {
     private readonly IEnumerable<EntityInfo> _entityInfos;
 
-    public EntityMetadataValidator(IEnumerable<EntityInfo> entityInfos)
+    public EntityInfoValidator(IEnumerable<EntityInfo> entityInfos)
     {
         _entityInfos = entityInfos;
     }
