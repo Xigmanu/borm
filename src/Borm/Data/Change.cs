@@ -1,6 +1,4 @@
-﻿using Borm.Model.Metadata;
-
-namespace Borm.Data;
+﻿namespace Borm.Data;
 
 internal sealed class Change
 {

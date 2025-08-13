@@ -1,4 +1,6 @@
-﻿namespace Borm.Model.Metadata;
+﻿using Borm.Data;
+
+namespace Borm.Model.Metadata;
 
 internal sealed class ConversionBinding
 {
