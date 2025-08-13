@@ -135,23 +135,20 @@
   <data name="InvalidEntityTypeConstructor" xml:space="preserve">
     <value>The type '{0}' does not have a public constructor that would initialise all columns.</value>
   </data>
-  <data name="MissingColumnInCopiedTable" xml:space="preserve">
-    <value>The table '{0}' created from the copied dataset does not contain the expected column '{1}'.</value>
-  </data>
-  <data name="MissingEntityNode" xml:space="preserve">
-    <value>The entity node '{0}' was not found in the graph.</value>
-  </data>
-  <data name="MissingExpectedDataRelation" xml:space="preserve">
-    <value>The expected data relation between the parent node '{0}' and the child node '{1}' could not be found.</value>
-  </data>
   <data name="MissingPrimaryKey" xml:space="preserve">
     <value>Entity '{0}' has no primary key.</value>
   </data>
   <data name="MissingTableForEntity" xml:space="preserve">
     <value>The data context does not contain a table for the entity of type '{0}'.</value>
   </data>
+  <data name="ModificationOfNonExistingRow" xml:space="preserve">
+    <value>The transaction attempted to modify a row that had been removed by another transaction.</value>
+  </data>
   <data name="NotDecoratedEntityType" xml:space="preserve">
     <value>Entity types must be decorated with the 'EntityAttribute'.</value>
+  </data>
+  <data name="NullableConstraintViolation" xml:space="preserve">
+    <value>The column '{0}' in the table '{1}' cannot be set to null.</value>
   </data>
   <data name="PrimaryKeyConstraintViolation" xml:space="preserve">
     <value>The table '{0}' already contains a row with the primary key '{1}'.</value>
@@ -159,10 +156,16 @@
   <data name="RowNotFound" xml:space="preserve">
     <value>Table '{0}' does not contain row with the primary key '{1}'.</value>
   </data>
-  <data name="SqlStatementParameterRowMapping" xml:space="preserve">
-    <value>Missing SQL parameter for required column '{1}' in table '{0}'.</value>
+  <data name="TransactionFailed" xml:space="preserve">
+    <value>The transaction failed because one of the operations within it threw an exception.</value>
+  </data>
+  <data name="TransactionMaxRerunsExceeded" xml:space="preserve">
+    <value>The maximum number of reruns for a transaction has been exceeded.</value>
   </data>
   <data name="TypeNotSupported" xml:space="preserve">
     <value>Type '{0}' is not supported.</value>
+  </data>
+  <data name="UniqueConstraintViolation" xml:space="preserve">
+    <value>The table '{0}' already contains a row where the value of the column '{1}' is '{2}'.</value>
   </data>
 </root>

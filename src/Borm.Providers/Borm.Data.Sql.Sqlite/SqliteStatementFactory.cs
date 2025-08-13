@@ -1,6 +1,5 @@
-﻿using System.Data;
-using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
+using Borm.Model;
 using Microsoft.Data.Sqlite;
 
 namespace Borm.Data.Sql.Sqlite;
@@ -13,44 +12,27 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
     private const string SelectAllStatementFormat = "SELECT * FROM {0};";
     private const string UpdateStatementFormat = "UPDATE {0} SET {1} WHERE {2};";
 
-    public SqlStatement NewCreateTableStatement(DataTable dataTable)
+    public SqlStatement NewCreateTableStatement(ITable table)
     {
-        string tableName = dataTable.TableName;
-        DataColumnCollection columns = dataTable.Columns;
-        Dictionary<DataColumn, DataTable> relationMap = GetRelationMap(dataTable);
+        string tableName = table.Name;
+        IEnumerable<IColumn> columns = table.Columns;
 
-        string[] columnDefinitions = new string[columns.Count];
-        for (int i = 0; i < columns.Count; i++)
+        List<string> columnDefinitions = new(columns.Count());
+        foreach (IColumn column in columns)
         {
-            DataColumn column = columns[i];
-
             StringBuilder columnDefinitionBuilder = new StringBuilder().AppendFormat(
                 "{0} ",
-                column.ColumnName
+                column.Name
             );
             string sqliteType = SqliteTypeHelper
                 .ToSqliteType(column.DataType)
                 .ToString()
                 .ToUpperInvariant();
             columnDefinitionBuilder.AppendFormat("{0} ", sqliteType);
-            if (dataTable.PrimaryKey[0].Equals(column))
-            {
-                columnDefinitionBuilder.Append("PRIMARY KEY");
-            }
-            else
-            {
-                columnDefinitionBuilder.Append(column.AllowDBNull ? "NULL" : "NOT NULL");
-                if (relationMap.TryGetValue(column, out DataTable? parentTable))
-                {
-                    columnDefinitionBuilder.AppendFormat(
-                        " REFERENCES {0}({1})",
-                        parentTable.TableName,
-                        parentTable.PrimaryKey[0].ColumnName
-                    );
-                }
-            }
 
-            columnDefinitions[i] = columnDefinitionBuilder.ToString();
+            AppendConstraints(table, column, columnDefinitionBuilder);
+
+            columnDefinitions.Add(columnDefinitionBuilder.ToString());
         }
         string columnDefinitionsStr = new StringBuilder()
             .AppendJoin(',', columnDefinitions)
@@ -60,41 +42,37 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
         return new SqlStatement(sql, []);
     }
 
-    public SqlStatement NewDeleteStatement(DataTable dataTable)
+    public SqlStatement NewDeleteStatement(ITable table)
     {
-        DataColumn primaryKey = dataTable.PrimaryKey[0];
+        IColumn primaryKey = table.PrimaryKey;
         (string expression, SqliteParameter[] parameters) = CreateParametrizedExpression(
             [primaryKey],
             (columnName, paramName) => $"{columnName} = {paramName}"
         );
-        string sql = string.Format(DeleteStatementFormat, dataTable.TableName, expression);
+        string sql = string.Format(DeleteStatementFormat, table.Name, expression);
         return new SqlStatement(sql, parameters);
     }
 
-    public SqlStatement NewInsertStatement(DataTable dataTable)
+    public SqlStatement NewInsertStatement(ITable table)
     {
-        DataColumn[] columns = ToArray(dataTable.Columns);
         (string expression, SqliteParameter[] parameters) = CreateParametrizedExpression(
-            columns,
+            [.. table.Columns],
             (_, paramName) => paramName
         );
-        string sql = string.Format(InsertStatementFormat, dataTable.TableName, expression);
+        string sql = string.Format(InsertStatementFormat, table.Name, expression);
         return new SqlStatement(sql, parameters);
     }
 
-    public SqlStatement NewSelectAllStatement(DataTable dataTable)
+    public SqlStatement NewSelectAllStatement(ITable table)
     {
-        string sql = string.Format(SelectAllStatementFormat, dataTable.TableName);
+        string sql = string.Format(SelectAllStatementFormat, table.Name);
         return new SqlStatement(sql, []);
     }
 
-    public SqlStatement NewUpdateStatement(DataTable dataTable)
+    public SqlStatement NewUpdateStatement(ITable table)
     {
-        DataColumn primaryKey = dataTable.PrimaryKey[0];
-        DataColumn[] columns =
-        [
-            .. ToArray(dataTable.Columns).Where(column => !column.Equals(primaryKey)),
-        ];
+        IColumn primaryKey = table.PrimaryKey;
+        IColumn[] columns = [.. table.Columns.Where(column => !column.Equals(primaryKey))];
 
         (string expression, SqliteParameter[] expressionParams) = CreateParametrizedExpression(
             columns,
@@ -108,22 +86,49 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
 
         string sql = string.Format(
             UpdateStatementFormat,
-            dataTable.TableName,
+            table.Name,
             expression,
-            $"{primaryKey.ColumnName} = {conditionalParam.ParameterName}"
+            $"{primaryKey.Name} = {conditionalParam.ParameterName}"
         );
         return new SqlStatement(sql, parameters);
     }
 
-    private static SqliteParameter CreateParameterForColumn(DataColumn column)
+    private static void AppendConstraints(
+        ITable table,
+        IColumn column,
+        StringBuilder columnDefinitionBuilder
+    )
     {
-        string paramName = string.Format("${0}", column.ColumnName);
+        if (column.Constraints.HasFlag(Constraints.PrimaryKey))
+        {
+            columnDefinitionBuilder.Append("PRIMARY KEY");
+            return;
+        }
+
+        List<string> constraints = [];
+        if (column.Constraints.HasFlag(Constraints.Unique))
+        {
+            constraints.Add("UNIQUE");
+        }
+
+        constraints.Add(column.Constraints.HasFlag(Constraints.AllowDbNull) ? "NULL" : "NOT NULL");
+        if (table.ForeignKeyRelations.TryGetValue(column, out ITable? parentTable))
+        {
+            constraints.Add($"REFERENCES {parentTable.Name}({parentTable.PrimaryKey.Name})");
+        }
+
+        columnDefinitionBuilder.AppendJoin(' ', constraints);
+    }
+
+    private static SqliteParameter CreateParameterForColumn(IColumn column)
+    {
+        string paramName = string.Format("${0}", column.Name);
         SqliteType type = SqliteTypeHelper.ToSqliteType(column.DataType);
         return new SqliteParameter(paramName, type);
     }
 
     private static (string, SqliteParameter[]) CreateParametrizedExpression(
-        DataColumn[] columns,
+        IColumn[] columns,
         Func<string, string, string> formatter
     )
     {
@@ -131,36 +136,14 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
         string[] expressions = new string[columns.Length];
         for (int i = 0; i < columns.Length; i++)
         {
-            DataColumn column = columns[i];
+            IColumn column = columns[i];
 
             SqliteParameter parameter = CreateParameterForColumn(column);
-            expressions[i] = formatter(column.ColumnName, parameter.ParameterName);
+            expressions[i] = formatter(column.Name, parameter.ParameterName);
             parameters[i] = parameter;
         }
 
         string expressionsJoined = new StringBuilder().AppendJoin(',', expressions).ToString();
         return (expressionsJoined, parameters);
-    }
-
-    private static Dictionary<DataColumn, DataTable> GetRelationMap(DataTable dataTable)
-    {
-        Dictionary<DataColumn, DataTable> relationMap = [];
-        foreach (DataRelation parentRelation in dataTable.ParentRelations)
-        {
-            DataColumn[] childColumns = parentRelation.ChildColumns;
-            Debug.Assert(childColumns.Length == 1);
-            relationMap[childColumns[0]] = parentRelation.ParentTable;
-        }
-        return relationMap;
-    }
-
-    private static DataColumn[] ToArray(DataColumnCollection columnCollection)
-    {
-        DataColumn[] columns = new DataColumn[columnCollection.Count];
-        for (int i = 0; i < columns.Length; i++)
-        {
-            columns[i] = columnCollection[i];
-        }
-        return columns;
     }
 }

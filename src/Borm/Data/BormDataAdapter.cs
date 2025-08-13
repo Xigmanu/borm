@@ -1,4 +1,4 @@
-﻿using System.Data;
+﻿using System.Data.Common;
 using System.Diagnostics;
 using Borm.Data.Sql;
 using Borm.Model.Metadata;
@@ -8,65 +8,62 @@ namespace Borm.Data;
 internal sealed class BormDataAdapter
 {
     private readonly IDbStatementExecutor _executor;
-    private readonly EntityNodeGraph _nodeGraph;
     private readonly ISqlStatementFactory _statementFactory;
+    private readonly TableGraph _tableGraph;
 
     public BormDataAdapter(
         IDbStatementExecutor executor,
-        EntityNodeGraph nodeGraph,
+        TableGraph tableGraph,
         ISqlStatementFactory statementFactory
     )
     {
         _executor = executor;
-        _nodeGraph = nodeGraph;
+        _tableGraph = tableGraph;
         _statementFactory = statementFactory;
     }
 
-    public void CreateTables(BormDataSet dataSet)
+    public void CreateTables()
     {
-        EntityNode[] sorted = _nodeGraph.ReversedTopSort();
-        for (int i = 0; i < sorted.Length; i++)
+        IEnumerable<Table> sorted = _tableGraph.TopSort();
+        foreach (Table table in sorted)
         {
-            DataTable table = dataSet.Tables[sorted[i].Name]!;
             SqlStatement statement = _statementFactory.NewCreateTableStatement(table);
             _executor.ExecuteBatch(statement);
         }
     }
 
-    public void Load(BormDataSet dataSet)
+    public void Load()
     {
-        EntityNode[] sorted = _nodeGraph.ReversedTopSort();
-        for (int i = 0; i < sorted.Length; i++)
+        IEnumerable<Table> sorted = _tableGraph.TopSort();
+        using InternalTransaction transaction = new(); 
+        foreach (Table table in sorted)
         {
-            DataTable table = dataSet.Tables[sorted[i].Name]!;
             SqlStatement statement = _statementFactory.NewSelectAllStatement(table);
-            using IDataReader dataReader = _executor.ExecuteReader(statement);
-            ((NodeDataTable)table).Load(dataReader);
+            using DbDataReader dataReader = _executor.ExecuteReader(statement);
+            transaction.Execute(table, (arg, txId) => table.Load((DbDataReader)arg, txId), dataReader);
         }
-        dataSet.AcceptChanges();
     }
 
-    public void Update(BormDataSet dataSet)
+    public void Update()
     {
-        EntityNode[] sorted = _nodeGraph.ReversedTopSort();
-        for (int i = 0; i < sorted.Length; i++)
+        IEnumerable<Table> sorted = _tableGraph.TopSort();
+        foreach (Table table in sorted)
         {
-            DataTable table = dataSet.Tables[sorted[i].Name]!;
-            IEnumerable<SqlStatement> statements = CreateUpdateStatements((NodeDataTable)table);
+            IEnumerable<SqlStatement> statements = CreateUpdateStatements(table);
             foreach (SqlStatement statement in statements)
             {
                 _executor.ExecuteBatch(statement);
             }
+            table.MarkChangesAsWritten();
         }
     }
 
-    public async Task UpdateAsync(BormDataSet dataSet)
+    public async Task UpdateAsync()
     {
-        EntityNode[] sorted = _nodeGraph.ReversedTopSort();
-        for (int i = 0; i < sorted.Length; i++)
+        IEnumerable<Table> sorted = _tableGraph.TopSort();
+        foreach (Table table in sorted)
         {
-            DataTable table = dataSet.Tables[sorted[i].Name]!;
-            IEnumerable<SqlStatement> statements = CreateUpdateStatements((NodeDataTable)table);
+            IEnumerable<SqlStatement> statements = CreateUpdateStatements(table);
             foreach (SqlStatement statement in statements)
             {
                 await _executor.ExecuteBatchAsync(statement);
@@ -75,70 +72,58 @@ internal sealed class BormDataAdapter
     }
 
     private static SqlStatement GetOrCreateSqlStatement(
-        DataTable changes,
-        DataRow row,
-        Dictionary<DataRowState, SqlStatement> rowStateStatements,
-        Func<DataTable, SqlStatement> factoryMethod
+        Table table,
+        Change entry,
+        Dictionary<RowAction, SqlStatement> rowStateStatements,
+        Func<Table, SqlStatement> factoryMethod
     )
     {
-        if (rowStateStatements.TryGetValue(row.RowState, out SqlStatement? cached))
+        if (rowStateStatements.TryGetValue(entry.RowAction, out SqlStatement? cached))
         {
             return cached;
         }
 
-        SqlStatement statement = factoryMethod(changes);
-        rowStateStatements[row.RowState] = statement;
+        SqlStatement statement = factoryMethod(table);
+        rowStateStatements[entry.RowAction] = statement;
         return statement;
     }
 
-    private Dictionary<DataRowState, SqlStatement>.ValueCollection CreateUpdateStatements(
-        NodeDataTable table
-    )
+    private Dictionary<RowAction, SqlStatement>.ValueCollection CreateUpdateStatements(Table table)
     {
-        DataTable? changes = table.GetChanges();
-        Dictionary<DataRowState, SqlStatement> rowStateStatements = [];
-        if (changes == null)
+        IEnumerable<Change> changes = table.GetChanges();
+        Dictionary<RowAction, SqlStatement> rowStateStatements = [];
+        if (!changes.Any())
         {
             return rowStateStatements.Values;
         }
 
-        foreach (DataRow row in changes.Rows)
+        foreach (Change entry in changes)
         {
-            DataRow? deletedRowClone = null;
-            if (row.RowState == DataRowState.Unchanged || row.RowState == DataRowState.Detached)
-            {
-                continue;
-            }
-
             SqlStatement statement;
-            switch (row.RowState)
+            switch (entry.RowAction)
             {
-                case DataRowState.Added:
+                case RowAction.Insert:
                     statement = GetOrCreateSqlStatement(
-                        changes,
-                        row,
+                        table,
+                        entry,
                         rowStateStatements,
                         _statementFactory.NewInsertStatement
                     );
                     break;
-                case DataRowState.Modified:
+                case RowAction.Update:
                     statement = GetOrCreateSqlStatement(
-                        changes,
-                        row,
+                        table,
+                        entry,
                         rowStateStatements,
                         _statementFactory.NewUpdateStatement
                     );
                     break;
-                case DataRowState.Deleted:
+                case RowAction.Delete:
                     statement = GetOrCreateSqlStatement(
-                        changes,
-                        row,
+                        table,
+                        entry,
                         rowStateStatements,
                         _statementFactory.NewDeleteStatement
-                    );
-                    deletedRowClone = ((BormDataSet)table.DataSet!).GetDeletedRowClone(
-                        table,
-                        changes.Rows.IndexOf(row)
                     );
                     break;
                 default:
@@ -146,7 +131,7 @@ internal sealed class BormDataAdapter
             }
 
             Debug.Assert(!string.IsNullOrEmpty(statement.Sql));
-            statement.BatchQueue.AddFromRow(deletedRowClone ?? row);
+            statement.BatchQueue.Enqueue(entry.Buffer);
         }
 
         return rowStateStatements.Values;

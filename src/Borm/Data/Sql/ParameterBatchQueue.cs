@@ -5,43 +5,35 @@ namespace Borm.Data.Sql;
 
 public sealed class ParameterBatchQueue
 {
-    private readonly List<object?[]> _values;
-    private int _currentIdx;
+    private readonly Queue<ValueBuffer> _values;
 
     public ParameterBatchQueue()
     {
         _values = [];
-        _currentIdx = -1;
     }
 
     public int Count => _values.Count;
 
-    public bool Next()
+    public bool HasNext()
     {
-        _currentIdx++;
-        return _values.Count > _currentIdx;
+        return _values.TryPeek(out _);
     }
 
     public void SetParameterValues(IDbCommand dbCommand)
     {
-        object?[] values = _values[_currentIdx];
-        for (int i = 0; i < values.Length; i++)
+        ValueBuffer buffer = _values.Dequeue();
+        IDataParameterCollection parameters = dbCommand.Parameters;
+        for (int i = 0; i < parameters.Count; i++)
         {
-            IDbDataParameter? param = dbCommand.Parameters[i] as IDbDataParameter;
+            IDbDataParameter? param = parameters[i] as IDbDataParameter;
             Debug.Assert(param != null);
-            param.Value = values[i];
+            string columnName = param.ParameterName[1..]; // remove the prefix
+            param.Value = buffer[columnName];
         }
     }
 
-    internal void AddFromRow(DataRow row)
+    internal void Enqueue(ValueBuffer buffer)
     {
-        DataTable table = row.Table;
-        DataColumnCollection columns = table.Columns;
-        object?[] values = new object[columns.Count];
-        for (int i = 0; i < values.Length; i++)
-        {
-            values[i] = row[i];
-        }
-        _values.Add(values);
+        _values.Enqueue(buffer);
     }
 }

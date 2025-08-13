@@ -15,135 +15,98 @@ public static class Strings
     /// <summary>
     /// Data context is not initialized.
     /// </summary>
-    public static string DataContextNotInitialized()
-    {
-        return GetString(formatArgs: null);
-    }
+    public static string DataContextNotInitialized() => GetString();
 
     /// <summary>
     /// Entity '{entityName}' must have at least 1 column.
     /// </summary>
-    public static string EmptyColumnCollection(string entityName)
-    {
-        return GetString([entityName]);
-    }
+    public static string EmptyColumnCollection(string entityName) => GetString([entityName]);
 
     /// <summary>
     /// The entity type '{entityTypeName}' cannot be abstract.
     /// </summary>
-    public static string EntityTypeCannotBeAbstract(string entityTypeName)
-    {
-        return GetString([entityTypeName]);
-    }
+    public static string EntityTypeCannotBeAbstract(string entityTypeName) => GetString([entityTypeName]);
 
     /// <summary>
     /// Validation failed for entity type '{entityType}'.
     /// </summary>
-    public static string EntityValidationFailed(Type entityType)
-    {
-        return GetString([entityType]);
-    }
+    public static string EntityValidationFailed(Type entityType) => GetString([entityType]);
 
     /// <summary>
     /// Column index cannot be lesser than zero.
     /// </summary>
-    public static string InvalidColumnIndex()
-    {
-        return GetString(formatArgs: null);
-    }
+    public static string InvalidColumnIndex() => GetString();
 
     /// <summary>
     /// The type '{entityTypeName}' does not have a public constructor that would initialise all columns.
     /// </summary>
-    public static string InvalidEntityTypeConstructor(string entityTypeName)
-    {
-        return GetString([entityTypeName]);
-    }
-
-    /// <summary>
-    /// The table '{tableName}' created from the copied dataset does not contain the expected column '{columnName}'.
-    /// </summary>
-    public static string MissingColumnInCopiedTable(string tableName, string columnName)
-    {
-        return GetString([tableName, columnName]);
-    }
-
-    /// <summary>
-    /// The entity node '{entityName}' was not found in the graph.
-    /// </summary>
-    public static string MissingEntityNode(string entityName)
-    {
-        return GetString([entityName]);
-    }
-
-    /// <summary>
-    /// The expected data relation between the parent node '{parentNode}' and the child node '{childNode}' could not be found.
-    /// </summary>
-    public static string MissingExpectedDataRelation(object parentNode, object childNode)
-    {
-        return GetString([parentNode, childNode]);
-    }
+    public static string InvalidEntityTypeConstructor(string entityTypeName) => GetString([entityTypeName]);
 
     /// <summary>
     /// Entity '{entityName}' has no primary key.
     /// </summary>
-    public static string MissingPrimaryKey(string entityName)
-    {
-        return GetString([entityName]);
-    }
+    public static string MissingPrimaryKey(string entityName) => GetString([entityName]);
 
     /// <summary>
     /// The data context does not contain a table for the entity of type '{entityTypeName}'.
     /// </summary>
-    public static string MissingTableForEntity(string entityTypeName)
-    {
-        return GetString([entityTypeName]);
-    }
+    public static string MissingTableForEntity(string entityTypeName) => GetString([entityTypeName]);
+
+    /// <summary>
+    /// The transaction attempted to modify a row that had been removed by another transaction.
+    /// </summary>
+    public static string ModificationOfNonExistingRow() => GetString();
 
     /// <summary>
     /// Entity types must be decorated with the 'EntityAttribute'.
     /// </summary>
-    public static string NotDecoratedEntityType()
-    {
-        return GetString(formatArgs: null);
-    }
+    public static string NotDecoratedEntityType() => GetString();
+
+    /// <summary>
+    /// The column '{columnName}' in the table '{tableName}' cannot be set to null.
+    /// </summary>
+    public static string NullableConstraintViolation(string columnName, string tableName) => GetString([columnName, tableName]);
 
     /// <summary>
     /// The table '{tableName}' already contains a row with the primary key '{primaryKey}'.
     /// </summary>
-    public static string PrimaryKeyConstraintViolation(string tableName, object primaryKey)
-    {
-        return GetString([tableName, primaryKey]);
-    }
+    public static string PrimaryKeyConstraintViolation(string tableName, object primaryKey) => GetString([tableName, primaryKey]);
 
     /// <summary>
     /// Table '{tableName}' does not contain row with the primary key '{primaryKey}'.
     /// </summary>
-    public static string RowNotFound(string tableName, object primaryKey)
-    {
-        return GetString([tableName, primaryKey]);
-    }
+    public static string RowNotFound(string tableName, object primaryKey) => GetString([tableName, primaryKey]);
 
     /// <summary>
-    /// Missing SQL parameter for required column '{columnName}' in table '{tableName}'.
+    /// The transaction failed because one of the operations within it threw an exception.
     /// </summary>
-    public static string SqlStatementParameterRowMapping(string columnName, string tableName)
-    {
-        return GetString([columnName, tableName]);
-    }
+    public static string TransactionFailed() => GetString();
+
+    /// <summary>
+    /// The maximum number of reruns for a transaction has been exceeded.
+    /// </summary>
+    public static string TransactionMaxRerunsExceeded() => GetString();
 
     /// <summary>
     /// Type '{typeName}' is not supported.
     /// </summary>
-    public static string TypeNotSupported(string typeName)
+    public static string TypeNotSupported(string typeName) => GetString([typeName]);
+
+    /// <summary>
+    /// The table '{tableName}' already contains a row where the value of the column '{columnName}' is '{columnValue}'.
+    /// </summary>
+    public static string UniqueConstraintViolation(string tableName, string columnName, object? columnValue) => GetString([tableName, columnName, columnValue]);
+
+    private static string GetString(object?[]? formatArgs, [CallerMemberName] string? resourceName = null)
     {
-        return GetString([typeName]);
+        string msgFormat = GetString(resourceName);
+        return formatArgs == null ? msgFormat : string.Format(msgFormat, formatArgs);
     }
 
-    private static string GetString(object[]? formatArgs, [CallerMemberName] string? resourceName = null)
+    private static string GetString([CallerMemberName] string? resourceName = null)
     {
-        string? msgFormat = ResourceManager.GetString(resourceName!);
-        Debug.Assert(!string.IsNullOrEmpty(msgFormat), $"The resource with the name '{resourceName}' could not be found.");
-        return formatArgs == null ? msgFormat : string.Format(msgFormat, formatArgs);
+        string? message = ResourceManager.GetString(resourceName!);
+        Debug.Assert(!string.IsNullOrEmpty(message), $"The resource with the name '{resourceName}' could not be found.");
+        return message;
     }
 }

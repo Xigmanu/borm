@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
+using Borm.Data;
 using Borm.Extensions;
 
 namespace Borm.Model.Metadata;
@@ -45,7 +46,7 @@ internal sealed class BindingInfo
             Expression.Constant(column)
         );
 
-        UnaryExpression convertValue = Expression.Convert(bufferValue, column.DataType);
+        UnaryExpression convertValue = Expression.Convert(bufferValue, column.PropertyType);
         if (!column.Constraints.HasFlag(Constraints.AllowDbNull))
         {
             return convertValue;
@@ -55,7 +56,7 @@ internal sealed class BindingInfo
             bufferValue,
             Expression.Constant(DBNull.Value)
         );
-        ConstantExpression nullValue = Expression.Constant(null, column.DataType);
+        ConstantExpression nullValue = Expression.Constant(null, column.PropertyType);
         return Expression.Condition(isDbNull, nullValue, convertValue);
     }
 
@@ -107,7 +108,7 @@ internal sealed class BindingInfo
 
             IndexExpression indexer = Expression.MakeIndex(
                 valueBufferVar,
-                valueBufferType.GetProperty("Item"),
+                valueBufferType.GetProperty("Item", [typeof(ColumnInfo)]),
                 [key]
             );
 

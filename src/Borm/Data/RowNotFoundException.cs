@@ -1,16 +1,14 @@
-﻿using System.Data;
-
-namespace Borm.Data;
+﻿namespace Borm.Data;
 
 public sealed class RowNotFoundException : InvalidOperationException
 {
-    public RowNotFoundException(string message, Type entityType, object primaryKey)
+    public RowNotFoundException(string message, string entityName, object primaryKey)
         : base(message)
     {
-        EntityType = entityType;
+        EntityName = entityName;
         PrimaryKey = primaryKey;
     }
 
-    public Type EntityType { get; }
+    public string EntityName { get; }
     public object PrimaryKey { get; }
 }

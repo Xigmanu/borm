@@ -1,12 +1,14 @@
-﻿namespace Borm.Model.Metadata;
+﻿using Borm.Data;
 
-internal sealed class ColumnInfo
+namespace Borm.Model.Metadata;
+
+internal sealed class ColumnInfo : IColumn
 {
     public ColumnInfo(
         int index,
         string name,
         string propertyName,
-        Type dataType,
+        Type propertyType,
         Constraints constraints,
         Type? reference
     )
@@ -14,20 +16,20 @@ internal sealed class ColumnInfo
         Index = index;
         Name = name;
         Reference = reference;
-        DataType = dataType;
+        DataType =
+            propertyType.IsValueType && constraints.HasFlag(Constraints.AllowDbNull)
+                ? Nullable.GetUnderlyingType(propertyType)!
+                : propertyType;
         Constraints = constraints;
         PropertyName = propertyName;
+        PropertyType = propertyType;
     }
 
+    public Constraints Constraints { get; }
     public Type DataType { get; }
-
     public int Index { get; }
-
     public string Name { get; }
-
     public string PropertyName { get; }
-
+    public Type PropertyType { get; }
     public Type? Reference { get; }
-
-    internal Constraints Constraints { get; }
 }
