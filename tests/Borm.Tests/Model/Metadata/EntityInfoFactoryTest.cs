@@ -45,7 +45,7 @@ public sealed class EntityInfoFactoryTest
             ColumnInfo actual = info.Columns.ElementAt(i);
 
             Assert.Equal(column.Name, actual.PropertyName);
-            Assert.Equal(column.Type, actual.DataType);
+            Assert.Equal(column.Type, actual.PropertyType);
             Assert.Equal(column.Attribute.Index, actual.Index);
 
             string? expectedName = column.Attribute.Name;
