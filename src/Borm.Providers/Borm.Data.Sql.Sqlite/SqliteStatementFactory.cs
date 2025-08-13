@@ -29,24 +29,8 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
                 .ToString()
                 .ToUpperInvariant();
             columnDefinitionBuilder.AppendFormat("{0} ", sqliteType);
-            if (column.Constraints.HasFlag(Constraints.PrimaryKey))
-            {
-                columnDefinitionBuilder.Append("PRIMARY KEY");
-            }
-            else
-            {
-                columnDefinitionBuilder.Append(
-                    column.Constraints.HasFlag(Constraints.AllowDbNull) ? "NULL" : "NOT NULL"
-                );
-                if (table.ForeignKeyRelations.TryGetValue(column, out ITable? parentTable))
-                {
-                    columnDefinitionBuilder.AppendFormat(
-                        " REFERENCES {0}({1})",
-                        parentTable.Name,
-                        parentTable.PrimaryKey.Name
-                    );
-                }
-            }
+
+            AppendConstraints(table, column, columnDefinitionBuilder);
 
             columnDefinitions.Add(columnDefinitionBuilder.ToString());
         }
@@ -107,6 +91,33 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
             $"{primaryKey.Name} = {conditionalParam.ParameterName}"
         );
         return new SqlStatement(sql, parameters);
+    }
+
+    private static void AppendConstraints(
+        ITable table,
+        IColumn column,
+        StringBuilder columnDefinitionBuilder
+    )
+    {
+        if (column.Constraints.HasFlag(Constraints.PrimaryKey))
+        {
+            columnDefinitionBuilder.Append("PRIMARY KEY");
+            return;
+        }
+
+        List<string> constraints = [];
+        if (column.Constraints.HasFlag(Constraints.Unique))
+        {
+            constraints.Add("UNIQUE");
+        }
+
+        constraints.Add(column.Constraints.HasFlag(Constraints.AllowDbNull) ? "NULL" : "NOT NULL");
+        if (table.ForeignKeyRelations.TryGetValue(column, out ITable? parentTable))
+        {
+            constraints.Add($"REFERENCES {parentTable.Name}({parentTable.PrimaryKey.Name})");
+        }
+
+        columnDefinitionBuilder.AppendJoin(' ', constraints);
     }
 
     private static SqliteParameter CreateParameterForColumn(IColumn column)
