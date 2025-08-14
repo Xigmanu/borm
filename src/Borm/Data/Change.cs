@@ -1,4 +1,6 @@
-﻿namespace Borm.Data;
+﻿using System.Diagnostics;
+
+namespace Borm.Data;
 
 internal sealed class Change
 {
@@ -48,12 +50,12 @@ internal sealed class Change
 
     public override bool Equals(object? obj)
     {
-        return obj is Change other && _buffer.GetPrimaryKey().Equals(other._buffer.GetPrimaryKey());
+        return obj is Change other && _buffer.PrimaryKey.Equals(other._buffer.PrimaryKey);
     }
 
     public override int GetHashCode()
     {
-        return _buffer.GetPrimaryKey().GetHashCode();
+        return _buffer.PrimaryKey.GetHashCode();
     }
 
     public void MarkAsWritten()
@@ -95,6 +97,8 @@ internal sealed class Change
             {
                 return null;
             }
+
+            Debug.Assert(incoming._rowAction == RowAction.Insert);
             rowAction = RowAction.Insert;
         }
 

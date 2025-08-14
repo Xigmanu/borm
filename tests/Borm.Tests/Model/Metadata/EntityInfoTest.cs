@@ -20,6 +20,13 @@ public sealed class EntityInfoTest
         Assert.IsType<ArgumentException>(exception);
     }
 
+    public void Equals_ShouldCheckIfEntityInfosAreEqual()
+    {
+        // Arrange
+        // Act
+        // Assert
+    }
+
     [Fact]
     public void PrimaryKey_ReturnsPrimaryKeyColumn()
     {

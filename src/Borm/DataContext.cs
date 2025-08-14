@@ -83,7 +83,7 @@ public sealed class DataContext
 
         _dataAdapter.CreateTables();
 
-        OnInitialized(); //TODO Replace this with a trigger... I think
+        OnInitialized();
     }
 
     public void SaveChanges()

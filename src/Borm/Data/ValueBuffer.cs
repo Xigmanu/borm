@@ -1,17 +1,36 @@
-﻿using Borm.Model;
+﻿using System.Collections;
+using System.Diagnostics;
+using Borm.Model;
 using Borm.Model.Metadata;
-using System.Collections;
 
 namespace Borm.Data;
 
 internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object>>
 {
     private readonly Dictionary<ColumnInfo, object> _valueMap = [];
+    private ColumnInfo? _primaryKey;
+
+    public object PrimaryKey
+    {
+        get
+        {
+            Debug.Assert(_primaryKey != null);
+            return _valueMap[_primaryKey];
+        }
+    }
 
     public object this[ColumnInfo column]
     {
         get => _valueMap[column];
-        set => _valueMap[column] = value;
+        set
+        {
+            if (column.Constraints.HasFlag(Constraints.PrimaryKey))
+            {
+                Debug.Assert(_primaryKey == null);
+                _primaryKey = column;
+            }
+            _valueMap[column] = value;
+        }
     }
 
     public object this[string columnName] =>
@@ -25,12 +44,5 @@ internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object>
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
-    }
-
-    public object GetPrimaryKey()
-    {
-        return _valueMap
-            .First(keyVal => keyVal.Key.Constraints.HasFlag(Constraints.PrimaryKey))
-            .Value!;
     }
 }

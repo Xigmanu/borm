@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using Borm.Model;
 using Borm.Model.Metadata;
-using static Borm.Tests.Mocks.ConstructorSelectorTestMocks;
 
 namespace Borm.Tests.Model.Metadata;
 
@@ -14,7 +13,7 @@ public sealed class ConstructorSelectorTest
         ColumnInfo idCol = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
         ColumnInfo nameCol = new(1, "name", "Name", typeof(string), Constraints.None, null);
         ColumnInfoCollection columns = new([idCol, nameCol]);
-        Type entityType = typeof(ValidCtorEntity);
+        Type entityType = typeof(ConstructorSelectorTestMocks.ValidCtorEntity);
         EntityConstructorSelector selector = new(columns, entityType.GetConstructors());
 
         // Act
@@ -29,7 +28,7 @@ public sealed class ConstructorSelectorTest
     {
         // Arrange
         ColumnInfoCollection columns = new([]);
-        Type entityType = typeof(DefaultCtorEntity);
+        Type entityType = typeof(ConstructorSelectorTestMocks.DefaultCtorEntity);
         EntityConstructorSelector selector = new(columns, entityType.GetConstructors());
 
         // Act
@@ -46,7 +45,7 @@ public sealed class ConstructorSelectorTest
         ColumnInfo idCol = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
         ColumnInfo nameCol = new(1, "name", "Name", typeof(string), Constraints.None, null);
         ColumnInfoCollection columns = new([idCol, nameCol]);
-        Type entityType = typeof(InvalidCtorEntity);
+        Type entityType = typeof(ConstructorSelectorTestMocks.InvalidCtorEntity);
         EntityConstructorSelector selector = new(columns, entityType.GetConstructors());
 
         // Act
@@ -63,7 +62,7 @@ public sealed class ConstructorSelectorTest
         ColumnInfo idCol = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
         ColumnInfo nameCol = new(1, "name", "Name", typeof(string), Constraints.None, null);
         ColumnInfoCollection columns = new([idCol, nameCol]);
-        Type entityType = typeof(UnEqualParameterCountCtorEntity);
+        Type entityType = typeof(ConstructorSelectorTestMocks.UnEqualParameterCountCtorEntity);
         EntityConstructorSelector selector = new(columns, entityType.GetConstructors());
 
         // Act
@@ -71,5 +70,18 @@ public sealed class ConstructorSelectorTest
 
         // Assert
         Assert.IsType<MissingMethodException>(exception);
+    }
+
+    private static class ConstructorSelectorTestMocks
+    {
+#pragma warning disable S2094, CS9113
+        public sealed class DefaultCtorEntity;
+
+        public sealed class InvalidCtorEntity(int id, string foo);
+
+        public sealed class UnEqualParameterCountCtorEntity(int id);
+
+        public sealed class ValidCtorEntity(int id, string name);
+#pragma warning restore S2094, CS9113
     }
 }

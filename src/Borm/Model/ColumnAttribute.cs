@@ -19,4 +19,6 @@ public class ColumnAttribute : Attribute
     public int Index { get; }
 
     public string? Name { get; }
+
+    public bool IsUnique { get; set; } = false;
 }

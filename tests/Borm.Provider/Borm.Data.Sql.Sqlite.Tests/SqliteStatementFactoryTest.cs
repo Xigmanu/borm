@@ -10,7 +10,7 @@ public class SqliteStatementFactoryTest
         // Arrange
         string expectedSql =
             "CREATE TABLE addresses(id INTEGER PRIMARY KEY,address TEXT NOT NULL,address_1 TEXT NULL,city TEXT NOT NULL);";
-        TestTable table = Mocks.AddressesTable;
+        ITable table = TableMocks.AddressesTable;
         SqliteStatementFactory statementFactory = new();
 
         // Act
@@ -27,7 +27,7 @@ public class SqliteStatementFactoryTest
         // Arrange
         string expectedSql =
             "CREATE TABLE persons(id INTEGER PRIMARY KEY,name TEXT UNIQUE NOT NULL,salary REAL NOT NULL,address INTEGER NULL REFERENCES addresses(id));";
-        TestTable table = Mocks.PersonsTable;
+        ITable table = TableMocks.PersonsTable;
         SqliteStatementFactory statementFactory = new();
 
         // Act
@@ -43,7 +43,7 @@ public class SqliteStatementFactoryTest
     {
         // Arrange
         string expectedSql = "DELETE FROM addresses WHERE id = $id;";
-        TestTable table = Mocks.AddressesTable;
+        ITable table = TableMocks.AddressesTable;
         string expectedPKName = SqlStatement.DefaultParameterPrefix + table.Columns.First().Name;
         SqliteStatementFactory statementFactory = new();
 
@@ -61,7 +61,7 @@ public class SqliteStatementFactoryTest
     {
         // Arrange
         string expectedSql = "INSERT INTO addresses VALUES($id,$address,$address_1,$city);";
-        TestTable table = Mocks.AddressesTable;
+        ITable table = TableMocks.AddressesTable;
         string[] expectedParamNames = CreateExpectedParameterNames(table.Columns);
         SqliteStatementFactory statementFactory = new();
 
@@ -82,7 +82,7 @@ public class SqliteStatementFactoryTest
     {
         // Arrange
         string expectedSql = "SELECT * FROM addresses;";
-        TestTable table = Mocks.AddressesTable;
+        ITable table = TableMocks.AddressesTable;
         SqliteStatementFactory statementFactory = new();
 
         // Act
@@ -99,7 +99,7 @@ public class SqliteStatementFactoryTest
         // Arrange
         string expectedSql =
             "UPDATE addresses SET address = $address,address_1 = $address_1,city = $city WHERE id = $id;";
-        TestTable table = Mocks.AddressesTable;
+        ITable table = TableMocks.AddressesTable;
         string[] expectedParamNames = CreateExpectedParameterNames(table.Columns, 1);
         SqliteStatementFactory statementFactory = new();
 

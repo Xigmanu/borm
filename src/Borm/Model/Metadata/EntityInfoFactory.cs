@@ -68,6 +68,11 @@ internal static class EntityInfoFactory
         {
             constraints |= Constraints.AllowDbNull;
         }
+        if (attribute.IsUnique)
+        {
+            constraints |= Constraints.Unique;
+        }
+
         return constraints;
     }
 }

@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Borm.Model.Metadata;
-using Borm.Properties;
 
 namespace Borm.Data;
 
@@ -28,7 +27,7 @@ internal sealed class ChangeTracker
         {
             lock (_lock)
             {
-                List<Change> merged = Merge(_changes, pendingChanges);
+                List<Change> merged = ChangeMerger.Merge(_changes, pendingChanges);
                 _changes.Clear();
                 _changes.AddRange(merged);
             }
@@ -66,7 +65,7 @@ internal sealed class ChangeTracker
         }
 
         Change? existing = pendingChanges.FirstOrDefault(existing =>
-            existing.Buffer.GetPrimaryKey().Equals(change.Buffer.GetPrimaryKey())
+            existing.Buffer.PrimaryKey.Equals(change.Buffer.PrimaryKey)
         );
         if (existing == null)
         {
@@ -74,7 +73,7 @@ internal sealed class ChangeTracker
             return;
         }
 
-        Change? merged = existing.Merge(change, false);
+        Change? merged = existing.Merge(change, isCommit: false);
         pendingChanges.Remove(existing);
         if (merged != null)
         {
@@ -84,7 +83,7 @@ internal sealed class ChangeTracker
 
     public bool TryGetChange(object primaryKey, long txId, [NotNullWhen(true)] out Change? change)
     {
-        change = FindChange(txId, (buffer) => buffer.GetPrimaryKey().Equals(primaryKey));
+        change = FindChange(txId, (buffer) => buffer.PrimaryKey.Equals(primaryKey));
         return change != null;
     }
 
@@ -97,40 +96,6 @@ internal sealed class ChangeTracker
     {
         change = FindChange(txId, (buffer) => buffer[column].Equals(columnValue));
         return change != null;
-    }
-
-    private static List<Change> Merge(List<Change> original, List<Change> incoming)
-    {
-        Dictionary<object, Change> resultMap = original
-            .GroupBy(c => c.Buffer.GetPrimaryKey())
-            .ToDictionary(g => g.Key, g => g.First());
-
-        foreach (Change change in incoming)
-        {
-            object key = change.Buffer.GetPrimaryKey();
-            if (resultMap.TryGetValue(key, out Change? existing))
-            {
-                Change? merged = existing.Merge(change, true);
-                if (merged != null)
-                {
-                    resultMap[key] = merged;
-                }
-                else
-                {
-                    resultMap.Remove(key);
-                }
-            }
-            else
-            {
-                if (change.RowAction != RowAction.Insert)
-                {
-                    throw new InvalidOperationException(Strings.ModificationOfNonExistingRow());
-                }
-                resultMap[key] = change;
-            }
-        }
-
-        return [.. resultMap.Values];
     }
 
     private Change? FindChange(long txId, Func<ValueBuffer, bool> predicate)

@@ -43,7 +43,7 @@ internal sealed class Table : ITable
     public void Delete(object entity, long txId)
     {
         ValueBuffer buffer = _entityInfo.Binding.ToValueBuffer(entity);
-        object primaryKey = buffer.GetPrimaryKey();
+        object primaryKey = buffer.PrimaryKey;
 
         Change existing = GetChangeOrThrow(txId, primaryKey);
 
@@ -71,7 +71,7 @@ internal sealed class Table : ITable
         _entityInfo.Validator?.Invoke(entity);
 
         ValueBuffer buffer = _entityInfo.Binding.ToValueBuffer(entity);
-        object primaryKey = buffer.GetPrimaryKey();
+        object primaryKey = buffer.PrimaryKey;
 
         if (_tracker.TryGetChange(primaryKey, txId, out _))
         {
@@ -99,7 +99,7 @@ internal sealed class Table : ITable
         EntityInfo.Validator?.Invoke(entity);
 
         ValueBuffer buffer = _entityInfo.Binding.ToValueBuffer(entity);
-        object primaryKey = buffer.GetPrimaryKey();
+        object primaryKey = buffer.PrimaryKey;
 
         Change existing = GetChangeOrThrow(txId, primaryKey);
 
@@ -113,7 +113,7 @@ internal sealed class Table : ITable
     {
         return _tracker
             .GetChanges()
-            .First(change => change.Buffer.GetPrimaryKey() == primaryKey)
+            .First(change => change.Buffer.PrimaryKey == primaryKey)
             .Buffer;
     }
 
@@ -199,7 +199,7 @@ internal sealed class Table : ITable
                 {
                     dependencyTable.Insert(fkBuffer, txId);
                 }
-                result[column] = fkBuffer.GetPrimaryKey();
+                result[column] = fkBuffer.PrimaryKey;
                 continue;
             }
 
