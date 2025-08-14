@@ -13,8 +13,8 @@ public sealed class BindingInfoTest
         int id = 1;
         string name = "Alice";
 
-        ColumnInfo idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        ColumnInfo nameColumn = new(1, "name", "Name", typeof(string), Constraints.None, null);
+        Column idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        Column nameColumn = new(1, "name", "Name", typeof(string), Constraints.None, null);
 
         ColumnInfoCollection columns = new([idColumn, nameColumn]);
 
@@ -40,8 +40,8 @@ public sealed class BindingInfoTest
         int id = 1;
         string name = "Alice";
 
-        ColumnInfo idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        ColumnInfo nameColumn = new(1, "name", "Name", typeof(string), Constraints.None, null);
+        Column idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        Column nameColumn = new(1, "name", "Name", typeof(string), Constraints.None, null);
 
         ColumnInfoCollection columns = new([idColumn, nameColumn]);
 
@@ -66,8 +66,8 @@ public sealed class BindingInfoTest
         // Arrange
         int id = 1;
 
-        ColumnInfo idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        ColumnInfo nameColumn = new(1, "name", "Name", typeof(string), Constraints.AllowDbNull, null);
+        Column idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        Column nameColumn = new(1, "name", "Name", typeof(string), Constraints.AllowDbNull, null);
 
         ColumnInfoCollection columns = new([idColumn, nameColumn]);
 

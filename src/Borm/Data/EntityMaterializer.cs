@@ -20,7 +20,7 @@ internal sealed class EntityMaterializer
     {
         ValueBuffer tempBuffer = new();
 
-        foreach ((ColumnInfo column, object columnValue) in buffer)
+        foreach ((Column column, object columnValue) in buffer)
         {
             if (
                 column.Reference == null

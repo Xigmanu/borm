@@ -37,7 +37,7 @@ internal sealed class BindingInfo
 
     private static Expression CreateBufferPropertyBinding(
         ParameterExpression bufferParam,
-        ColumnInfo column
+        Column column
     )
     {
         IndexExpression bufferValue = Expression.Property(
@@ -95,7 +95,7 @@ internal sealed class BindingInfo
             Expression.Assign(valueBufferVar, Expression.New(valueBufferType)),
         ];
 
-        foreach (ColumnInfo columnInfo in _columns)
+        foreach (Column columnInfo in _columns)
         {
             ConstantExpression key = Expression.Constant(columnInfo);
             MemberExpression value = Expression.Property(unboxedEntityVar, columnInfo.PropertyName);
@@ -108,7 +108,7 @@ internal sealed class BindingInfo
 
             IndexExpression indexer = Expression.MakeIndex(
                 valueBufferVar,
-                valueBufferType.GetProperty("Item", [typeof(ColumnInfo)]),
+                valueBufferType.GetProperty("Item", [typeof(Column)]),
                 [key]
             );
 
@@ -143,7 +143,7 @@ internal sealed class BindingInfo
             Expression.Assign(instanceVar, Expression.New(_constructor)),
         ];
 
-        foreach (ColumnInfo column in GetOrderedColumns())
+        foreach (Column column in GetOrderedColumns())
         {
             Expression valueExpr = CreateBufferPropertyBinding(bufferParam, column);
             MemberExpression propertyExpr = Expression.Property(instanceVar, column.PropertyName);
@@ -160,14 +160,14 @@ internal sealed class BindingInfo
             .Compile();
     }
 
-    private ColumnInfo[] GetOrderedColumns()
+    private Column[] GetOrderedColumns()
     {
         if (_constructor.IsNoArgs())
         {
             return [.. _columns];
         }
 
-        ColumnInfo[] ordered = new ColumnInfo[_columns.Count];
+        Column[] ordered = new Column[_columns.Count];
         ParameterInfo[] ctorParams = _constructor.GetParameters();
         for (int i = 0; i < ctorParams.Length; i++)
         {

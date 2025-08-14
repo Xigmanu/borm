@@ -88,7 +88,7 @@ internal sealed class ChangeTracker
     }
 
     public bool TryGetChange(
-        ColumnInfo column,
+        Column column,
         object columnValue,
         long txId,
         [NotNullWhen(true)] out Change? change

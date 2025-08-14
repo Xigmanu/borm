@@ -14,8 +14,8 @@ public sealed class EntityInfoValidatorTest
         // Arrange
         ColumnInfoCollection columns = new(
             [
-                new ColumnInfo(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null),
-                new ColumnInfo(index, "bar", "Bar", typeof(string), Constraints.AllowDbNull, null),
+                new Column(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null),
+                new Column(index, "bar", "Bar", typeof(string), Constraints.AllowDbNull, null),
             ]
         );
         EntityInfo info = new("foo", typeof(object), columns);
@@ -36,8 +36,8 @@ public sealed class EntityInfoValidatorTest
         // Arrange
         ColumnInfoCollection columns0 = new(
             [
-                new ColumnInfo(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null),
-                new ColumnInfo(
+                new Column(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null),
+                new Column(
                     1,
                     "bar",
                     "Bar",
@@ -48,7 +48,7 @@ public sealed class EntityInfoValidatorTest
             ]
         );
         ColumnInfoCollection columns1 = new(
-            [new ColumnInfo(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null)]
+            [new Column(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null)]
         );
 
         EntityInfo info0 = new("foo", typeof(EntityA), columns0);
@@ -70,8 +70,8 @@ public sealed class EntityInfoValidatorTest
         // Arrange
         ColumnInfoCollection columns = new(
             [
-                new ColumnInfo(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null),
-                new ColumnInfo(1, "bar", "Bar", typeof(int), Constraints.PrimaryKey, null),
+                new Column(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null),
+                new Column(1, "bar", "Bar", typeof(int), Constraints.PrimaryKey, null),
             ]
         );
         EntityInfo info = new("foo", typeof(EntityA), columns);
@@ -92,7 +92,7 @@ public sealed class EntityInfoValidatorTest
         // Arrange
         ColumnInfoCollection columns = new(
             [
-                new ColumnInfo(
+                new Column(
                     0,
                     "foo",
                     "Foo",
@@ -119,7 +119,7 @@ public sealed class EntityInfoValidatorTest
     {
         // Arrange
         ColumnInfoCollection columns = new(
-            [new ColumnInfo(0, "foo", "Foo", typeof(int), Constraints.None, null)]
+            [new Column(0, "foo", "Foo", typeof(int), Constraints.None, null)]
         );
         EntityInfo info = new("foo", typeof(EntityA), columns);
 
@@ -139,8 +139,8 @@ public sealed class EntityInfoValidatorTest
         // Arrange
         ColumnInfoCollection columns0 = new(
             [
-                new ColumnInfo(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null),
-                new ColumnInfo(
+                new Column(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null),
+                new Column(
                     1,
                     "bar",
                     "Bar",
@@ -170,12 +170,12 @@ public sealed class EntityInfoValidatorTest
         // Arrange
         ColumnInfoCollection columns0 = new(
             [
-                new ColumnInfo(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null),
-                new ColumnInfo(1, "bar", "Bar", references, Constraints.None, typeof(EntityB)),
+                new Column(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null),
+                new Column(1, "bar", "Bar", references, Constraints.None, typeof(EntityB)),
             ]
         );
         ColumnInfoCollection columns1 = new(
-            [new ColumnInfo(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null)]
+            [new Column(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null)]
         );
 
         EntityInfo info0 = new("foo", typeof(EntityA), columns0);

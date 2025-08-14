@@ -10,9 +10,9 @@ internal static class EntityInfoMocks
         typeof(AddressEntity),
         new(
             [
-                new ColumnInfo(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null),
-                new ColumnInfo(1, "address", "Address", typeof(string), Constraints.None, null),
-                new ColumnInfo(
+                new Column(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null),
+                new Column(1, "address", "Address", typeof(string), Constraints.None, null),
+                new Column(
                     2,
                     "address_1",
                     "Address_1",
@@ -20,7 +20,7 @@ internal static class EntityInfoMocks
                     Constraints.AllowDbNull,
                     null
                 ),
-                new ColumnInfo(3, "city", "City", typeof(string), Constraints.None, null),
+                new Column(3, "city", "City", typeof(string), Constraints.None, null),
             ]
         )
     );
@@ -30,10 +30,10 @@ internal static class EntityInfoMocks
         typeof(PersonEntity),
         new(
             [
-                new ColumnInfo(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null),
-                new ColumnInfo(1, "name", "Name", typeof(string), Constraints.Unique, null),
-                new ColumnInfo(2, "salary", "Salary", typeof(double), Constraints.None, null),
-                new ColumnInfo(
+                new Column(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null),
+                new Column(1, "name", "Name", typeof(string), Constraints.Unique, null),
+                new Column(2, "salary", "Salary", typeof(double), Constraints.None, null),
+                new Column(
                     3,
                     "address",
                     "Address",

@@ -21,7 +21,7 @@ internal sealed class EntityInfoValidator
             return false;
         }
 
-        foreach (ColumnInfo columnInfo in entityInfo.Columns)
+        foreach (Column columnInfo in entityInfo.Columns)
         {
             exception = ValidateColumnIndex(entityInfo, columnInfo);
             if (exception != null)
@@ -44,7 +44,7 @@ internal sealed class EntityInfoValidator
 
     private static InvalidOperationException? ValidateColumnIndex(
         EntityInfo entityInfo,
-        ColumnInfo columnInfo
+        Column columnInfo
     )
     {
         bool isIndexValid = entityInfo.Columns.Count > columnInfo.Index && columnInfo.Index >= 0;
@@ -57,7 +57,7 @@ internal sealed class EntityInfoValidator
 
     private static Exception? ValidatePrimaryKeyColumn(EntityInfo entityInfo)
     {
-        IEnumerable<ColumnInfo> primaryKeys = entityInfo.Columns.Where(column =>
+        IEnumerable<Column> primaryKeys = entityInfo.Columns.Where(column =>
             column.Constraints.HasFlag(Constraints.PrimaryKey)
         );
         if (!primaryKeys.Any())
@@ -73,7 +73,7 @@ internal sealed class EntityInfoValidator
             );
         }
 
-        ColumnInfo primaryKey = primaryKeys.First();
+        Column primaryKey = primaryKeys.First();
         if (primaryKey.Constraints.HasFlag(Constraints.AllowDbNull))
         {
             return new InvalidOperationException(
@@ -86,7 +86,7 @@ internal sealed class EntityInfoValidator
 
     private InvalidOperationException? ValidateForeignKeyColumn(
         EntityInfo entityInfo,
-        ColumnInfo columnInfo
+        Column columnInfo
     )
     {
         Type dataType = columnInfo.Constraints.HasFlag(Constraints.AllowDbNull)

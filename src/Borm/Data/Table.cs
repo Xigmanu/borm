@@ -133,7 +133,7 @@ internal sealed class Table : ITable
             ValueBuffer rowBuffer = new();
             foreach (string dbColumnName in dbColumnNames)
             {
-                ColumnInfo schemaColumn = schemaColumns[dbColumnName]; // This might throw an exception when migrating
+                Column schemaColumn = schemaColumns[dbColumnName]; // This might throw an exception when migrating
                 rowBuffer[schemaColumn] = dataReader.GetValue(dbColumnName);
             }
 
@@ -142,7 +142,7 @@ internal sealed class Table : ITable
         }
     }
 
-    private void CheckConstraints(ColumnInfo column, object columnValue, long txId)
+    private void CheckConstraints(Column column, object columnValue, long txId)
     {
         Constraints constraints = column.Constraints;
 
@@ -175,7 +175,7 @@ internal sealed class Table : ITable
     {
         ValueBuffer result = new();
 
-        foreach ((ColumnInfo column, object columnValue) in incoming)
+        foreach ((Column column, object columnValue) in incoming)
         {
             CheckConstraints(column, columnValue, txId);
 

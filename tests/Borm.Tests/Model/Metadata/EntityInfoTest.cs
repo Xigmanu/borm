@@ -31,12 +31,12 @@ public sealed class EntityInfoTest
     public void PrimaryKey_ReturnsPrimaryKeyColumn()
     {
         // Arrange
-        ColumnInfo pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        Column pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
         ColumnInfoCollection columns = new([pkColumn]);
         EntityInfo info = new("foo", typeof(object), columns);
 
         // Act
-        ColumnInfo actualPk = info.PrimaryKey;
+        Column actualPk = info.PrimaryKey;
 
         // Assert
         Assert.Equal(pkColumn.Name, actualPk.Name);
@@ -46,7 +46,7 @@ public sealed class EntityInfoTest
     public void PrimaryKey_ThrowsInvalidOperationException_WhenEntityNodeHasNoPrimaryKey()
     {
         // Arrange
-        ColumnInfo pkColumn = new(0, "id", "Id", typeof(int), Constraints.None, null);
+        Column pkColumn = new(0, "id", "Id", typeof(int), Constraints.None, null);
         ColumnInfoCollection columns = new([pkColumn]);
         EntityInfo info = new("foo", typeof(object), columns);
 

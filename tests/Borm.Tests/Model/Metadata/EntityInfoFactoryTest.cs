@@ -42,7 +42,7 @@ public sealed class EntityInfoFactoryTest
         for (int i = 0; i < columns.Length; i++)
         {
             Property column = columns[i];
-            ColumnInfo actual = info.Columns.ElementAt(i);
+            Column actual = info.Columns.ElementAt(i);
 
             Assert.Equal(column.Name, actual.PropertyName);
             Assert.Equal(column.Type, actual.PropertyType);

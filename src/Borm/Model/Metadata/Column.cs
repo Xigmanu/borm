@@ -2,11 +2,11 @@
 
 namespace Borm.Model.Metadata;
 
-internal sealed class ColumnInfo : IColumn
+internal sealed class Column : IColumn
 {
-    public ColumnInfo(
+    public Column(
         int index,
-        string name,
+        string columnName,
         string propertyName,
         Type propertyType,
         Constraints constraints,
@@ -14,7 +14,7 @@ internal sealed class ColumnInfo : IColumn
     )
     {
         Index = index;
-        Name = name;
+        Name = columnName;
         Reference = reference;
         DataType =
             propertyType.IsValueType && constraints.HasFlag(Constraints.AllowDbNull)

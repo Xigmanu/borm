@@ -30,7 +30,7 @@ internal sealed class TableGraphBuilder
 
         Dictionary<IColumn, ITable> columnRelations = [];
 
-        foreach (ColumnInfo column in entityInfo.Columns)
+        foreach (Column column in entityInfo.Columns)
         {
             if (column.Reference is null)
             {

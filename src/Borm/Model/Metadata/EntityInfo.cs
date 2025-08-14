@@ -28,7 +28,7 @@ internal sealed class EntityInfo
 
     public string Name => _name;
 
-    public ColumnInfo PrimaryKey
+    public Column PrimaryKey
     {
         get
         {
@@ -61,9 +61,9 @@ internal sealed class EntityInfo
             _entityInfo = entityInfo;
         }
 
-        public ColumnInfo[] Columns => [.. _entityInfo.Columns];
+        public Column[] Columns => [.. _entityInfo.Columns];
         public Type DataType => _entityInfo.DataType;
         public string Name => _entityInfo.Name;
-        public ColumnInfo PrimaryKey => _entityInfo.PrimaryKey;
+        public Column PrimaryKey => _entityInfo.PrimaryKey;
     }
 }

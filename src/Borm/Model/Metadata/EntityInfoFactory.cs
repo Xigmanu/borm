@@ -10,7 +10,7 @@ internal static class EntityInfoFactory
         EntityAttribute entityAttribute = entityInfo.Attribute;
         string name = entityAttribute.Name ?? CreateDefaultName(entityInfo.Type.Name);
 
-        IEnumerable<ColumnInfo> columns = entityInfo
+        IEnumerable<Column> columns = entityInfo
             .Properties.Select(CreateColumnInfo)
             .OrderBy(columnInfo => columnInfo.Index);
         ColumnInfoCollection columnCollection = new(columns);
@@ -18,7 +18,7 @@ internal static class EntityInfoFactory
         return new EntityInfo(name, entityInfo.Type, columnCollection);
     }
 
-    private static ColumnInfo CreateColumnInfo(Property property)
+    private static Column CreateColumnInfo(Property property)
     {
         ColumnAttribute columnAttribute = property.Attribute;
 
@@ -27,7 +27,7 @@ internal static class EntityInfoFactory
         Constraints constraints = GetConstraints(property);
         Type? reference = FindReferencedEntityType(columnAttribute);
 
-        return new ColumnInfo(
+        return new Column(
             columnAttribute.Index,
             columnName,
             property.Name,

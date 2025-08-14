@@ -10,8 +10,8 @@ public sealed class ConstructorSelectorTest
     public void Select_ReturnsConstructorInfo_WithEntityTypeWithValidCtor()
     {
         // Arrange
-        ColumnInfo idCol = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        ColumnInfo nameCol = new(1, "name", "Name", typeof(string), Constraints.None, null);
+        Column idCol = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        Column nameCol = new(1, "name", "Name", typeof(string), Constraints.None, null);
         ColumnInfoCollection columns = new([idCol, nameCol]);
         Type entityType = typeof(ConstructorSelectorTestMocks.ValidCtorEntity);
         EntityConstructorSelector selector = new(columns, entityType.GetConstructors());
@@ -42,8 +42,8 @@ public sealed class ConstructorSelectorTest
     public void Select_ThrowsMissingMethodException_WithEntityTypeWithInvalidCtor()
     {
         // Arrange
-        ColumnInfo idCol = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        ColumnInfo nameCol = new(1, "name", "Name", typeof(string), Constraints.None, null);
+        Column idCol = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        Column nameCol = new(1, "name", "Name", typeof(string), Constraints.None, null);
         ColumnInfoCollection columns = new([idCol, nameCol]);
         Type entityType = typeof(ConstructorSelectorTestMocks.InvalidCtorEntity);
         EntityConstructorSelector selector = new(columns, entityType.GetConstructors());
@@ -59,8 +59,8 @@ public sealed class ConstructorSelectorTest
     public void Select_ThrowsMissingMethodException_WithEntityTypeWithUnEqualParameterCountCtor()
     {
         // Arrange
-        ColumnInfo idCol = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        ColumnInfo nameCol = new(1, "name", "Name", typeof(string), Constraints.None, null);
+        Column idCol = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        Column nameCol = new(1, "name", "Name", typeof(string), Constraints.None, null);
         ColumnInfoCollection columns = new([idCol, nameCol]);
         Type entityType = typeof(ConstructorSelectorTestMocks.UnEqualParameterCountCtorEntity);
         EntityConstructorSelector selector = new(columns, entityType.GetConstructors());
