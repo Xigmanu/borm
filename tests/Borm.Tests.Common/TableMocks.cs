@@ -1,5 +1,4 @@
-﻿using Borm.Data;
-using Borm.Model;
+﻿using Borm.Model;
 
 namespace Borm.Tests.Common;
 

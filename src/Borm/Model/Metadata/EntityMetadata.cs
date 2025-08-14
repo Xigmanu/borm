@@ -6,12 +6,12 @@ namespace Borm.Model.Metadata;
 
 [DebuggerTypeProxy(typeof(EntityInfoDebugView))]
 [DebuggerDisplay("Name = {Name}, DataType = {DataType.FullName}")]
-internal sealed class EntityInfo
+internal sealed class EntityMetadata
 {
-    private readonly ColumnInfoCollection _columns;
+    private readonly ColumnMetadataCollection _columns;
     private readonly string _name;
 
-    public EntityInfo(string name, Type dataType, ColumnInfoCollection columns)
+    public EntityMetadata(string name, Type dataType, ColumnMetadataCollection columns)
     {
         if (columns.Count == 0)
         {
@@ -28,7 +28,7 @@ internal sealed class EntityInfo
 
     public string Name => _name;
 
-    public Column PrimaryKey
+    public ColumnMetadata PrimaryKey
     {
         get
         {
@@ -38,12 +38,12 @@ internal sealed class EntityInfo
     }
 
     internal ConversionBinding Binding { get; set; }
-    internal ColumnInfoCollection Columns => _columns;
+    internal ColumnMetadataCollection Columns => _columns;
     internal Action<object>? Validator { get; set; }
 
     public override bool Equals(object? obj)
     {
-        return obj is EntityInfo other && _name == other.Name;
+        return obj is EntityMetadata other && _name == other.Name;
     }
 
     public override int GetHashCode()
@@ -54,16 +54,16 @@ internal sealed class EntityInfo
     [ExcludeFromCodeCoverage(Justification = "Debugger display proxy")]
     internal sealed class EntityInfoDebugView
     {
-        private readonly EntityInfo _entityInfo;
+        private readonly EntityMetadata _entityMetadata;
 
-        public EntityInfoDebugView(EntityInfo entityInfo)
+        public EntityInfoDebugView(EntityMetadata entityMetadata)
         {
-            _entityInfo = entityInfo;
+            _entityMetadata = entityMetadata;
         }
 
-        public Column[] Columns => [.. _entityInfo.Columns];
-        public Type DataType => _entityInfo.DataType;
-        public string Name => _entityInfo.Name;
-        public Column PrimaryKey => _entityInfo.PrimaryKey;
+        public ColumnMetadata[] Columns => [.. _entityMetadata.Columns];
+        public Type DataType => _entityMetadata.DataType;
+        public string Name => _entityMetadata.Name;
+        public ColumnMetadata PrimaryKey => _entityMetadata.PrimaryKey;
     }
 }

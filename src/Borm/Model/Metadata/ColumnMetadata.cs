@@ -1,10 +1,8 @@
-﻿using Borm.Data;
+﻿namespace Borm.Model.Metadata;
 
-namespace Borm.Model.Metadata;
-
-internal sealed class Column : IColumn
+internal sealed class ColumnMetadata
 {
-    public Column(
+    public ColumnMetadata(
         int index,
         string columnName,
         string propertyName,

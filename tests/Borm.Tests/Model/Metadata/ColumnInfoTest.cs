@@ -12,7 +12,7 @@ public sealed class ColumnInfoTest
         string expectedPropName = "Bar";
 
         // Act
-        Column columnInfo = new(1, expectedName, expectedPropName, typeof(int), Constraints.None, null);
+        ColumnMetadata columnInfo = new(1, expectedName, expectedPropName, typeof(int), Constraints.None, null);
 
         // Assert
         Assert.Equal(expectedName, columnInfo.Name);

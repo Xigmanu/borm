@@ -13,10 +13,10 @@ public sealed class BindingInfoTest
         int id = 1;
         string name = "Alice";
 
-        Column idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        Column nameColumn = new(1, "name", "Name", typeof(string), Constraints.None, null);
+        ColumnMetadata idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        ColumnMetadata nameColumn = new(1, "name", "Name", typeof(string), Constraints.None, null);
 
-        ColumnInfoCollection columns = new([idColumn, nameColumn]);
+        ColumnMetadataCollection columns = new([idColumn, nameColumn]);
 
         BindingInfo bindingInfo = new(typeof(PersonB), columns);
         ConversionBinding binding = bindingInfo.CreateBinding();
@@ -40,10 +40,10 @@ public sealed class BindingInfoTest
         int id = 1;
         string name = "Alice";
 
-        Column idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        Column nameColumn = new(1, "name", "Name", typeof(string), Constraints.None, null);
+        ColumnMetadata idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        ColumnMetadata nameColumn = new(1, "name", "Name", typeof(string), Constraints.None, null);
 
-        ColumnInfoCollection columns = new([idColumn, nameColumn]);
+        ColumnMetadataCollection columns = new([idColumn, nameColumn]);
 
         BindingInfo bindingInfo = new(typeof(PersonA), columns);
         ConversionBinding binding = bindingInfo.CreateBinding();
@@ -66,10 +66,10 @@ public sealed class BindingInfoTest
         // Arrange
         int id = 1;
 
-        Column idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        Column nameColumn = new(1, "name", "Name", typeof(string), Constraints.AllowDbNull, null);
+        ColumnMetadata idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        ColumnMetadata nameColumn = new(1, "name", "Name", typeof(string), Constraints.AllowDbNull, null);
 
-        ColumnInfoCollection columns = new([idColumn, nameColumn]);
+        ColumnMetadataCollection columns = new([idColumn, nameColumn]);
 
         BindingInfo bindingInfo = new(typeof(PersonA), columns);
         ConversionBinding binding = bindingInfo.CreateBinding();

@@ -10,13 +10,13 @@ public sealed class ColumnInfoCollectionTest
     {
         // Arrange
         string column0Name = "foo";
-        Column column0 = new(1, column0Name, "Foo", typeof(int), Constraints.None, null);
-        Column column1 = new(2, "bar", "Bar", typeof(string), Constraints.AllowDbNull, null);
+        ColumnMetadata column0 = new(1, column0Name, "Foo", typeof(int), Constraints.None, null);
+        ColumnMetadata column1 = new(2, "bar", "Bar", typeof(string), Constraints.AllowDbNull, null);
 
-        ColumnInfoCollection columns = new([column0, column1]);
+        ColumnMetadataCollection columns = new([column0, column1]);
 
         // Act
-        Column actual0 = columns[column0Name];
+        ColumnMetadata actual0 = columns[column0Name];
 
         // Assert
         Assert.Equal(column0.Name, actual0.Name);

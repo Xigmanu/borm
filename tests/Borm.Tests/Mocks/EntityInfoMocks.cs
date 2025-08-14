@@ -5,14 +5,14 @@ namespace Borm.Tests.Mocks;
 
 internal static class EntityInfoMocks
 {
-    public static readonly EntityInfo AddressesEntity = new(
+    public static readonly EntityMetadata AddressesEntity = new(
         "addresses",
         typeof(AddressEntity),
         new(
             [
-                new Column(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null),
-                new Column(1, "address", "Address", typeof(string), Constraints.None, null),
-                new Column(
+                new ColumnMetadata(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null),
+                new ColumnMetadata(1, "address", "Address", typeof(string), Constraints.None, null),
+                new ColumnMetadata(
                     2,
                     "address_1",
                     "Address_1",
@@ -20,20 +20,20 @@ internal static class EntityInfoMocks
                     Constraints.AllowDbNull,
                     null
                 ),
-                new Column(3, "city", "City", typeof(string), Constraints.None, null),
+                new ColumnMetadata(3, "city", "City", typeof(string), Constraints.None, null),
             ]
         )
     );
 
-    public static readonly EntityInfo PersonsEntity = new(
+    public static readonly EntityMetadata PersonsEntity = new(
         "persons",
         typeof(PersonEntity),
         new(
             [
-                new Column(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null),
-                new Column(1, "name", "Name", typeof(string), Constraints.Unique, null),
-                new Column(2, "salary", "Salary", typeof(double), Constraints.None, null),
-                new Column(
+                new ColumnMetadata(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null),
+                new ColumnMetadata(1, "name", "Name", typeof(string), Constraints.Unique, null),
+                new ColumnMetadata(2, "salary", "Salary", typeof(double), Constraints.None, null),
+                new ColumnMetadata(
                     3,
                     "address",
                     "Address",

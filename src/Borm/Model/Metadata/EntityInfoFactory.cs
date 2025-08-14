@@ -5,20 +5,20 @@ namespace Borm.Model.Metadata;
 
 internal static class EntityInfoFactory
 {
-    public static EntityInfo Create(ReflectedTypeInfo entityInfo)
+    public static EntityMetadata Create(ReflectedTypeInfo entityMetadata)
     {
-        EntityAttribute entityAttribute = entityInfo.Attribute;
-        string name = entityAttribute.Name ?? CreateDefaultName(entityInfo.Type.Name);
+        EntityAttribute entityAttribute = entityMetadata.Attribute;
+        string name = entityAttribute.Name ?? CreateDefaultName(entityMetadata.Type.Name);
 
-        IEnumerable<Column> columns = entityInfo
+        IEnumerable<ColumnMetadata> columns = entityMetadata
             .Properties.Select(CreateColumnInfo)
-            .OrderBy(columnInfo => columnInfo.Index);
-        ColumnInfoCollection columnCollection = new(columns);
+            .OrderBy(column => column.Index);
+        ColumnMetadataCollection columnCollection = new(columns);
 
-        return new EntityInfo(name, entityInfo.Type, columnCollection);
+        return new EntityMetadata(name, entityMetadata.Type, columnCollection);
     }
 
-    private static Column CreateColumnInfo(Property property)
+    private static ColumnMetadata CreateColumnInfo(Property property)
     {
         ColumnAttribute columnAttribute = property.Attribute;
 
@@ -27,7 +27,7 @@ internal static class EntityInfoFactory
         Constraints constraints = GetConstraints(property);
         Type? reference = FindReferencedEntityType(columnAttribute);
 
-        return new Column(
+        return new ColumnMetadata(
             columnAttribute.Index,
             columnName,
             property.Name,

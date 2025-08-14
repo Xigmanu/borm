@@ -53,7 +53,7 @@ public sealed class ParameterBatchQueueTest
     private static ValueBuffer CreateTestBuffer()
     {
         ValueBuffer buffer = new();
-        Column idColumn = new(
+        ColumnMetadata idColumn = new(
             0,
             "id",
             "Id",

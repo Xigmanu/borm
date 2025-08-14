@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Borm.Model;
 using Microsoft.Data.Sqlite;
 
 namespace Borm.Data.Sql.Sqlite;
@@ -12,13 +11,13 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
     private const string SelectAllStatementFormat = "SELECT * FROM {0};";
     private const string UpdateStatementFormat = "UPDATE {0} SET {1} WHERE {2};";
 
-    public SqlStatement NewCreateTableStatement(ITable table)
+    public SqlStatement NewCreateTableStatement(TableInfo tableSchema)
     {
-        string tableName = table.Name;
-        IEnumerable<IColumn> columns = table.Columns;
+        string tableName = tableSchema.Name;
+        IEnumerable<ColumnInfo> columns = tableSchema.Columns;
 
         List<string> columnDefinitions = new(columns.Count());
-        foreach (IColumn column in columns)
+        foreach (ColumnInfo column in columns)
         {
             StringBuilder columnDefinitionBuilder = new StringBuilder().AppendFormat(
                 "{0} ",
@@ -30,7 +29,7 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
                 .ToUpperInvariant();
             columnDefinitionBuilder.AppendFormat("{0} ", sqliteType);
 
-            AppendConstraints(table, column, columnDefinitionBuilder);
+            AppendConstraints(tableSchema, column, columnDefinitionBuilder);
 
             columnDefinitions.Add(columnDefinitionBuilder.ToString());
         }
@@ -42,37 +41,37 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
         return new SqlStatement(sql, []);
     }
 
-    public SqlStatement NewDeleteStatement(ITable table)
+    public SqlStatement NewDeleteStatement(TableInfo tableSchema)
     {
-        IColumn primaryKey = table.PrimaryKey;
+        ColumnInfo primaryKey = tableSchema.PrimaryKey;
         (string expression, SqliteParameter[] parameters) = CreateParametrizedExpression(
             [primaryKey],
             (columnName, paramName) => $"{columnName} = {paramName}"
         );
-        string sql = string.Format(DeleteStatementFormat, table.Name, expression);
+        string sql = string.Format(DeleteStatementFormat, tableSchema.Name, expression);
         return new SqlStatement(sql, parameters);
     }
 
-    public SqlStatement NewInsertStatement(ITable table)
+    public SqlStatement NewInsertStatement(TableInfo tableSchema)
     {
         (string expression, SqliteParameter[] parameters) = CreateParametrizedExpression(
-            [.. table.Columns],
+            [.. tableSchema.Columns],
             (_, paramName) => paramName
         );
-        string sql = string.Format(InsertStatementFormat, table.Name, expression);
+        string sql = string.Format(InsertStatementFormat, tableSchema.Name, expression);
         return new SqlStatement(sql, parameters);
     }
 
-    public SqlStatement NewSelectAllStatement(ITable table)
+    public SqlStatement NewSelectAllStatement(TableInfo tableSchema)
     {
-        string sql = string.Format(SelectAllStatementFormat, table.Name);
+        string sql = string.Format(SelectAllStatementFormat, tableSchema.Name);
         return new SqlStatement(sql, []);
     }
 
-    public SqlStatement NewUpdateStatement(ITable table)
+    public SqlStatement NewUpdateStatement(TableInfo tableSchema)
     {
-        IColumn primaryKey = table.PrimaryKey;
-        IColumn[] columns = [.. table.Columns.Where(column => !column.Equals(primaryKey))];
+        ColumnInfo primaryKey = tableSchema.PrimaryKey;
+        ColumnInfo[] columns = [.. tableSchema.Columns];
 
         (string expression, SqliteParameter[] expressionParams) = CreateParametrizedExpression(
             columns,
@@ -86,7 +85,7 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
 
         string sql = string.Format(
             UpdateStatementFormat,
-            table.Name,
+            tableSchema.Name,
             expression,
             $"{primaryKey.Name} = {conditionalParam.ParameterName}"
         );
@@ -94,25 +93,25 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
     }
 
     private static void AppendConstraints(
-        ITable table,
-        IColumn column,
+        TableInfo tableSchema,
+        ColumnInfo column,
         StringBuilder columnDefinitionBuilder
     )
     {
-        if (column.Constraints.HasFlag(Constraints.PrimaryKey))
+        if (tableSchema.PrimaryKey.Equals(column))
         {
             columnDefinitionBuilder.Append("PRIMARY KEY");
             return;
         }
 
         List<string> constraints = [];
-        if (column.Constraints.HasFlag(Constraints.Unique))
+        if (column.IsUnique)
         {
             constraints.Add("UNIQUE");
         }
 
-        constraints.Add(column.Constraints.HasFlag(Constraints.AllowDbNull) ? "NULL" : "NOT NULL");
-        if (table.ForeignKeyRelations.TryGetValue(column, out ITable? parentTable))
+        constraints.Add(column.IsNullable ? "NULL" : "NOT NULL");
+        if (tableSchema.ForeignKeyRelations.TryGetValue(column, out TableInfo? parentTable))
         {
             constraints.Add($"REFERENCES {parentTable.Name}({parentTable.PrimaryKey.Name})");
         }
@@ -120,7 +119,7 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
         columnDefinitionBuilder.AppendJoin(' ', constraints);
     }
 
-    private static SqliteParameter CreateParameterForColumn(IColumn column)
+    private static SqliteParameter CreateParameterForColumn(ColumnInfo column)
     {
         string paramName = string.Format("${0}", column.Name);
         SqliteType type = SqliteTypeHelper.ToSqliteType(column.DataType);
@@ -128,7 +127,7 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
     }
 
     private static (string, SqliteParameter[]) CreateParametrizedExpression(
-        IColumn[] columns,
+        ColumnInfo[] columns,
         Func<string, string, string> formatter
     )
     {
@@ -136,7 +135,7 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
         string[] expressions = new string[columns.Length];
         for (int i = 0; i < columns.Length; i++)
         {
-            IColumn column = columns[i];
+            ColumnInfo column = columns[i];
 
             SqliteParameter parameter = CreateParameterForColumn(column);
             expressions[i] = formatter(column.Name, parameter.ParameterName);

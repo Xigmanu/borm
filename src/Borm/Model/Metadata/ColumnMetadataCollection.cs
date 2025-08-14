@@ -3,24 +3,24 @@ using System.Runtime.CompilerServices;
 
 namespace Borm.Model.Metadata;
 
-internal sealed class ColumnInfoCollection : IReadOnlyCollection<Column>
+internal sealed class ColumnMetadataCollection : IReadOnlyCollection<ColumnMetadata>
 {
-    private readonly Column[] _columns;
+    private readonly ColumnMetadata[] _columns;
 
-    public ColumnInfoCollection(IEnumerable<Column> columns)
+    public ColumnMetadataCollection(IEnumerable<ColumnMetadata> columns)
     {
         _columns = [.. columns];
     }
 
     public int Count => _columns.Length;
 
-    public Column this[string columnName]
+    public ColumnMetadata this[string columnName]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => this.First(column => column.Name == columnName);
     }
 
-    public IEnumerator<Column> GetEnumerator()
+    public IEnumerator<ColumnMetadata> GetEnumerator()
     {
         for (int i = 0; i < _columns.Length; i++)
         {

@@ -32,7 +32,7 @@ public sealed class EntityInfoFactoryTest
         ReflectedTypeInfo reflectedInfo = new(type, attribute, columns);
 
         // Act
-        EntityInfo info = EntityInfoFactory.Create(reflectedInfo);
+        EntityMetadata info = EntityInfoFactory.Create(reflectedInfo);
 
         // Assert
 
@@ -42,7 +42,7 @@ public sealed class EntityInfoFactoryTest
         for (int i = 0; i < columns.Length; i++)
         {
             Property column = columns[i];
-            Column actual = info.Columns.ElementAt(i);
+            ColumnMetadata actual = info.Columns.ElementAt(i);
 
             Assert.Equal(column.Name, actual.PropertyName);
             Assert.Equal(column.Type, actual.PropertyType);

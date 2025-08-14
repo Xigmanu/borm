@@ -9,11 +9,11 @@ public sealed class EntityInfoTest
     public void Constructor_ThrowsArgumentException_WhenColumnCollectionIsEmpty()
     {
         // Arrange
-        ColumnInfoCollection columns = new([]);
+        ColumnMetadataCollection columns = new([]);
 
         // Act
         Exception exception = Record.Exception(
-            () => _ = new EntityInfo("foo", typeof(object), columns)
+            () => _ = new EntityMetadata("foo", typeof(object), columns)
         );
 
         // Assert
@@ -31,12 +31,12 @@ public sealed class EntityInfoTest
     public void PrimaryKey_ReturnsPrimaryKeyColumn()
     {
         // Arrange
-        Column pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        ColumnInfoCollection columns = new([pkColumn]);
-        EntityInfo info = new("foo", typeof(object), columns);
+        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        ColumnMetadataCollection columns = new([pkColumn]);
+        EntityMetadata info = new("foo", typeof(object), columns);
 
         // Act
-        Column actualPk = info.PrimaryKey;
+        ColumnMetadata actualPk = info.PrimaryKey;
 
         // Assert
         Assert.Equal(pkColumn.Name, actualPk.Name);
@@ -46,9 +46,9 @@ public sealed class EntityInfoTest
     public void PrimaryKey_ThrowsInvalidOperationException_WhenEntityNodeHasNoPrimaryKey()
     {
         // Arrange
-        Column pkColumn = new(0, "id", "Id", typeof(int), Constraints.None, null);
-        ColumnInfoCollection columns = new([pkColumn]);
-        EntityInfo info = new("foo", typeof(object), columns);
+        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.None, null);
+        ColumnMetadataCollection columns = new([pkColumn]);
+        EntityMetadata info = new("foo", typeof(object), columns);
 
         // Act
         Exception exception = Record.Exception(() => _ = info.PrimaryKey);

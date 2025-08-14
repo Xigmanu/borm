@@ -4,10 +4,10 @@ namespace Borm.Model.Metadata;
 
 internal sealed class TableGraphBuilder
 {
-    private readonly Dictionary<Type, EntityInfo> _entityInfoMap;
-    private readonly Dictionary<EntityInfo, Table> _tableCache;
+    private readonly Dictionary<Type, EntityMetadata> _entityInfoMap;
+    private readonly Dictionary<EntityMetadata, Table> _tableCache;
 
-    public TableGraphBuilder(IEnumerable<EntityInfo> entityInfos)
+    public TableGraphBuilder(IEnumerable<EntityMetadata> entityInfos)
     {
         _entityInfoMap = entityInfos.ToDictionary(e => e.DataType);
         _tableCache = [];
@@ -15,29 +15,29 @@ internal sealed class TableGraphBuilder
 
     public IEnumerable<Table> BuildAll()
     {
-        foreach (EntityInfo entityInfo in _entityInfoMap.Values)
+        foreach (EntityMetadata entityMetadata in _entityInfoMap.Values)
         {
-            yield return BuildTableRecursive(entityInfo);
+            yield return BuildTableRecursive(entityMetadata);
         }
     }
 
-    private Table BuildTableRecursive(EntityInfo entityInfo)
+    private Table BuildTableRecursive(EntityMetadata entityMetadata)
     {
-        if (_tableCache.TryGetValue(entityInfo, out Table? cachedTable))
+        if (_tableCache.TryGetValue(entityMetadata, out Table? cachedTable))
         {
             return cachedTable;
         }
 
-        Dictionary<IColumn, ITable> columnRelations = [];
+        Dictionary<ColumnMetadata, Table> columnRelations = [];
 
-        foreach (Column column in entityInfo.Columns)
+        foreach (ColumnMetadata column in entityMetadata.Columns)
         {
             if (column.Reference is null)
             {
                 continue;
             }
 
-            if (_entityInfoMap.TryGetValue(column.Reference, out EntityInfo? dependency))
+            if (_entityInfoMap.TryGetValue(column.Reference, out EntityMetadata? dependency))
             {
                 Table dependencyTable = BuildTableRecursive(dependency);
                 columnRelations[column] = dependencyTable;
@@ -50,7 +50,7 @@ internal sealed class TableGraphBuilder
             }
         }
 
-        Table table = new(entityInfo, columnRelations);
-        return _tableCache[entityInfo] = table;
+        Table table = new(entityMetadata, columnRelations);
+        return _tableCache[entityMetadata] = table;
     }
 }

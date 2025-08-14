@@ -10,11 +10,11 @@ namespace Borm.Model.Metadata;
 [DebuggerTypeProxy(typeof(BindingInfoDebugView))]
 internal sealed class BindingInfo
 {
-    private readonly ColumnInfoCollection _columns;
+    private readonly ColumnMetadataCollection _columns;
     private readonly ConstructorInfo _constructor;
     private readonly Type _entityType;
 
-    public BindingInfo(Type entityType, ColumnInfoCollection columns)
+    public BindingInfo(Type entityType, ColumnMetadataCollection columns)
     {
         _entityType = entityType;
         _columns = columns;
@@ -37,7 +37,7 @@ internal sealed class BindingInfo
 
     private static Expression CreateBufferPropertyBinding(
         ParameterExpression bufferParam,
-        Column column
+        ColumnMetadata column
     )
     {
         IndexExpression bufferValue = Expression.Property(
@@ -65,7 +65,7 @@ internal sealed class BindingInfo
         ParameterExpression bufferParam = Expression.Parameter(typeof(ValueBuffer), "buffer");
 
         IEnumerable<Expression> args = GetOrderedColumns()
-            .Select(columnInfo => CreateBufferPropertyBinding(bufferParam, columnInfo));
+            .Select(column => CreateBufferPropertyBinding(bufferParam, column));
         NewExpression ctorCall = Expression.New(_constructor, args);
 
         return Expression
@@ -95,10 +95,10 @@ internal sealed class BindingInfo
             Expression.Assign(valueBufferVar, Expression.New(valueBufferType)),
         ];
 
-        foreach (Column columnInfo in _columns)
+        foreach (ColumnMetadata column in _columns)
         {
-            ConstantExpression key = Expression.Constant(columnInfo);
-            MemberExpression value = Expression.Property(unboxedEntityVar, columnInfo.PropertyName);
+            ConstantExpression key = Expression.Constant(column);
+            MemberExpression value = Expression.Property(unboxedEntityVar, column.PropertyName);
             UnaryExpression boxedValue = Expression.Convert(value, typeof(object));
 
             BinaryExpression isNullCheck = Expression.Equal(
@@ -108,7 +108,7 @@ internal sealed class BindingInfo
 
             IndexExpression indexer = Expression.MakeIndex(
                 valueBufferVar,
-                valueBufferType.GetProperty("Item", [typeof(Column)]),
+                valueBufferType.GetProperty("Item", [typeof(ColumnMetadata)]),
                 [key]
             );
 
@@ -143,7 +143,7 @@ internal sealed class BindingInfo
             Expression.Assign(instanceVar, Expression.New(_constructor)),
         ];
 
-        foreach (Column column in GetOrderedColumns())
+        foreach (ColumnMetadata column in GetOrderedColumns())
         {
             Expression valueExpr = CreateBufferPropertyBinding(bufferParam, column);
             MemberExpression propertyExpr = Expression.Property(instanceVar, column.PropertyName);
@@ -160,14 +160,14 @@ internal sealed class BindingInfo
             .Compile();
     }
 
-    private Column[] GetOrderedColumns()
+    private ColumnMetadata[] GetOrderedColumns()
     {
         if (_constructor.IsNoArgs())
         {
             return [.. _columns];
         }
 
-        Column[] ordered = new Column[_columns.Count];
+        ColumnMetadata[] ordered = new ColumnMetadata[_columns.Count];
         ParameterInfo[] ctorParams = _constructor.GetParameters();
         for (int i = 0; i < ctorParams.Length; i++)
         {
@@ -186,7 +186,7 @@ internal sealed class BindingInfo
             _instance = instance;
         }
 
-        public ColumnInfoCollection Columns => _instance._columns;
+        public ColumnMetadataCollection Columns => _instance._columns;
         public Type EntityType => _instance._entityType;
     }
 }

@@ -5,10 +5,10 @@ using Borm.Model.Metadata;
 
 namespace Borm.Data;
 
-internal sealed class ValueBuffer : IEnumerable<KeyValuePair<Column, object>>
+internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnMetadata, object>>
 {
-    private readonly Dictionary<Column, object> _valueMap = [];
-    private Column? _primaryKey;
+    private readonly Dictionary<ColumnMetadata, object> _valueMap = [];
+    private ColumnMetadata? _primaryKey;
 
     public object PrimaryKey
     {
@@ -19,7 +19,7 @@ internal sealed class ValueBuffer : IEnumerable<KeyValuePair<Column, object>>
         }
     }
 
-    public object this[Column column]
+    public object this[ColumnMetadata column]
     {
         get => _valueMap[column];
         set
@@ -36,7 +36,7 @@ internal sealed class ValueBuffer : IEnumerable<KeyValuePair<Column, object>>
     public object this[string columnName] =>
         _valueMap.First(kvp => kvp.Key.Name == columnName).Value;
 
-    public IEnumerator<KeyValuePair<Column, object>> GetEnumerator()
+    public IEnumerator<KeyValuePair<ColumnMetadata, object>> GetEnumerator()
     {
         return _valueMap.GetEnumerator();
     }

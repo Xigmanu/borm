@@ -5,13 +5,13 @@ using Borm.Model.Metadata;
 
 namespace Borm.Data;
 
-internal sealed class BormDataAdapter
+internal sealed class DataAdapter
 {
     private readonly IDbStatementExecutor _executor;
     private readonly ISqlStatementFactory _statementFactory;
     private readonly TableGraph _tableGraph;
 
-    public BormDataAdapter(
+    public DataAdapter(
         IDbStatementExecutor executor,
         TableGraph tableGraph,
         ISqlStatementFactory statementFactory
@@ -27,7 +27,8 @@ internal sealed class BormDataAdapter
         IEnumerable<Table> sorted = _tableGraph.TopSort();
         foreach (Table table in sorted)
         {
-            SqlStatement statement = _statementFactory.NewCreateTableStatement(table);
+            TableInfo tableSchema = table.GetTableSchema();
+            SqlStatement statement = _statementFactory.NewCreateTableStatement(tableSchema);
             _executor.ExecuteBatch(statement);
         }
     }
@@ -35,12 +36,17 @@ internal sealed class BormDataAdapter
     public void Load()
     {
         IEnumerable<Table> sorted = _tableGraph.TopSort();
-        using InternalTransaction transaction = new(); 
+        using InternalTransaction transaction = new();
         foreach (Table table in sorted)
         {
-            SqlStatement statement = _statementFactory.NewSelectAllStatement(table);
+            TableInfo tableSchema = table.GetTableSchema();
+            SqlStatement statement = _statementFactory.NewSelectAllStatement(tableSchema);
             using DbDataReader dataReader = _executor.ExecuteReader(statement);
-            transaction.Execute(table, (arg, txId) => table.Load((DbDataReader)arg, txId), dataReader);
+            transaction.Execute(
+                table,
+                (arg, txId) => table.Load((DbDataReader)arg, txId),
+                dataReader
+            );
         }
     }
 
@@ -72,10 +78,10 @@ internal sealed class BormDataAdapter
     }
 
     private static SqlStatement GetOrCreateSqlStatement(
-        Table table,
+        TableInfo tableSchema,
         Change entry,
         Dictionary<RowAction, SqlStatement> rowStateStatements,
-        Func<Table, SqlStatement> factoryMethod
+        Func<TableInfo, SqlStatement> factoryMethod
     )
     {
         if (rowStateStatements.TryGetValue(entry.RowAction, out SqlStatement? cached))
@@ -83,7 +89,7 @@ internal sealed class BormDataAdapter
             return cached;
         }
 
-        SqlStatement statement = factoryMethod(table);
+        SqlStatement statement = factoryMethod(tableSchema);
         rowStateStatements[entry.RowAction] = statement;
         return statement;
     }
@@ -97,6 +103,8 @@ internal sealed class BormDataAdapter
             return rowStateStatements.Values;
         }
 
+        TableInfo tableSchema = table.GetTableSchema();
+
         foreach (Change entry in changes)
         {
             SqlStatement statement;
@@ -104,7 +112,7 @@ internal sealed class BormDataAdapter
             {
                 case RowAction.Insert:
                     statement = GetOrCreateSqlStatement(
-                        table,
+                        tableSchema,
                         entry,
                         rowStateStatements,
                         _statementFactory.NewInsertStatement
@@ -112,7 +120,7 @@ internal sealed class BormDataAdapter
                     break;
                 case RowAction.Update:
                     statement = GetOrCreateSqlStatement(
-                        table,
+                        tableSchema,
                         entry,
                         rowStateStatements,
                         _statementFactory.NewUpdateStatement
@@ -120,7 +128,7 @@ internal sealed class BormDataAdapter
                     break;
                 case RowAction.Delete:
                     statement = GetOrCreateSqlStatement(
-                        table,
+                        tableSchema,
                         entry,
                         rowStateStatements,
                         _statementFactory.NewDeleteStatement
