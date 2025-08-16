@@ -2,14 +2,14 @@
 
 namespace Borm.Model.Metadata;
 
-internal sealed class ConversionBinding
+internal sealed class EntityConversionBinding
 {
-    public static readonly ConversionBinding Empty = new(
+    public static readonly EntityConversionBinding Empty = new(
         (v) => throw new NotImplementedException(),
         (o) => throw new NotImplementedException()
     );
 
-    public ConversionBinding(
+    public EntityConversionBinding(
         Func<ValueBuffer, object> materializeEntity,
         Func<object, ValueBuffer> convertToValueBuffer
     )

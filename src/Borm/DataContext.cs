@@ -60,10 +60,10 @@ public sealed class DataContext
         List<EntityMetadata> entityInfos = new(typeInfos.Count());
         foreach (ReflectedTypeInfo typeInfo in typeInfos)
         {
-            EntityMetadata entityMetadata = EntityInfoFactory.Create(typeInfo);
+            EntityMetadata entityMetadata = EntityMetadataBuilder.Build(typeInfo);
 
-            BindingInfo bindingInfo = new(typeInfo.Type, entityMetadata.Columns);
-            entityMetadata.Binding = bindingInfo.CreateBinding();
+            EntityMaterializationBinding binding = new(typeInfo.Type, entityMetadata.Columns);
+            entityMetadata.Binding = binding.CreateBinding();
             entityMetadata.Validator = model.GetValidatorFunc(typeInfo.Type);
 
             entityInfos.Add(entityMetadata);

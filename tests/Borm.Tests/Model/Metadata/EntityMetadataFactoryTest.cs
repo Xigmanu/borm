@@ -4,13 +4,13 @@ using Borm.Reflection;
 
 namespace Borm.Tests.Model.Metadata;
 
-public sealed class EntityInfoFactoryTest
+public sealed class EntityMetadataFactoryTest
 {
     [Fact]
-    public void Create_ReturnsNewEntityNode_WithReflectedInformation()
+    public void Build_ReturnsNewEntityNode_WithReflectedInformation()
     {
         // Arrange
-        Type type = typeof(EntityInfoFactoryTest);
+        Type type = typeof(EntityMetadataFactoryTest);
         EntityAttribute attribute = new("foo");
 
         Property pKColumn = new("id", new PrimaryKeyAttribute(0), false, typeof(int));
@@ -32,7 +32,7 @@ public sealed class EntityInfoFactoryTest
         ReflectedTypeInfo reflectedInfo = new(type, attribute, columns);
 
         // Act
-        EntityMetadata info = EntityInfoFactory.Create(reflectedInfo);
+        EntityMetadata info = EntityMetadataBuilder.Build(reflectedInfo);
 
         // Assert
 

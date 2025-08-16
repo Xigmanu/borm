@@ -1,6 +1,6 @@
-﻿using Borm.Data;
+﻿using Borm.Model.Metadata;
 
-namespace Borm.Model.Metadata;
+namespace Borm.Data;
 
 internal sealed class TableGraphBuilder
 {
@@ -15,10 +15,12 @@ internal sealed class TableGraphBuilder
 
     public IEnumerable<Table> BuildAll()
     {
+        List<Table> tables = [];
         foreach (EntityMetadata entityMetadata in _entityInfoMap.Values)
         {
-            yield return BuildTableRecursive(entityMetadata);
+            tables.Add(BuildTableRecursive(entityMetadata));
         }
+        return tables;
     }
 
     private Table BuildTableRecursive(EntityMetadata entityMetadata)

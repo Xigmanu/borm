@@ -3,7 +3,7 @@ using Borm.Model.Metadata;
 
 namespace Borm.Tests.Mocks;
 
-internal static class EntityInfoMocks
+internal static class EntityMetadataMocks
 {
     public static readonly EntityMetadata AddressesEntity = new(
         "addresses",

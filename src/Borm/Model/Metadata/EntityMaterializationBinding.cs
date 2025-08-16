@@ -8,13 +8,13 @@ using Borm.Extensions;
 namespace Borm.Model.Metadata;
 
 [DebuggerTypeProxy(typeof(BindingInfoDebugView))]
-internal sealed class BindingInfo
+internal sealed class EntityMaterializationBinding
 {
     private readonly ColumnMetadataCollection _columns;
     private readonly ConstructorInfo _constructor;
     private readonly Type _entityType;
 
-    public BindingInfo(Type entityType, ColumnMetadataCollection columns)
+    public EntityMaterializationBinding(Type entityType, ColumnMetadataCollection columns)
     {
         _entityType = entityType;
         _columns = columns;
@@ -26,13 +26,13 @@ internal sealed class BindingInfo
         _constructor = selector.Select() ?? constructors[0];
     }
 
-    public ConversionBinding CreateBinding()
+    public EntityConversionBinding CreateBinding()
     {
         Func<object, ValueBuffer> converter = CreateEntityValueBufferConverter();
         Func<ValueBuffer, object> materializer = _constructor.IsNoArgs()
             ? CreatePropertyMaterializer()
             : CreateConstructorMaterializer();
-        return new ConversionBinding(materializer, converter);
+        return new EntityConversionBinding(materializer, converter);
     }
 
     private static Expression CreateBufferPropertyBinding(
@@ -179,9 +179,9 @@ internal sealed class BindingInfo
     [ExcludeFromCodeCoverage(Justification = "Debug view class")]
     internal sealed class BindingInfoDebugView
     {
-        private readonly BindingInfo _instance;
+        private readonly EntityMaterializationBinding _instance;
 
-        public BindingInfoDebugView(BindingInfo instance)
+        public BindingInfoDebugView(EntityMaterializationBinding instance)
         {
             _instance = instance;
         }

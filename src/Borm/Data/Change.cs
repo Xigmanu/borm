@@ -26,11 +26,9 @@ internal sealed class Change
     }
 
     public bool IsWrittenToDb => _isWrittenToDb;
-
+    public long ReadTxId => _readTxId;
     public RowAction RowAction => _rowAction;
-
     public long WriteTxId => _writeTxId;
-
     internal ValueBuffer Buffer => _buffer;
 
     public static Change InitChange(ValueBuffer buffer, long txId)

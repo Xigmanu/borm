@@ -71,7 +71,7 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
     public SqlStatement NewUpdateStatement(TableInfo tableSchema)
     {
         ColumnInfo primaryKey = tableSchema.PrimaryKey;
-        ColumnInfo[] columns = [.. tableSchema.Columns];
+        ColumnInfo[] columns = [.. tableSchema.Columns.Where(col => !col.Equals(primaryKey))];
 
         (string expression, SqliteParameter[] expressionParams) = CreateParametrizedExpression(
             columns,

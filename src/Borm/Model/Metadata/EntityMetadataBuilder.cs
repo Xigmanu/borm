@@ -3,9 +3,9 @@ using Borm.Reflection;
 
 namespace Borm.Model.Metadata;
 
-internal static class EntityInfoFactory
+internal static class EntityMetadataBuilder
 {
-    public static EntityMetadata Create(ReflectedTypeInfo entityMetadata)
+    public static EntityMetadata Build(ReflectedTypeInfo entityMetadata)
     {
         EntityAttribute entityAttribute = entityMetadata.Attribute;
         string name = entityAttribute.Name ?? CreateDefaultName(entityMetadata.Type.Name);

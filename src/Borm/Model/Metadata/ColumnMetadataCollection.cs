@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Runtime.CompilerServices;
 
 namespace Borm.Model.Metadata;
 
@@ -16,8 +15,12 @@ internal sealed class ColumnMetadataCollection : IReadOnlyCollection<ColumnMetad
 
     public ColumnMetadata this[string columnName]
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => this.First(column => column.Name == columnName);
+    }
+
+    public ColumnMetadata this[int idx]
+    {
+        get => _columns[idx];
     }
 
     public IEnumerator<ColumnMetadata> GetEnumerator()

@@ -1,7 +1,6 @@
 ﻿using System.Data.Common;
 using System.Diagnostics;
 using Borm.Data.Sql;
-using Borm.Model.Metadata;
 
 namespace Borm.Data;
 

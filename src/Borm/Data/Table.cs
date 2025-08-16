@@ -9,7 +9,6 @@ namespace Borm.Data;
 
 internal sealed class Table
 {
-    private readonly EntityCache _entityCache = new();
     private readonly EntityMetadata _entityMetadata;
     private readonly Dictionary<ColumnMetadata, Table> _foreignKeyRelations;
     private readonly EntityMaterializer _materializer;
@@ -26,8 +25,7 @@ internal sealed class Table
     }
 
     public string Name => _entityMetadata.Name;
-    internal EntityCache EntityCache => _entityCache;
-    internal EntityMetadata EntityInfo => _entityMetadata;
+    internal EntityMetadata EntityMetadata => _entityMetadata;
     internal IReadOnlyDictionary<ColumnMetadata, Table> ForeignKeyRelations => _foreignKeyRelations;
     internal EntityMaterializer Materializer => _materializer;
 
@@ -137,7 +135,7 @@ internal sealed class Table
 
     public void Update(object entity, long txId)
     {
-        EntityInfo.Validator?.Invoke(entity);
+        EntityMetadata.Validator?.Invoke(entity);
 
         ValueBuffer buffer = _entityMetadata.Binding.ToValueBuffer(entity);
         object primaryKey = buffer.PrimaryKey;
@@ -227,7 +225,7 @@ internal sealed class Table
             }
 
             Table dependencyTable = _foreignKeyRelations[column];
-            EntityMetadata depNode = dependencyTable.EntityInfo;
+            EntityMetadata depNode = dependencyTable.EntityMetadata;
 
             if (column.DataType != depNode.DataType)
             {

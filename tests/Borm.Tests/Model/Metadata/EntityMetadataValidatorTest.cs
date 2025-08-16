@@ -4,7 +4,7 @@ using Borm.Model.Metadata;
 
 namespace Borm.Tests.Model.Metadata;
 
-public sealed class EntityInfoValidatorTest
+public sealed class EntityMetadataValidatorTest
 {
     [Theory]
     [InlineData(-1)]

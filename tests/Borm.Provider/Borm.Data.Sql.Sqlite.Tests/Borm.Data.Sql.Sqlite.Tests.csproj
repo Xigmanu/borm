@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Borm.Providers\Borm.Data.Sql.Sqlite\Borm.Data.Sql.Sqlite.csproj" />
-    <ProjectReference Include="..\..\Borm.Tests.Common\Borm.Tests.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

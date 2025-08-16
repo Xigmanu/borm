@@ -21,7 +21,7 @@ internal sealed class EntityMetadata
         _columns = columns;
         DataType = dataType;
         _name = name;
-        Binding = ConversionBinding.Empty;
+        Binding = EntityConversionBinding.Empty;
     }
 
     public Type DataType { get; }
@@ -37,7 +37,7 @@ internal sealed class EntityMetadata
         }
     }
 
-    internal ConversionBinding Binding { get; set; }
+    internal EntityConversionBinding Binding { get; set; }
     internal ColumnMetadataCollection Columns => _columns;
     internal Action<object>? Validator { get; set; }
 

@@ -3,7 +3,7 @@ using Borm.Model.Metadata;
 
 namespace Borm.Tests.Model.Metadata;
 
-public sealed class EntityInfoTest
+public sealed class EntityMetadataTest
 {
     [Fact]
     public void Constructor_ThrowsArgumentException_WhenColumnCollectionIsEmpty()
