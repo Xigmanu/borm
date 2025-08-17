@@ -1,7 +1,8 @@
-﻿using System.Collections.Immutable;
+﻿using Borm.Model.Metadata;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Borm.Model.Metadata;
+using System.Xml.Linq;
 
 namespace Borm.Data;
 
@@ -87,15 +88,9 @@ internal sealed class ChangeTracker
         return change != null;
     }
 
-    public bool TryGetChange(
-        ColumnMetadata column,
-        object columnValue,
-        long txId,
-        [NotNullWhen(true)] out Change? change
-    )
+    public bool IsColumnValueUnique(ColumnMetadata column, object columnValue, long txId)
     {
-        change = FindChange(txId, (buffer) => buffer[column].Equals(columnValue));
-        return change != null;
+        return FindChange(txId, (buffer) => buffer[column].Equals(columnValue)) == null;
     }
 
     private Change? FindChange(long txId, Func<ValueBuffer, bool> predicate)

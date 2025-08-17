@@ -59,7 +59,7 @@ internal sealed class DataAdapter
             {
                 _executor.ExecuteBatch(statement);
             }
-            table.MarkChangesAsWritten();
+            table.Tracker.MarkChangesAsWritten();
         }
     }
 
@@ -95,7 +95,7 @@ internal sealed class DataAdapter
 
     private Dictionary<RowAction, SqlStatement>.ValueCollection CreateUpdateStatements(Table table)
     {
-        IEnumerable<Change> changes = table.GetChanges();
+        IEnumerable<Change> changes = table.Tracker.GetChanges();
         Dictionary<RowAction, SqlStatement> rowStateStatements = [];
         if (!changes.Any())
         {
