@@ -31,7 +31,7 @@ internal sealed class Change
     public long WriteTxId => _writeTxId;
     internal ValueBuffer Buffer => _buffer;
 
-    public static Change InitChange(ValueBuffer buffer, long txId)
+    public static Change Initial(ValueBuffer buffer, long txId)
     {
         return new Change(buffer, txId, txId, isWrittenToDb: true, RowAction.None);
     }
@@ -39,6 +39,11 @@ internal sealed class Change
     public static Change NewChange(ValueBuffer buffer, long txId)
     {
         return new Change(buffer, txId, txId, isWrittenToDb: false, RowAction.Insert);
+    }
+
+    public Change? CommitMerge(Change incoming)
+    {
+        return MergeInternal(incoming, isCommit: true);
     }
 
     public Change Delete(ValueBuffer buffer, long writeTxId)
@@ -62,7 +67,17 @@ internal sealed class Change
         _rowAction = RowAction.None;
     }
 
-    public Change? Merge(Change incoming, bool isCommit)
+    public Change? Merge(Change incoming)
+    {
+        return MergeInternal(incoming, isCommit: false);
+    }
+
+    public Change Update(ValueBuffer buffer, long writeTxId)
+    {
+        return new Change(buffer, _readTxId, writeTxId, _isWrittenToDb, RowAction.Update);
+    }
+
+    private Change? MergeInternal(Change incoming, bool isCommit)
     {
         // No change has been made to a row => ignore the incoming
         if (_writeTxId == incoming._writeTxId)
@@ -83,7 +98,7 @@ internal sealed class Change
         }
 
         RowAction rowAction;
-        if (IsWrittenToDb)
+        if (_isWrittenToDb)
         {
             rowAction = incoming._rowAction;
         }
@@ -96,8 +111,8 @@ internal sealed class Change
                 return null;
             }
 
-            Debug.Assert(incoming._rowAction == RowAction.Insert);
-            rowAction = RowAction.Insert;
+            Debug.Assert(_rowAction == RowAction.Insert);
+            rowAction = _rowAction;
         }
 
         return new Change(
@@ -107,10 +122,5 @@ internal sealed class Change
             IsWrittenToDb,
             rowAction
         );
-    }
-
-    public Change Update(ValueBuffer buffer, long writeTxId)
-    {
-        return new Change(buffer, _readTxId, writeTxId, _isWrittenToDb, RowAction.Update);
     }
 }

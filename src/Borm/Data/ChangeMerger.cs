@@ -15,7 +15,7 @@ internal static class ChangeMerger
             object key = change.Buffer.PrimaryKey;
             if (resultMap.TryGetValue(key, out Change? existing))
             {
-                Change? merged = existing.Merge(change, isCommit: true);
+                Change? merged = existing.CommitMerge(change);
                 if (merged != null)
                 {
                     resultMap[key] = merged;

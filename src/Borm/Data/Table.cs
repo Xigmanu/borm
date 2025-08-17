@@ -11,7 +11,6 @@ internal sealed class Table
 {
     private readonly EntityMetadata _entityMetadata;
     private readonly Dictionary<ColumnMetadata, Table> _foreignKeyRelations;
-    private readonly EntityMaterializer _materializer;
     private readonly ChangeTracker _tracker = new();
 
     public Table(
@@ -21,13 +20,11 @@ internal sealed class Table
     {
         _entityMetadata = entityMetadata;
         _foreignKeyRelations = foreignKeyRelations;
-        _materializer = new(entityMetadata, foreignKeyRelations);
     }
 
     public string Name => _entityMetadata.Name;
     internal EntityMetadata EntityMetadata => _entityMetadata;
     internal IReadOnlyDictionary<ColumnMetadata, Table> ForeignKeyRelations => _foreignKeyRelations;
-    internal EntityMaterializer Materializer => _materializer;
 
     public void AcceptPendingChanges(long txId)
     {
@@ -130,7 +127,7 @@ internal sealed class Table
     public IEnumerable<object> SelectAll()
     {
         IEnumerable<Change> changes = _tracker.GetChanges();
-        return changes.Select(change => _materializer.FromBuffer(change.Buffer));
+        return changes.Select(change => MaterializeFromBuffer(change.Buffer));
     }
 
     public void Update(object entity, long txId)
@@ -176,7 +173,7 @@ internal sealed class Table
                 rowBuffer[schemaColumn] = dataReader.GetValue(dbColumnName);
             }
 
-            Change initChange = Change.InitChange(rowBuffer, txId);
+            Change initChange = Change.Initial(rowBuffer, txId);
             _tracker.PendChange(initChange);
         }
     }
@@ -208,6 +205,43 @@ internal sealed class Table
         }
 
         throw new RowNotFoundException(Strings.RowNotFound(Name, primaryKey), Name, primaryKey);
+    }
+
+    private object MaterializeFromBuffer(ValueBuffer buffer)
+    {
+        ValueBuffer tempBuffer = new();
+
+        foreach ((ColumnMetadata column, object columnValue) in buffer)
+        {
+            if (
+                column.Reference == null
+                || column.Reference != column.DataType
+                || columnValue.Equals(DBNull.Value)
+            )
+            {
+                tempBuffer[column] = columnValue;
+                continue;
+            }
+
+            Table depTable = _foreignKeyRelations[column];
+            // The initial TX ID is used to ensure that I only read committed changes
+            if (
+                depTable._tracker.TryGetChange(
+                    columnValue,
+                    InternalTransaction.InitId,
+                    out Change? depChange
+                )
+            )
+            {
+                tempBuffer[column] = depTable.MaterializeFromBuffer(depChange.Buffer);
+            }
+            else
+            {
+                tempBuffer[column] = DBNull.Value;
+            }
+        }
+
+        return _entityMetadata.Binding.MaterializeEntity(tempBuffer);
     }
 
     private ValueBuffer ResolveForeignKeys(ValueBuffer incoming, long txId, bool isRecursiveInsert)

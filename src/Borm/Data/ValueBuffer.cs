@@ -24,6 +24,7 @@ internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnMetadata, obj
         get => _valueMap[column];
         set
         {
+            Debug.Assert(value != null);
             if (column.Constraints.HasFlag(Constraints.PrimaryKey))
             {
                 Debug.Assert(_primaryKey == null);

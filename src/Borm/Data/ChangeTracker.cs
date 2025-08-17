@@ -5,9 +5,9 @@ using Borm.Model.Metadata;
 
 namespace Borm.Data;
 
-[DebuggerDisplay("Changes={_changes}")]
 internal sealed class ChangeTracker
 {
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private static readonly object _lock = new();
 
     private readonly List<Change> _changes = [];
@@ -73,7 +73,7 @@ internal sealed class ChangeTracker
             return;
         }
 
-        Change? merged = existing.Merge(change, isCommit: false);
+        Change? merged = existing.Merge(change);
         pendingChanges.Remove(existing);
         if (merged != null)
         {

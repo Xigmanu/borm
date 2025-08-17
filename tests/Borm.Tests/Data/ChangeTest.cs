@@ -9,12 +9,35 @@ public sealed class ChangeTest
     private static readonly object[] Values = [1, "address", null, "city"];
 
     [Fact]
+    public void CommitMerge_ReturnsCommittedMergedChange()
+    {
+        // Arrange
+        ValueBuffer initBuffer = CreateBuffer(Values);
+        long initTxId = 0;
+        Change initChange = Change.NewChange(initBuffer, initTxId);
+
+        long txId = 1;
+        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"]);
+        Change incoming = initChange.Update(buffer, txId);
+
+        // Act
+        Change? merged = initChange.CommitMerge(incoming);
+
+        // Assert
+        Assert.NotNull(merged);
+        Assert.Equal(incoming.Buffer, merged.Buffer);
+        Assert.Equal(incoming.WriteTxId, merged.ReadTxId);
+        Assert.Equal(incoming.WriteTxId, merged.WriteTxId);
+        Assert.Equal(initChange.RowAction, merged.RowAction);
+    }
+
+    [Fact]
     public void Delete_ReturnsDeleteChange()
     {
         // Arrange
         ValueBuffer initBuffer = CreateBuffer(Values);
         long initTxId = 0;
-        Change change = Change.InitChange(initBuffer, initTxId);
+        Change change = Change.Initial(initBuffer, initTxId);
 
         ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"]);
         long txId = 1;
@@ -38,7 +61,7 @@ public sealed class ChangeTest
         long txId = 0;
 
         // Act
-        Change change = Change.InitChange(buffer, txId);
+        Change change = Change.Initial(buffer, txId);
 
         // Assert
         Assert.Equal(txId, change.WriteTxId);
@@ -54,7 +77,7 @@ public sealed class ChangeTest
         // Arrange
         ValueBuffer buffer = CreateBuffer(Values);
         long txId = 0;
-        Change change = Change.InitChange(buffer, txId);
+        Change change = Change.Initial(buffer, txId);
 
         // Act
         change.MarkAsWritten();
@@ -64,6 +87,109 @@ public sealed class ChangeTest
         Assert.Equal(change.WriteTxId, change.ReadTxId);
         Assert.Equal(RowAction.None, change.RowAction);
         Assert.True(change.IsWrittenToDb);
+    }
+
+    [Fact]
+    public void Merge_ReturnsExistingChange_WhenExistingAndIncomingReadTxIdsMatch()
+    {
+        // Arrange
+        ValueBuffer initBuffer = CreateBuffer(Values);
+        long initTxId = 0;
+        Change initChange = Change.Initial(initBuffer, initTxId);
+
+        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"]);
+        Change incoming = initChange.Update(buffer, initTxId);
+
+        // Act
+        Change? merged = initChange.Merge(incoming);
+
+        // Assert
+        Assert.NotNull(merged);
+        Assert.Equal(initChange, merged);
+    }
+
+    [Fact]
+    public void Merge_ReturnsMergedChange_WhenExistingChangeWasNotWrittenToDataSource()
+    {
+        // Arrange
+        ValueBuffer initBuffer = CreateBuffer(Values);
+        long initTxId = 0;
+        Change initChange = Change.NewChange(initBuffer, initTxId);
+
+        long txId = 1;
+        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"]);
+        Change incoming = initChange.Update(buffer, txId);
+
+        // Act
+        Change? merged = initChange.Merge(incoming);
+
+        // Assert
+        Assert.NotNull(merged);
+        Assert.Equal(incoming.Buffer, merged.Buffer);
+        Assert.Equal(initChange.ReadTxId, merged.ReadTxId);
+        Assert.Equal(incoming.WriteTxId, merged.WriteTxId);
+        Assert.Equal(initChange.RowAction, merged.RowAction);
+    }
+
+    [Fact]
+    public void Merge_ReturnsMergedChange_WhenExistingChangeWasWrittenToDataSource()
+    {
+        // Arrange
+        ValueBuffer initBuffer = CreateBuffer(Values);
+        long initTxId = 0;
+        Change initChange = Change.Initial(initBuffer, initTxId);
+
+        long txId = 1;
+        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"]);
+        Change incoming = initChange.Update(buffer, txId);
+
+        // Act
+        Change? merged = initChange.Merge(incoming);
+
+        // Assert
+        Assert.NotNull(merged);
+        Assert.Equal(incoming.Buffer, merged.Buffer);
+        Assert.Equal(initChange.ReadTxId, merged.ReadTxId);
+        Assert.Equal(incoming.WriteTxId, merged.WriteTxId);
+        Assert.Equal(incoming.RowAction, merged.RowAction);
+    }
+
+    [Fact]
+    public void Merge_ReturnsNull_WhenNewChangeDeletesExistingChangeThatWasNotWrittenToDataSource()
+    {
+        // Arrange
+        ValueBuffer initBuffer = CreateBuffer(Values);
+        long initTxId = 0;
+        Change initChange = Change.NewChange(initBuffer, initTxId);
+
+        long txId = 1;
+        Change incoming = initChange.Delete(initBuffer, txId);
+
+        // Act
+        Change? merged = initChange.Merge(incoming);
+
+        // Assert
+        Assert.Null(merged);
+    }
+
+    [Fact]
+    public void Merge_ThrowsTransactionMismatchException_WhenExistingAndIncomingReadTxIdsDoNotMatch()
+    {
+        // Arrange
+        ValueBuffer initBuffer = CreateBuffer(Values);
+        long initTxId = 1;
+        Change initChange = Change.Initial(initBuffer, initTxId);
+
+        long txId = 0;
+        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"]);
+        Change incoming = Change.Initial(buffer, txId);
+
+        // Act
+        Exception? exception = Record.Exception(() => _ = initChange.Merge(incoming));
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<TransactionIdMismatchException>(exception);
     }
 
     [Fact]
