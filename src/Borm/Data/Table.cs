@@ -126,8 +126,7 @@ internal sealed class Table
 
     public IEnumerable<object> SelectAll()
     {
-        IEnumerable<Change> changes = _tracker.GetChanges();
-        return changes.Select(change => _converter.Materialize(change.Buffer));
+        return _tracker.Changes.Select(change => _converter.Materialize(change.Buffer));
     }
 
     public void Update(object entity, long txId)

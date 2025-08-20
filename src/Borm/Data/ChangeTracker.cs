@@ -1,8 +1,7 @@
-﻿using Borm.Model.Metadata;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Xml.Linq;
+using Borm.Model.Metadata;
 
 namespace Borm.Data;
 
@@ -11,15 +10,12 @@ internal sealed class ChangeTracker
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private static readonly object _lock = new();
 
-    private readonly List<Change> _changes = [];
-    private readonly Dictionary<long, List<Change>> _pendingChanges = [];
+    private readonly ChangeSet _changeSet = [];
+    private readonly Dictionary<long, ChangeSet> _txChangeSets = [];
 
     public void AcceptPendingChanges(long txId)
     {
-        if (
-            !_pendingChanges.TryGetValue(txId, out List<Change>? pendingChanges)
-            || pendingChanges == null
-        )
+        if (!_txChangeSets.TryGetValue(txId, out ChangeSet? pendingSet))
         {
             return;
         }
@@ -28,58 +24,42 @@ internal sealed class ChangeTracker
         {
             lock (_lock)
             {
-                List<Change> merged = ChangeMerger.Merge(_changes, pendingChanges);
-                _changes.Clear();
-                _changes.AddRange(merged);
+                ChangeSet merged = ChangeSet.Merge(_changeSet, pendingSet);
+                _changeSet.ReplaceRange(merged);
             }
         }
         finally
         {
-            _ = _pendingChanges.Remove(txId);
+            _ = _txChangeSets.Remove(txId);
         }
     }
 
-    public IImmutableList<Change> GetChanges()
+    public IImmutableList<Change> Changes
     {
-        lock (_lock)
+        get
         {
-            return _changes.ToImmutableList();
+            lock (_lock)
+            {
+                return _changeSet.ToImmutableList();
+            }
         }
     }
 
     public void MarkChangesAsWritten()
     {
-        _changes.RemoveAll(change => change.RowAction == RowAction.Delete);
-        foreach (Change change in _changes)
-        {
-            change.MarkAsWritten();
-        }
+        _changeSet.MarkAsWritten();
     }
 
     public void PendChange(Change change)
     {
         long writeTxId = change.WriteTxId;
-        if (!_pendingChanges.TryGetValue(writeTxId, out List<Change>? pendingChanges))
+        if (!_txChangeSets.TryGetValue(writeTxId, out ChangeSet? pendingSet))
         {
-            pendingChanges = [.. _changes];
-            _pendingChanges[writeTxId] = pendingChanges;
+            pendingSet = [.. _changeSet];
+            _txChangeSets[writeTxId] = pendingSet;
         }
 
-        Change? existing = pendingChanges.FirstOrDefault(existing =>
-            existing.Buffer.PrimaryKey.Equals(change.Buffer.PrimaryKey)
-        );
-        if (existing == null)
-        {
-            pendingChanges.Add(change);
-            return;
-        }
-
-        Change? merged = existing.Merge(change);
-        pendingChanges.Remove(existing);
-        if (merged != null)
-        {
-            pendingChanges.Add(merged);
-        }
+        pendingSet.Add(change);
     }
 
     public bool TryGetChange(object primaryKey, long txId, [NotNullWhen(true)] out Change? change)
@@ -95,11 +75,11 @@ internal sealed class ChangeTracker
 
     private Change? FindChange(long txId, Func<ValueBuffer, bool> predicate)
     {
-        if (_pendingChanges.TryGetValue(txId, out List<Change>? pendingChanges))
+        if (_txChangeSets.TryGetValue(txId, out ChangeSet? pendingSet))
         {
-            return pendingChanges.FirstOrDefault(change => predicate(change.Buffer));
+            return pendingSet.FirstOrDefault(change => predicate(change.Buffer));
         }
 
-        return _changes.FirstOrDefault(change => predicate(change.Buffer));
+        return _changeSet.FirstOrDefault(change => predicate(change.Buffer));
     }
 }

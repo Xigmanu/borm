@@ -4,26 +4,21 @@ using Borm.Reflection;
 
 namespace Borm.Tests.Model.Metadata;
 
-public sealed class EntityMetadataFactoryTest
+public sealed class EntityMetadataBuilderTest
 {
     [Fact]
     public void Build_ReturnsNewEntityNode_WithReflectedInformation()
     {
         // Arrange
-        Type type = typeof(EntityMetadataFactoryTest);
+        Type type = typeof(EntityMetadataBuilderTest);
         EntityAttribute attribute = new("foo");
 
         Property pKColumn = new("id", new PrimaryKeyAttribute(0), false, typeof(int));
-        Property columnUsrName = new(
-            "V",
-            new ColumnAttribute(1, "value0"),
-            false,
-            typeof(string)
-        );
+        Property columnUsrName = new("V", new ColumnAttribute(1, "value0"), false, typeof(string));
         Property columnAutoName = new("Value1", new ColumnAttribute(2), true, typeof(string));
         Property fkColumn = new(
             "FkColumn",
-            new ForeignKeyAttribute(3, typeof(decimal)),
+            new ForeignKeyAttribute(3, typeof(decimal)) { IsUnique = true },
             true,
             typeof(int)
         );
@@ -73,6 +68,16 @@ public sealed class EntityMetadataFactoryTest
             else
             {
                 Assert.False(isPk);
+            }
+
+            bool isUnique = actual.Constraints.HasFlag(Constraints.Unique);
+            if (column.Attribute.IsUnique)
+            {
+                Assert.True(isUnique);
+            }
+            else
+            {
+                Assert.False(isUnique);
             }
 
             if (column.Attribute is ForeignKeyAttribute)

@@ -95,7 +95,7 @@ internal sealed class DataAdapter
 
     private Dictionary<RowAction, SqlStatement>.ValueCollection CreateUpdateStatements(Table table)
     {
-        IEnumerable<Change> changes = table.Tracker.GetChanges();
+        IEnumerable<Change> changes = table.Tracker.Changes;
         Dictionary<RowAction, SqlStatement> rowStateStatements = [];
         if (!changes.Any())
         {

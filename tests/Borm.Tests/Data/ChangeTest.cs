@@ -1,18 +1,16 @@
 ﻿using Borm.Data;
-using Borm.Model.Metadata;
-using Borm.Tests.Mocks;
+using static Borm.Tests.Mocks.ValueBufferMockHelper;
 
 namespace Borm.Tests.Data;
 
 public sealed class ChangeTest
 {
-    private static readonly object[] Values = [1, "address", null, "city"];
 
     [Fact]
     public void CommitMerge_ReturnsCommittedMergedChange()
     {
         // Arrange
-        ValueBuffer initBuffer = CreateBuffer(Values);
+        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData);
         long initTxId = 0;
         Change initChange = Change.NewChange(initBuffer, initTxId);
 
@@ -35,7 +33,7 @@ public sealed class ChangeTest
     public void Delete_ReturnsDeleteChange()
     {
         // Arrange
-        ValueBuffer initBuffer = CreateBuffer(Values);
+        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData);
         long initTxId = 0;
         Change change = Change.Initial(initBuffer, initTxId);
 
@@ -57,7 +55,7 @@ public sealed class ChangeTest
     public void InitChange_ReturnsInitialChange()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(Values);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData);
         long txId = 0;
 
         // Act
@@ -75,7 +73,7 @@ public sealed class ChangeTest
     public void MarkAsWritten_MarksChangeAsWrittenToDataSource()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(Values);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData);
         long txId = 0;
         Change change = Change.Initial(buffer, txId);
 
@@ -93,7 +91,7 @@ public sealed class ChangeTest
     public void Merge_ReturnsExistingChange_WhenExistingAndIncomingReadTxIdsMatch()
     {
         // Arrange
-        ValueBuffer initBuffer = CreateBuffer(Values);
+        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData);
         long initTxId = 0;
         Change initChange = Change.Initial(initBuffer, initTxId);
 
@@ -112,7 +110,7 @@ public sealed class ChangeTest
     public void Merge_ReturnsMergedChange_WhenExistingChangeWasNotWrittenToDataSource()
     {
         // Arrange
-        ValueBuffer initBuffer = CreateBuffer(Values);
+        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData);
         long initTxId = 0;
         Change initChange = Change.NewChange(initBuffer, initTxId);
 
@@ -135,7 +133,7 @@ public sealed class ChangeTest
     public void Merge_ReturnsMergedChange_WhenExistingChangeWasWrittenToDataSource()
     {
         // Arrange
-        ValueBuffer initBuffer = CreateBuffer(Values);
+        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData);
         long initTxId = 0;
         Change initChange = Change.Initial(initBuffer, initTxId);
 
@@ -158,7 +156,7 @@ public sealed class ChangeTest
     public void Merge_ReturnsNull_WhenNewChangeDeletesExistingChangeThatWasNotWrittenToDataSource()
     {
         // Arrange
-        ValueBuffer initBuffer = CreateBuffer(Values);
+        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData);
         long initTxId = 0;
         Change initChange = Change.NewChange(initBuffer, initTxId);
 
@@ -176,7 +174,7 @@ public sealed class ChangeTest
     public void Merge_ThrowsTransactionMismatchException_WhenExistingAndIncomingReadTxIdsDoNotMatch()
     {
         // Arrange
-        ValueBuffer initBuffer = CreateBuffer(Values);
+        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData);
         long initTxId = 1;
         Change initChange = Change.Initial(initBuffer, initTxId);
 
@@ -196,7 +194,7 @@ public sealed class ChangeTest
     public void NewChange_ReturnsInsertChange()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(Values);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData);
         long txId = 0;
 
         // Act
@@ -214,7 +212,7 @@ public sealed class ChangeTest
     public void Update_ReturnsUpdateChange()
     {
         // Arrange
-        ValueBuffer initBuffer = CreateBuffer(Values);
+        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData);
         long initTxId = 0;
         Change change = Change.NewChange(initBuffer, initTxId);
 
@@ -230,19 +228,5 @@ public sealed class ChangeTest
         Assert.Equal(RowAction.Update, actual.RowAction);
         Assert.False(actual.IsWrittenToDb);
         Assert.Equal(buffer, actual.Buffer);
-    }
-
-    private static ValueBuffer CreateBuffer(object[] values)
-    {
-        Table table = TableMocks.AddressesTable;
-        ValueBuffer buffer = new();
-
-        ColumnMetadataCollection columns = table.EntityMetadata.Columns;
-        for (int i = 0; i < columns.Count; i++)
-        {
-            buffer[columns[i]] = values[i];
-        }
-
-        return buffer;
     }
 }

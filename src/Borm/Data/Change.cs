@@ -79,10 +79,11 @@ internal sealed class Change
 
     private Change? MergeInternal(Change incoming, bool isCommit)
     {
-        // No change has been made to a row => ignore the incoming
+        // No change has been made to a row or the row was deleted within the same transaction
+        // => ignore the incoming or delete existing
         if (_writeTxId == incoming._writeTxId)
         {
-            return this;
+            return incoming._rowAction != RowAction.Delete ? this : null;
         }
 
         // Normally, if the read IDs of both changes are equal,
