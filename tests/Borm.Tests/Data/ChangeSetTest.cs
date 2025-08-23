@@ -10,7 +10,8 @@ public sealed class ChangeSetTest
     public void Add_AddsChange_WithMatchingPrimaryKeys()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
+        Table addressesTable = CreateAddressesTable();
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
         Change initial = Change.Initial(buffer, -1);
 
         ChangeSet changes = [];
@@ -32,7 +33,8 @@ public sealed class ChangeSetTest
     public void Add_AddsChange_WithMatchingPrimaryKeysAndNullMerge()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
+        Table addressesTable = CreateAddressesTable();
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
         long txId = 0;
         Change newChange = Change.NewChange(buffer, txId);
 
@@ -52,7 +54,8 @@ public sealed class ChangeSetTest
     public void Add_AddsChange_WithNoConflict()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
+        Table addressesTable = CreateAddressesTable();
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
         long txId = 0;
         Change incoming = Change.NewChange(buffer, txId);
 
@@ -71,7 +74,8 @@ public sealed class ChangeSetTest
     public void MarkAsWritten_MarksAllNonDeleteChangesAsWritten()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
+        Table addressesTable = CreateAddressesTable();
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
         long txId = 0;
         Change incoming = Change.NewChange(buffer, txId);
 
@@ -91,7 +95,8 @@ public sealed class ChangeSetTest
     public void MarkAsWritten_RemovesAllDeleteChanges()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
+        Table addressesTable = CreateAddressesTable();
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
         Change initial = Change.Initial(buffer, -1);
 
         ChangeSet changes = [];
@@ -112,13 +117,14 @@ public sealed class ChangeSetTest
     public void Merge_MergesExistingWithIncoming_WithConflict()
     {
         // Arrange
+        Table addressesTable = CreateAddressesTable();
         ChangeSet existing = [];
-        ValueBuffer initial = CreateBuffer(AddressesDummyData, AddressesTable);
+        ValueBuffer initial = CreateBuffer(AddressesDummyData, addressesTable);
         Change initialChange = Change.Initial(initial, -1);
         existing.Add(initialChange);
 
         ChangeSet incoming = [];
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
         Change updateChange = initialChange.Update(buffer, 0);
         incoming.Add(updateChange);
 
@@ -136,14 +142,15 @@ public sealed class ChangeSetTest
     public void Merge_MergesExistingWithIncoming_WithConflictAndNullMerge()
     {
         // Arrange
+        Table addressesTable = CreateAddressesTable();
         ChangeSet existing = [];
-        ValueBuffer initial = CreateBuffer(AddressesDummyData, AddressesTable);
+        ValueBuffer initial = CreateBuffer(AddressesDummyData, addressesTable);
         long txId = 0;
         Change initialChange = Change.NewChange(initial, txId);
         existing.Add(initialChange);
 
         ChangeSet incoming = [];
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
         Change deleteChange = initialChange.Delete(buffer, txId);
         incoming.Add(deleteChange);
 
@@ -158,13 +165,14 @@ public sealed class ChangeSetTest
     public void Merge_MergesExistingWithIncoming_WithNoConflict()
     {
         // Arrange
+        Table addressesTable = CreateAddressesTable();
         ChangeSet existing = [];
-        ValueBuffer initial = CreateBuffer(AddressesDummyData, AddressesTable);
+        ValueBuffer initial = CreateBuffer(AddressesDummyData, addressesTable);
         Change initialChange = Change.Initial(initial, -1);
         existing.Add(initialChange);
 
         ChangeSet incoming = [];
-        ValueBuffer buffer = CreateBuffer([2, "address", DBNull.Value, "city"], AddressesTable);
+        ValueBuffer buffer = CreateBuffer([2, "address", DBNull.Value, "city"], addressesTable);
         Change newChange = Change.NewChange(buffer, 0);
         incoming.Add(newChange);
 
@@ -183,13 +191,14 @@ public sealed class ChangeSetTest
     public void Merge_ThrowsInvalidOperationException_WhenNonExistingRowIsModified()
     {
         // Arrange
+        Table addressesTable = CreateAddressesTable();
         ChangeSet existing = [];
-        ValueBuffer initial = CreateBuffer(AddressesDummyData, AddressesTable);
+        ValueBuffer initial = CreateBuffer(AddressesDummyData, addressesTable);
         Change initialChange = Change.Initial(initial, -1);
         existing.Add(initialChange);
 
         ChangeSet incoming = [];
-        ValueBuffer buffer = CreateBuffer([2, "address", DBNull.Value, "city"], AddressesTable);
+        ValueBuffer buffer = CreateBuffer([2, "address", DBNull.Value, "city"], addressesTable);
         Change newChange = initialChange.Update(buffer, 0);
         incoming.Add(newChange);
 

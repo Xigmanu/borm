@@ -11,8 +11,10 @@ public sealed class TableGraphBuilderTest
     public void BuildAll_ReturnsRangeOfTables_WithEntityMetadataRange()
     {
         // Arrange
+        Table addressesTable = CreateAddressesTable();
+        Table personsTable = CreatePersonsTable(addressesTable);
         List<EntityMetadata> metadata = [AddressesEntity, PersonsEntity];
-        List<Table> expected = [AddressesTable, PersonsTable];
+        List<Table> expected = [addressesTable, personsTable];
 
         TableGraphBuilder builder = new(metadata);
 

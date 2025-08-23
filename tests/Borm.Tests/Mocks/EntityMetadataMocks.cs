@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using Borm.Data;
+﻿using Borm.Data;
 using Borm.Model;
 using Borm.Model.Metadata;
 
@@ -8,6 +7,7 @@ namespace Borm.Tests.Mocks;
 internal static class EntityMetadataMocks
 {
     public static readonly EntityMetadata AddressesEntity = CreateAddressesEntity();
+    public static readonly EntityMetadata EmployeesEntity = CreateEmployeeEntity();
     public static readonly EntityMetadata PersonsEntity = CreatePersonsEntity();
 
     private static EntityMetadata CreateAddressesEntity()
@@ -50,6 +50,57 @@ internal static class EntityMetadataMocks
                 buffer[columns["address_1"]] =
                     address.Address_1 == null ? DBNull.Value : address.Address_1;
                 buffer[columns["city"]] = address.City;
+                return buffer;
+            }
+        );
+        metadata.Binding = binding;
+
+        return metadata;
+    }
+
+    private static EntityMetadata CreateEmployeeEntity()
+    {
+        string name = "employees";
+        Type dataType = typeof(EmployeeEntity);
+        ColumnMetadataCollection columns = new(
+            [
+                new ColumnMetadata(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null),
+                new ColumnMetadata(
+                    1,
+                    "person_id",
+                    "Person",
+                    typeof(int),
+                    Constraints.Unique,
+                    typeof(AddressEntity)
+                ),
+                new ColumnMetadata(
+                    2,
+                    "is_active",
+                    "IsActive",
+                    typeof(bool),
+                    Constraints.None,
+                    null
+                ),
+            ]
+        );
+
+        EntityMetadata metadata = new(name, dataType, columns);
+        EntityConversionBinding binding = new(
+            (buffer) =>
+            {
+                return new EmployeeEntity(
+                    (int)buffer["id"],
+                    (int)buffer["person_id"],
+                    (bool)buffer["is_active"]
+                );
+            },
+            (entity) =>
+            {
+                EmployeeEntity employee = (EmployeeEntity)entity;
+                ValueBuffer buffer = new();
+                buffer[columns["id"]] = employee.Id;
+                buffer[columns["person_id"]] = employee.Person;
+                buffer[columns["is_active"]] = employee.IsActive;
                 return buffer;
             }
         );
@@ -133,6 +184,19 @@ internal static class EntityMetadataMocks
         {
             return HashCode.Combine(Id, Address, Address_1, City);
         }
+    }
+
+    [Entity("employees")]
+    internal sealed class EmployeeEntity(int id, int person_id, bool is_active)
+    {
+        [PrimaryKey(0, "id")]
+        public int Id { get; } = id;
+
+        [Column(2, "is_active")]
+        public bool IsActive { get; } = is_active;
+
+        [ForeignKey(1, "person_id", typeof(PersonEntity), IsUnique = true)]
+        public int Person { get; } = person_id;
     }
 
     [Entity("persons")]

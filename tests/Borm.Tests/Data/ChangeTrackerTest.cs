@@ -10,8 +10,9 @@ public sealed class ChangeTrackerTest
     public void AcceptPendingChanges_ConvertsPendingChangeToNormalChange()
     {
         // Arrange
+        Table addressesTable = CreateAddressesTable();
         ChangeTracker tracker = new();
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
         long txId = 0;
         Change incoming = Change.NewChange(buffer, txId);
         tracker.PendChange(incoming);
@@ -47,8 +48,9 @@ public sealed class ChangeTrackerTest
     public void PendChange_PendsIncomingChange_WithNoPendingConflict()
     {
         // Arrange
+        Table addressesTable = CreateAddressesTable();
         ChangeTracker tracker = new();
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
         long txId = 0;
         Change incoming = Change.NewChange(buffer, txId);
 
@@ -65,8 +67,9 @@ public sealed class ChangeTrackerTest
     public void PendChange_PendsIncomingChange_WithPendingConflict()
     {
         // Arrange
+        Table addressesTable = CreateAddressesTable();
         ChangeTracker tracker = new();
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
         long txId = 0;
         Change incoming0 = Change.NewChange(buffer, txId);
         Change incoming1 = incoming0.Update(buffer, txId);

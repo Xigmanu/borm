@@ -9,7 +9,7 @@ public sealed class TableGraphTest
     public void AddTable_InsertsTableAndMapsItToEntityType_IfTableNotExists()
     {
         // Arrange
-        Table table = AddressesTable;
+        Table table = CreateAddressesTable();
         TableGraph graph = new();
 
         // Act
@@ -24,7 +24,9 @@ public sealed class TableGraphTest
     public void AddTableRange_InsertsTableEnumeration()
     {
         // Arrange
-        List<Table> tables = [AddressesTable, PersonsTable];
+        Table addressesTable = CreateAddressesTable();
+        Table personsTable = CreatePersonsTable(addressesTable);
+        List<Table> tables = [addressesTable, personsTable];
         TableGraph graph = new();
 
         // Act
@@ -38,7 +40,7 @@ public sealed class TableGraphTest
     public void Indexer_ReturnsNull_IfTableNotExists()
     {
         // Arrange
-        Table table = AddressesTable;
+        Table table = CreateAddressesTable();
         TableGraph graph = new();
         graph.AddTable(table);
 
@@ -53,7 +55,7 @@ public sealed class TableGraphTest
     public void Indexer_ReturnsTable_IfTableExists()
     {
         // Arrange
-        Table table = AddressesTable;
+        Table table = CreateAddressesTable();
         TableGraph graph = new();
         graph.AddTable(table);
 
@@ -69,7 +71,9 @@ public sealed class TableGraphTest
     public void TopSort_ReturnsTopologicallySortedRangeOfTables()
     {
         // Arrange
-        List<Table> tables = [PersonsTable, AddressesTable];
+        Table addressesTable = CreateAddressesTable();
+        Table personsTable = CreatePersonsTable(addressesTable);
+        List<Table> tables = [personsTable, addressesTable];
         TableGraph graph = new();
         graph.AddTableRange(tables);
 
@@ -77,7 +81,7 @@ public sealed class TableGraphTest
         IEnumerable<Table> sorted = graph.TopSort();
 
         // Assert
-        Assert.Equal(AddressesTable, sorted.ElementAt(0));
-        Assert.Equal(PersonsTable, sorted.ElementAt(1));
+        Assert.Equal(addressesTable, sorted.ElementAt(0));
+        Assert.Equal(personsTable, sorted.ElementAt(1));
     }
 }
