@@ -42,4 +42,20 @@ public sealed class ConstraintValidatorTest
         Assert.NotNull(exception);
         Assert.IsType<ConstraintException>(exception);
     }
+
+    [Fact]
+    public void ValidateBuffer_ThrowsNothing_WhenNoConstraintsAreViolated()
+    {
+        // Arrange
+        Table table = CreateAddressesTable();
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
+
+        ConstraintValidator validator = new(table);
+
+        // Act
+        Exception? exception = Record.Exception(() => validator.ValidateBuffer(buffer, 0));
+
+        // Assert
+        Assert.Null(exception);
+    }
 }
