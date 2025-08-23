@@ -6,10 +6,10 @@ namespace Borm.Tests.Mocks;
 internal static class ValueBufferMockHelper
 {
     public static readonly object[] AddressesDummyData = [1, "address", DBNull.Value, "city"];
+    public static readonly object[] PersonsDummyData = [1, "name", 42.619, 1];
 
-    public static ValueBuffer CreateBuffer(object[] values)
+    public static ValueBuffer CreateBuffer(object[] values, Table table)
     {
-        Table table = TableMocks.AddressesTable;
         ValueBuffer buffer = new();
 
         ColumnMetadataCollection columns = table.EntityMetadata.Columns;

@@ -1,21 +1,21 @@
 ﻿using Borm.Data;
+using static Borm.Tests.Mocks.TableMocks;
 using static Borm.Tests.Mocks.ValueBufferMockHelper;
 
 namespace Borm.Tests.Data;
 
 public sealed class ChangeTest
 {
-
     [Fact]
     public void CommitMerge_ReturnsCommittedMergedChange()
     {
         // Arrange
-        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long initTxId = 0;
         Change initChange = Change.NewChange(initBuffer, initTxId);
 
         long txId = 1;
-        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"]);
+        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"], AddressesTable);
         Change incoming = initChange.Update(buffer, txId);
 
         // Act
@@ -33,11 +33,11 @@ public sealed class ChangeTest
     public void Delete_ReturnsDeleteChange()
     {
         // Arrange
-        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long initTxId = 0;
         Change change = Change.Initial(initBuffer, initTxId);
 
-        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"]);
+        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"], AddressesTable);
         long txId = 1;
 
         // Act
@@ -55,7 +55,7 @@ public sealed class ChangeTest
     public void InitChange_ReturnsInitialChange()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long txId = 0;
 
         // Act
@@ -73,7 +73,7 @@ public sealed class ChangeTest
     public void MarkAsWritten_MarksChangeAsWrittenToDataSource()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long txId = 0;
         Change change = Change.Initial(buffer, txId);
 
@@ -91,11 +91,11 @@ public sealed class ChangeTest
     public void Merge_ReturnsExistingChange_WhenExistingAndIncomingReadTxIdsMatch()
     {
         // Arrange
-        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long initTxId = 0;
         Change initChange = Change.Initial(initBuffer, initTxId);
 
-        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"]);
+        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"], AddressesTable);
         Change incoming = initChange.Update(buffer, initTxId);
 
         // Act
@@ -110,12 +110,12 @@ public sealed class ChangeTest
     public void Merge_ReturnsMergedChange_WhenExistingChangeWasNotWrittenToDataSource()
     {
         // Arrange
-        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long initTxId = 0;
         Change initChange = Change.NewChange(initBuffer, initTxId);
 
         long txId = 1;
-        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"]);
+        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"], AddressesTable);
         Change incoming = initChange.Update(buffer, txId);
 
         // Act
@@ -133,12 +133,12 @@ public sealed class ChangeTest
     public void Merge_ReturnsMergedChange_WhenExistingChangeWasWrittenToDataSource()
     {
         // Arrange
-        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long initTxId = 0;
         Change initChange = Change.Initial(initBuffer, initTxId);
 
         long txId = 1;
-        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"]);
+        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"], AddressesTable);
         Change incoming = initChange.Update(buffer, txId);
 
         // Act
@@ -156,7 +156,7 @@ public sealed class ChangeTest
     public void Merge_ReturnsNull_WhenNewChangeDeletesExistingChangeThatWasNotWrittenToDataSource()
     {
         // Arrange
-        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long initTxId = 0;
         Change initChange = Change.NewChange(initBuffer, initTxId);
 
@@ -174,12 +174,12 @@ public sealed class ChangeTest
     public void Merge_ThrowsTransactionMismatchException_WhenExistingAndIncomingReadTxIdsDoNotMatch()
     {
         // Arrange
-        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long initTxId = 1;
         Change initChange = Change.Initial(initBuffer, initTxId);
 
         long txId = 0;
-        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"]);
+        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"], AddressesTable);
         Change incoming = Change.Initial(buffer, txId);
 
         // Act
@@ -194,7 +194,7 @@ public sealed class ChangeTest
     public void NewChange_ReturnsInsertChange()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long txId = 0;
 
         // Act
@@ -212,11 +212,11 @@ public sealed class ChangeTest
     public void Update_ReturnsUpdateChange()
     {
         // Arrange
-        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long initTxId = 0;
         Change change = Change.NewChange(initBuffer, initTxId);
 
-        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"]);
+        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"], AddressesTable);
         long txId = 1;
 
         // Act

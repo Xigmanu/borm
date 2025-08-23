@@ -1,5 +1,6 @@
 ﻿using Borm.Data;
 using static Borm.Tests.Mocks.ValueBufferMockHelper;
+using static Borm.Tests.Mocks.TableMocks;
 
 namespace Borm.Tests.Data;
 
@@ -9,7 +10,7 @@ public sealed class ChangeSetTest
     public void Add_AddsChange_WithMatchingPrimaryKeys()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
         Change initial = Change.Initial(buffer, -1);
 
         ChangeSet changes = [];
@@ -31,7 +32,7 @@ public sealed class ChangeSetTest
     public void Add_AddsChange_WithMatchingPrimaryKeysAndNullMerge()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long txId = 0;
         Change newChange = Change.NewChange(buffer, txId);
 
@@ -51,7 +52,7 @@ public sealed class ChangeSetTest
     public void Add_AddsChange_WithNoConflict()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long txId = 0;
         Change incoming = Change.NewChange(buffer, txId);
 
@@ -70,7 +71,7 @@ public sealed class ChangeSetTest
     public void MarkAsWritten_MarksAllNonDeleteChangesAsWritten()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long txId = 0;
         Change incoming = Change.NewChange(buffer, txId);
 
@@ -90,7 +91,7 @@ public sealed class ChangeSetTest
     public void MarkAsWritten_RemovesAllDeleteChanges()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
         Change initial = Change.Initial(buffer, -1);
 
         ChangeSet changes = [];
@@ -112,12 +113,12 @@ public sealed class ChangeSetTest
     {
         // Arrange
         ChangeSet existing = [];
-        ValueBuffer initial = CreateBuffer(AddressesDummyData);
+        ValueBuffer initial = CreateBuffer(AddressesDummyData, AddressesTable);
         Change initialChange = Change.Initial(initial, -1);
         existing.Add(initialChange);
 
         ChangeSet incoming = [];
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
         Change updateChange = initialChange.Update(buffer, 0);
         incoming.Add(updateChange);
 
@@ -136,13 +137,13 @@ public sealed class ChangeSetTest
     {
         // Arrange
         ChangeSet existing = [];
-        ValueBuffer initial = CreateBuffer(AddressesDummyData);
+        ValueBuffer initial = CreateBuffer(AddressesDummyData, AddressesTable);
         long txId = 0;
         Change initialChange = Change.NewChange(initial, txId);
         existing.Add(initialChange);
 
         ChangeSet incoming = [];
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
         Change deleteChange = initialChange.Delete(buffer, txId);
         incoming.Add(deleteChange);
 
@@ -158,12 +159,12 @@ public sealed class ChangeSetTest
     {
         // Arrange
         ChangeSet existing = [];
-        ValueBuffer initial = CreateBuffer(AddressesDummyData);
+        ValueBuffer initial = CreateBuffer(AddressesDummyData, AddressesTable);
         Change initialChange = Change.Initial(initial, -1);
         existing.Add(initialChange);
 
         ChangeSet incoming = [];
-        ValueBuffer buffer = CreateBuffer([2, "address", DBNull.Value, "city"]);
+        ValueBuffer buffer = CreateBuffer([2, "address", DBNull.Value, "city"], AddressesTable);
         Change newChange = Change.NewChange(buffer, 0);
         incoming.Add(newChange);
 
@@ -183,12 +184,12 @@ public sealed class ChangeSetTest
     {
         // Arrange
         ChangeSet existing = [];
-        ValueBuffer initial = CreateBuffer(AddressesDummyData);
+        ValueBuffer initial = CreateBuffer(AddressesDummyData, AddressesTable);
         Change initialChange = Change.Initial(initial, -1);
         existing.Add(initialChange);
 
         ChangeSet incoming = [];
-        ValueBuffer buffer = CreateBuffer([2, "address", DBNull.Value, "city"]);
+        ValueBuffer buffer = CreateBuffer([2, "address", DBNull.Value, "city"], AddressesTable);
         Change newChange = initialChange.Update(buffer, 0);
         incoming.Add(newChange);
 

@@ -3,7 +3,7 @@ using Borm.Model.Metadata;
 
 namespace Borm.Tests.Model.Metadata;
 
-public sealed class ColumnInfoCollectionTest
+public sealed class ColumnMetadataCollectionTest
 {
     [Fact]
     public void Indexer_ReturnsColumnInfo_WithColumnName()

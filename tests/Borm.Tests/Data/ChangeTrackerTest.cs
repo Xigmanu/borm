@@ -1,5 +1,6 @@
 ﻿using Borm.Data;
 using static Borm.Tests.Mocks.ValueBufferMockHelper;
+using static Borm.Tests.Mocks.TableMocks;
 
 namespace Borm.Tests.Data;
 
@@ -10,7 +11,7 @@ public sealed class ChangeTrackerTest
     {
         // Arrange
         ChangeTracker tracker = new();
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long txId = 0;
         Change incoming = Change.NewChange(buffer, txId);
         tracker.PendChange(incoming);
@@ -47,7 +48,7 @@ public sealed class ChangeTrackerTest
     {
         // Arrange
         ChangeTracker tracker = new();
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long txId = 0;
         Change incoming = Change.NewChange(buffer, txId);
 
@@ -65,7 +66,7 @@ public sealed class ChangeTrackerTest
     {
         // Arrange
         ChangeTracker tracker = new();
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData);
+        ValueBuffer buffer = CreateBuffer(AddressesDummyData, AddressesTable);
         long txId = 0;
         Change incoming0 = Change.NewChange(buffer, txId);
         Change incoming1 = incoming0.Update(buffer, txId);
