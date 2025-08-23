@@ -2,6 +2,7 @@
 using System.Data.Common;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Borm.Model;
 using Borm.Model.Metadata;
 using Borm.Properties;
@@ -11,9 +12,10 @@ namespace Borm.Data;
 [DebuggerTypeProxy(typeof(TableDebugView))]
 internal sealed class Table
 {
-    private readonly EntityConverter _converter;
+    private readonly ConstraintValidator _constraintValidator;
     private readonly EntityMetadata _entityMetadata;
     private readonly Dictionary<ColumnMetadata, Table> _foreignKeyRelations;
+    private readonly EntityMaterializer _materializer;
     private readonly ChangeTracker _tracker = new();
 
     public Table(
@@ -23,11 +25,12 @@ internal sealed class Table
     {
         _entityMetadata = entityMetadata;
         _foreignKeyRelations = foreignKeyRelations;
-        _converter = new(this);
+        _materializer = new(this);
+        _constraintValidator = new(this);
     }
 
     public string Name => _entityMetadata.Name;
-    internal EntityConverter Converter => _converter;
+    internal EntityMaterializer Converter => _materializer;
     internal EntityMetadata EntityMetadata => _entityMetadata;
     internal IReadOnlyDictionary<ColumnMetadata, Table> ForeignKeyRelations => _foreignKeyRelations;
     internal ChangeTracker Tracker => _tracker;
@@ -107,42 +110,53 @@ internal sealed class Table
     {
         _entityMetadata.Validator?.Invoke(entity);
 
-        ValueBuffer buffer = _entityMetadata.Binding.ToValueBuffer(entity);
-        object primaryKey = buffer.PrimaryKey;
+        ValueBuffer incoming = _entityMetadata.Binding.ToValueBuffer(entity);
+        object primaryKey = incoming.PrimaryKey;
 
         if (_tracker.TryGetChange(primaryKey, txId, out _))
         {
             throw new ConstraintException(Strings.PrimaryKeyConstraintViolation(Name, primaryKey));
         }
 
-        ValueBuffer resolved = _converter.ResolveForeignKeyValues(
-            buffer,
-            txId,
-            isRecursiveInsert: true
-        );
-        Change change = Change.NewChange(resolved, txId);
+        _constraintValidator.ValidateBuffer(incoming, txId);
+
+        IEnumerable<EntityMaterializer.ResolvedForeignKey> resolvedKeys =
+            _materializer.ResolveForeignKeys(incoming, txId);
+        foreach (EntityMaterializer.ResolvedForeignKey resolvedKey in resolvedKeys)
+        {
+            incoming[resolvedKey.Column] = resolvedKey.ResolvedKey;
+        }
+
+        Change change = Change.NewChange(incoming, txId);
         _tracker.PendChange(change);
     }
 
     public IEnumerable<object> SelectAll()
     {
-        return _tracker.Changes.Select(change => _converter.Materialize(change.Buffer));
+        return _tracker.Changes.Select(change => _materializer.Materialize(change.Buffer));
     }
 
     public void Update(object entity, long txId)
     {
         EntityMetadata.Validator?.Invoke(entity);
 
-        ValueBuffer buffer = _entityMetadata.Binding.ToValueBuffer(entity);
-        object primaryKey = buffer.PrimaryKey;
+        ValueBuffer incoming = _entityMetadata.Binding.ToValueBuffer(entity);
+        object primaryKey = incoming.PrimaryKey;
+
+        _constraintValidator.ValidateBuffer(incoming, txId);
 
         Change existing = GetChangeOrThrow(txId, primaryKey);
 
-        ValueBuffer incoming = _converter.ResolveForeignKeyValues(
-            buffer,
-            txId,
-            isRecursiveInsert: false
-        );
+        IEnumerable<EntityMaterializer.ResolvedForeignKey> resolvedKeys =
+            _materializer.ResolveForeignKeys(incoming, txId);
+        foreach (EntityMaterializer.ResolvedForeignKey resolvedKey in resolvedKeys)
+        {
+            if (!resolvedKey.ChangeExists)
+            {
+                ForeignKeyRelations[resolvedKey.Column].Insert(resolvedKey.RawValue, txId);
+            }
+            incoming[resolvedKey.Column] = resolvedKey.ResolvedKey;
+        }
 
         Change change = existing.Update(incoming, txId);
         _tracker.PendChange(change);
