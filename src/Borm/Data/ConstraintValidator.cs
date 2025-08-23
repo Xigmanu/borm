@@ -26,7 +26,7 @@ internal class ConstraintValidator
     {
         Constraints constraints = column.Constraints;
 
-        if (!constraints.HasFlag(Constraints.AllowDbNull) && columnValue == null)
+        if (!constraints.HasFlag(Constraints.AllowDbNull) && columnValue == DBNull.Value)
         {
             throw new ConstraintException(
                 Strings.NullableConstraintViolation(column.Name, _table.Name)
@@ -34,7 +34,7 @@ internal class ConstraintValidator
         }
         if (
             constraints.HasFlag(Constraints.Unique)
-            && _table.Tracker.IsColumnValueUnique(column, columnValue, txId)
+            && !_table.Tracker.IsColumnValueUnique(column, columnValue, txId)
         )
         {
             throw new ConstraintException(

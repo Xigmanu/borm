@@ -26,7 +26,7 @@ internal static class EntityMetadataMocks
                     Constraints.AllowDbNull,
                     null
                 ),
-                new ColumnMetadata(3, "city", "City", typeof(string), Constraints.None, null),
+                new ColumnMetadata(3, "city", "City", typeof(string), Constraints.Unique, null),
             ]
         );
 
