@@ -10,7 +10,7 @@ namespace Borm;
 public sealed class DataContext
 {
     private readonly BormConfiguration _configuration;
-    private readonly BormDataAdapter _dataAdapter;
+    private readonly DataAdapter _dataAdapter;
     private readonly TableGraph _tableGraph;
 
     public DataContext(BormConfiguration configuration)
@@ -57,16 +57,16 @@ public sealed class DataContext
             return;
         }
 
-        List<EntityInfo> entityInfos = new(typeInfos.Count());
+        List<EntityMetadata> entityInfos = new(typeInfos.Count());
         foreach (ReflectedTypeInfo typeInfo in typeInfos)
         {
-            EntityInfo entityInfo = EntityInfoFactory.Create(typeInfo);
+            EntityMetadata entityMetadata = EntityMetadataBuilder.Build(typeInfo);
 
-            BindingInfo bindingInfo = new(typeInfo.Type, entityInfo.Columns);
-            entityInfo.Binding = bindingInfo.CreateBinding();
-            entityInfo.Validator = model.GetValidatorFunc(typeInfo.Type);
+            EntityMaterializationBinding binding = new(typeInfo.Type, entityMetadata.Columns);
+            entityMetadata.Binding = binding.CreateBinding();
+            entityMetadata.Validator = model.GetValidatorFunc(typeInfo.Type);
 
-            entityInfos.Add(entityInfo);
+            entityInfos.Add(entityMetadata);
         }
 
         EntityInfoValidator validator = new(entityInfos);
@@ -83,7 +83,7 @@ public sealed class DataContext
 
         _dataAdapter.CreateTables();
 
-        OnInitialized(); //TODO Replace this with a trigger... I think
+        OnInitialized();
     }
 
     public void SaveChanges()

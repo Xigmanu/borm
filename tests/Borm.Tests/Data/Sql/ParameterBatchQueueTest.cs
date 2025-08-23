@@ -2,6 +2,7 @@
 using Borm.Data;
 using Borm.Data.Sql;
 using Borm.Model.Metadata;
+using Borm.Tests.Mocks;
 using Moq;
 
 namespace Borm.Tests.Data.Sql;
@@ -12,7 +13,9 @@ public sealed class ParameterBatchQueueTest
     public void Enqueue_ShouldEnqueueValueBuffer()
     {
         // Arrange
-        ValueBuffer buffer = CreateTestBuffer();
+        object[] values = [1, "address", DBNull.Value, "city"];
+        EntityMetadata metadata = EntityMetadataMocks.AddressesEntity;
+        ValueBuffer buffer = CreateTestBuffer(metadata.Columns, values);
 
         ParameterBatchQueue queue = new();
 
@@ -23,45 +26,61 @@ public sealed class ParameterBatchQueueTest
         Assert.True(queue.HasNext());
     }
 
-    [Fact(Skip = "Broken for now")]
+    [Fact]
     public void SetDbParameters_ShouldAssignValuesToCommandParameters()
     {
         // Arrange
-        int id = 1;
+        EntityMetadata metadata = EntityMetadataMocks.AddressesEntity;
+        ColumnMetadataCollection columns = metadata.Columns;
+        object[] values = [1, "address", DBNull.Value, "city"];
 
-        ValueBuffer buffer = CreateTestBuffer();
+        ValueBuffer buffer = CreateTestBuffer(columns, values);
         ParameterBatchQueue queue = new();
         queue.Enqueue(buffer);
 
-        Mock<IDbCommand> mockCommand = new();
-        Mock<IDataParameterCollection> mockParams = new();
+        List<Mock<IDbDataParameter>> paramMocks = SetupMockParameterList(columns);
 
-        Mock<IDbDataParameter> param1 = new();
+        Mock<IDataParameterCollection> collectionMock = new();
+        collectionMock.Setup(pc => pc.Count).Returns(paramMocks.Count);
+        collectionMock.Setup(pc => pc[It.IsAny<int>()]).Returns((int idx) => paramMocks[idx].Object);
 
-        List<IDbDataParameter> @params = [param1.Object];
-
-        mockParams.Setup(p => p[It.IsAny<int>()]).Returns<int>(i => @params[i]);
-        mockCommand.Setup(c => c.Parameters).Returns(mockParams.Object);
+        Mock<IDbCommand> cmdMock = new();
+        cmdMock.Setup(c => c.Parameters).Returns(collectionMock.Object);
 
         // Act
-        queue.SetParameterValues(mockCommand.Object);
+        queue.SetParameterValues(cmdMock.Object);
 
         // Assert
-        param1.VerifySet(p => p.Value = id, Times.Once);
+        for (int i = 0; i < paramMocks.Count; i++)
+        {
+            Assert.Equal(values[i], paramMocks[i].Object.Value);
+        }
     }
 
-    private static ValueBuffer CreateTestBuffer()
+    private static ValueBuffer CreateTestBuffer(ColumnMetadataCollection columns, object[] values)
     {
         ValueBuffer buffer = new();
-        ColumnInfo idColumn = new(
-            0,
-            "id",
-            "Id",
-            typeof(int),
-            Borm.Model.Constraints.PrimaryKey,
-            null
-        );
-        buffer[idColumn] = 1;
+        for (int i = 0; i < columns.Count; i++)
+        {
+            buffer[columns[i]] = values[i];
+        }
+
         return buffer;
+    }
+
+    private static List<Mock<IDbDataParameter>> SetupMockParameterList(
+        ColumnMetadataCollection columns
+    )
+    {
+        List<Mock<IDbDataParameter>> parameters = [];
+        foreach (ColumnMetadata column in columns)
+        {
+            Mock<IDbDataParameter> param = new();
+            param.SetupAllProperties();
+            param.Setup(p => p.ParameterName).Returns($"${column.Name}");
+            parameters.Add(param);
+        }
+
+        return parameters;
     }
 }

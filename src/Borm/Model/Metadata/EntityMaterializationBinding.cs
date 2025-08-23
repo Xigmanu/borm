@@ -8,13 +8,13 @@ using Borm.Extensions;
 namespace Borm.Model.Metadata;
 
 [DebuggerTypeProxy(typeof(BindingInfoDebugView))]
-internal sealed class BindingInfo
+internal sealed class EntityMaterializationBinding
 {
-    private readonly ColumnInfoCollection _columns;
+    private readonly ColumnMetadataCollection _columns;
     private readonly ConstructorInfo _constructor;
     private readonly Type _entityType;
 
-    public BindingInfo(Type entityType, ColumnInfoCollection columns)
+    public EntityMaterializationBinding(Type entityType, ColumnMetadataCollection columns)
     {
         _entityType = entityType;
         _columns = columns;
@@ -26,18 +26,18 @@ internal sealed class BindingInfo
         _constructor = selector.Select() ?? constructors[0];
     }
 
-    public ConversionBinding CreateBinding()
+    public EntityConversionBinding CreateBinding()
     {
         Func<object, ValueBuffer> converter = CreateEntityValueBufferConverter();
         Func<ValueBuffer, object> materializer = _constructor.IsNoArgs()
             ? CreatePropertyMaterializer()
             : CreateConstructorMaterializer();
-        return new ConversionBinding(materializer, converter);
+        return new EntityConversionBinding(materializer, converter);
     }
 
     private static Expression CreateBufferPropertyBinding(
         ParameterExpression bufferParam,
-        ColumnInfo column
+        ColumnMetadata column
     )
     {
         IndexExpression bufferValue = Expression.Property(
@@ -65,7 +65,7 @@ internal sealed class BindingInfo
         ParameterExpression bufferParam = Expression.Parameter(typeof(ValueBuffer), "buffer");
 
         IEnumerable<Expression> args = GetOrderedColumns()
-            .Select(columnInfo => CreateBufferPropertyBinding(bufferParam, columnInfo));
+            .Select(column => CreateBufferPropertyBinding(bufferParam, column));
         NewExpression ctorCall = Expression.New(_constructor, args);
 
         return Expression
@@ -95,10 +95,10 @@ internal sealed class BindingInfo
             Expression.Assign(valueBufferVar, Expression.New(valueBufferType)),
         ];
 
-        foreach (ColumnInfo columnInfo in _columns)
+        foreach (ColumnMetadata column in _columns)
         {
-            ConstantExpression key = Expression.Constant(columnInfo);
-            MemberExpression value = Expression.Property(unboxedEntityVar, columnInfo.PropertyName);
+            ConstantExpression key = Expression.Constant(column);
+            MemberExpression value = Expression.Property(unboxedEntityVar, column.PropertyName);
             UnaryExpression boxedValue = Expression.Convert(value, typeof(object));
 
             BinaryExpression isNullCheck = Expression.Equal(
@@ -108,7 +108,7 @@ internal sealed class BindingInfo
 
             IndexExpression indexer = Expression.MakeIndex(
                 valueBufferVar,
-                valueBufferType.GetProperty("Item", [typeof(ColumnInfo)]),
+                valueBufferType.GetProperty("Item", [typeof(ColumnMetadata)]),
                 [key]
             );
 
@@ -143,7 +143,7 @@ internal sealed class BindingInfo
             Expression.Assign(instanceVar, Expression.New(_constructor)),
         ];
 
-        foreach (ColumnInfo column in GetOrderedColumns())
+        foreach (ColumnMetadata column in GetOrderedColumns())
         {
             Expression valueExpr = CreateBufferPropertyBinding(bufferParam, column);
             MemberExpression propertyExpr = Expression.Property(instanceVar, column.PropertyName);
@@ -160,14 +160,14 @@ internal sealed class BindingInfo
             .Compile();
     }
 
-    private ColumnInfo[] GetOrderedColumns()
+    private ColumnMetadata[] GetOrderedColumns()
     {
         if (_constructor.IsNoArgs())
         {
             return [.. _columns];
         }
 
-        ColumnInfo[] ordered = new ColumnInfo[_columns.Count];
+        ColumnMetadata[] ordered = new ColumnMetadata[_columns.Count];
         ParameterInfo[] ctorParams = _constructor.GetParameters();
         for (int i = 0; i < ctorParams.Length; i++)
         {
@@ -179,14 +179,14 @@ internal sealed class BindingInfo
     [ExcludeFromCodeCoverage(Justification = "Debug view class")]
     internal sealed class BindingInfoDebugView
     {
-        private readonly BindingInfo _instance;
+        private readonly EntityMaterializationBinding _instance;
 
-        public BindingInfoDebugView(BindingInfo instance)
+        public BindingInfoDebugView(EntityMaterializationBinding instance)
         {
             _instance = instance;
         }
 
-        public ColumnInfoCollection Columns => _instance._columns;
+        public ColumnMetadataCollection Columns => _instance._columns;
         public Type EntityType => _instance._entityType;
     }
 }

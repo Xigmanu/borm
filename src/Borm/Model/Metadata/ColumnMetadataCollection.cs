@@ -1,26 +1,29 @@
 ﻿using System.Collections;
-using System.Runtime.CompilerServices;
 
 namespace Borm.Model.Metadata;
 
-internal sealed class ColumnInfoCollection : IReadOnlyCollection<ColumnInfo>
+internal sealed class ColumnMetadataCollection : IReadOnlyCollection<ColumnMetadata>
 {
-    private readonly ColumnInfo[] _columns;
+    private readonly ColumnMetadata[] _columns;
 
-    public ColumnInfoCollection(IEnumerable<ColumnInfo> columns)
+    public ColumnMetadataCollection(IEnumerable<ColumnMetadata> columns)
     {
         _columns = [.. columns];
     }
 
     public int Count => _columns.Length;
 
-    public ColumnInfo this[string columnName]
+    public ColumnMetadata this[string columnName]
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => this.First(column => column.Name == columnName);
     }
 
-    public IEnumerator<ColumnInfo> GetEnumerator()
+    public ColumnMetadata this[int idx]
+    {
+        get => _columns[idx];
+    }
+
+    public IEnumerator<ColumnMetadata> GetEnumerator()
     {
         for (int i = 0; i < _columns.Length; i++)
         {

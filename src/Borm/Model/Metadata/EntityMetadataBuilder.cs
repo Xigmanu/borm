@@ -3,22 +3,22 @@ using Borm.Reflection;
 
 namespace Borm.Model.Metadata;
 
-internal static class EntityInfoFactory
+internal static class EntityMetadataBuilder
 {
-    public static EntityInfo Create(ReflectedTypeInfo entityInfo)
+    public static EntityMetadata Build(ReflectedTypeInfo entityMetadata)
     {
-        EntityAttribute entityAttribute = entityInfo.Attribute;
-        string name = entityAttribute.Name ?? CreateDefaultName(entityInfo.Type.Name);
+        EntityAttribute entityAttribute = entityMetadata.Attribute;
+        string name = entityAttribute.Name ?? CreateDefaultName(entityMetadata.Type.Name);
 
-        IEnumerable<ColumnInfo> columns = entityInfo
+        IEnumerable<ColumnMetadata> columns = entityMetadata
             .Properties.Select(CreateColumnInfo)
-            .OrderBy(columnInfo => columnInfo.Index);
-        ColumnInfoCollection columnCollection = new(columns);
+            .OrderBy(column => column.Index);
+        ColumnMetadataCollection columnCollection = new(columns);
 
-        return new EntityInfo(name, entityInfo.Type, columnCollection);
+        return new EntityMetadata(name, entityMetadata.Type, columnCollection);
     }
 
-    private static ColumnInfo CreateColumnInfo(Property property)
+    private static ColumnMetadata CreateColumnInfo(Property property)
     {
         ColumnAttribute columnAttribute = property.Attribute;
 
@@ -27,7 +27,7 @@ internal static class EntityInfoFactory
         Constraints constraints = GetConstraints(property);
         Type? reference = FindReferencedEntityType(columnAttribute);
 
-        return new ColumnInfo(
+        return new ColumnMetadata(
             columnAttribute.Index,
             columnName,
             property.Name,
@@ -68,6 +68,11 @@ internal static class EntityInfoFactory
         {
             constraints |= Constraints.AllowDbNull;
         }
+        if (attribute.IsUnique)
+        {
+            constraints |= Constraints.Unique;
+        }
+
         return constraints;
     }
 }

@@ -4,26 +4,21 @@ using Borm.Reflection;
 
 namespace Borm.Tests.Model.Metadata;
 
-public sealed class EntityInfoFactoryTest
+public sealed class EntityMetadataBuilderTest
 {
     [Fact]
-    public void Create_ReturnsNewEntityNode_WithReflectedInformation()
+    public void Build_ReturnsNewEntityNode_WithReflectedInformation()
     {
         // Arrange
-        Type type = typeof(EntityInfoFactoryTest);
+        Type type = typeof(EntityMetadataBuilderTest);
         EntityAttribute attribute = new("foo");
 
         Property pKColumn = new("id", new PrimaryKeyAttribute(0), false, typeof(int));
-        Property columnUsrName = new(
-            "V",
-            new ColumnAttribute(1, "value0"),
-            false,
-            typeof(string)
-        );
+        Property columnUsrName = new("V", new ColumnAttribute(1, "value0"), false, typeof(string));
         Property columnAutoName = new("Value1", new ColumnAttribute(2), true, typeof(string));
         Property fkColumn = new(
             "FkColumn",
-            new ForeignKeyAttribute(3, typeof(decimal)),
+            new ForeignKeyAttribute(3, typeof(decimal)) { IsUnique = true },
             true,
             typeof(int)
         );
@@ -32,7 +27,7 @@ public sealed class EntityInfoFactoryTest
         ReflectedTypeInfo reflectedInfo = new(type, attribute, columns);
 
         // Act
-        EntityInfo info = EntityInfoFactory.Create(reflectedInfo);
+        EntityMetadata info = EntityMetadataBuilder.Build(reflectedInfo);
 
         // Assert
 
@@ -42,10 +37,10 @@ public sealed class EntityInfoFactoryTest
         for (int i = 0; i < columns.Length; i++)
         {
             Property column = columns[i];
-            ColumnInfo actual = info.Columns.ElementAt(i);
+            ColumnMetadata actual = info.Columns.ElementAt(i);
 
             Assert.Equal(column.Name, actual.PropertyName);
-            Assert.Equal(column.Type, actual.DataType);
+            Assert.Equal(column.Type, actual.PropertyType);
             Assert.Equal(column.Attribute.Index, actual.Index);
 
             string? expectedName = column.Attribute.Name;
@@ -73,6 +68,16 @@ public sealed class EntityInfoFactoryTest
             else
             {
                 Assert.False(isPk);
+            }
+
+            bool isUnique = actual.Constraints.HasFlag(Constraints.Unique);
+            if (column.Attribute.IsUnique)
+            {
+                Assert.True(isUnique);
+            }
+            else
+            {
+                Assert.False(isUnique);
             }
 
             if (column.Attribute is ForeignKeyAttribute)

@@ -1,4 +1,6 @@
-﻿namespace Borm.Data;
+﻿using System.Diagnostics;
+
+namespace Borm.Data;
 
 internal sealed class Change
 {
@@ -24,14 +26,12 @@ internal sealed class Change
     }
 
     public bool IsWrittenToDb => _isWrittenToDb;
-
+    public long ReadTxId => _readTxId;
     public RowAction RowAction => _rowAction;
-
     public long WriteTxId => _writeTxId;
-
     internal ValueBuffer Buffer => _buffer;
 
-    public static Change InitChange(ValueBuffer buffer, long txId)
+    public static Change Initial(ValueBuffer buffer, long txId)
     {
         return new Change(buffer, txId, txId, isWrittenToDb: true, RowAction.None);
     }
@@ -41,6 +41,11 @@ internal sealed class Change
         return new Change(buffer, txId, txId, isWrittenToDb: false, RowAction.Insert);
     }
 
+    public Change? CommitMerge(Change incoming)
+    {
+        return MergeInternal(incoming, isCommit: true);
+    }
+
     public Change Delete(ValueBuffer buffer, long writeTxId)
     {
         return new Change(buffer, _readTxId, writeTxId, _isWrittenToDb, RowAction.Delete);
@@ -48,12 +53,12 @@ internal sealed class Change
 
     public override bool Equals(object? obj)
     {
-        return obj is Change other && _buffer.GetPrimaryKey().Equals(other._buffer.GetPrimaryKey());
+        return obj is Change other && _buffer.PrimaryKey.Equals(other._buffer.PrimaryKey);
     }
 
     public override int GetHashCode()
     {
-        return _buffer.GetPrimaryKey().GetHashCode();
+        return _buffer.PrimaryKey.GetHashCode();
     }
 
     public void MarkAsWritten()
@@ -62,12 +67,23 @@ internal sealed class Change
         _rowAction = RowAction.None;
     }
 
-    public Change? Merge(Change incoming, bool isCommit)
+    public Change? Merge(Change incoming)
     {
-        // No change has been made to a row => ignore the incoming
+        return MergeInternal(incoming, isCommit: false);
+    }
+
+    public Change Update(ValueBuffer buffer, long writeTxId)
+    {
+        return new Change(buffer, _readTxId, writeTxId, _isWrittenToDb, RowAction.Update);
+    }
+
+    private Change? MergeInternal(Change incoming, bool isCommit)
+    {
+        // No change has been made to a row or the row was deleted within the same transaction
+        // => ignore the incoming or delete existing
         if (_writeTxId == incoming._writeTxId)
         {
-            return this;
+            return incoming._rowAction != RowAction.Delete ? this : null;
         }
 
         // Normally, if the read IDs of both changes are equal,
@@ -83,7 +99,7 @@ internal sealed class Change
         }
 
         RowAction rowAction;
-        if (IsWrittenToDb)
+        if (_isWrittenToDb)
         {
             rowAction = incoming._rowAction;
         }
@@ -95,7 +111,9 @@ internal sealed class Change
             {
                 return null;
             }
-            rowAction = RowAction.Insert;
+
+            Debug.Assert(_rowAction == RowAction.Insert);
+            rowAction = _rowAction;
         }
 
         return new Change(
@@ -105,10 +123,5 @@ internal sealed class Change
             IsWrittenToDb,
             rowAction
         );
-    }
-
-    public Change Update(ValueBuffer buffer, long writeTxId)
-    {
-        return new Change(buffer, _readTxId, writeTxId, _isWrittenToDb, RowAction.Update);
     }
 }

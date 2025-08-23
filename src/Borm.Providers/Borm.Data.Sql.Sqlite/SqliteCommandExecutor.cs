@@ -1,5 +1,4 @@
-﻿using System.Data;
-using System.Data.Common;
+﻿using System.Data.Common;
 using Microsoft.Data.Sqlite;
 
 namespace Borm.Data.Sql.Sqlite;

@@ -2,7 +2,7 @@
 using Borm.Model.Metadata;
 
 namespace Borm.Tests.Model.Metadata;
-public sealed class ColumnInfoTest
+public sealed class ColumnMetadataTest
 {
     [Fact]
     public void Constructor_ShouldAssignPropertyNameAndColumnName_WithValidCtorArgs()
@@ -12,7 +12,7 @@ public sealed class ColumnInfoTest
         string expectedPropName = "Bar";
 
         // Act
-        ColumnInfo columnInfo = new(1, expectedName, expectedPropName, typeof(int), Constraints.None, null);
+        ColumnMetadata columnInfo = new(1, expectedName, expectedPropName, typeof(int), Constraints.None, null);
 
         // Assert
         Assert.Equal(expectedName, columnInfo.Name);

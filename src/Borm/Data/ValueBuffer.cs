@@ -1,23 +1,48 @@
-﻿using Borm.Model;
+﻿using System.Collections;
+using System.Diagnostics;
+using Borm.Model;
 using Borm.Model.Metadata;
-using System.Collections;
 
 namespace Borm.Data;
 
-internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object>>
+internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnMetadata, object>>
 {
-    private readonly Dictionary<ColumnInfo, object> _valueMap = [];
+    private readonly Dictionary<ColumnMetadata, object> _valueMap = [];
+    private ColumnMetadata? _primaryKey;
 
-    public object this[ColumnInfo column]
+    public object PrimaryKey
+    {
+        get
+        {
+            Debug.Assert(_primaryKey != null);
+            return _valueMap[_primaryKey];
+        }
+    }
+
+    public object this[ColumnMetadata column]
     {
         get => _valueMap[column];
-        set => _valueMap[column] = value;
+        set
+        {
+            Debug.Assert(value != null);
+            if (column.Constraints.HasFlag(Constraints.PrimaryKey))
+            {
+                Debug.Assert(_primaryKey == null);
+                _primaryKey = column;
+            }
+            _valueMap[column] = value;
+        }
     }
 
     public object this[string columnName] =>
         _valueMap.First(kvp => kvp.Key.Name == columnName).Value;
 
-    public IEnumerator<KeyValuePair<ColumnInfo, object>> GetEnumerator()
+    public override bool Equals(object? obj)
+    {
+        return obj is ValueBuffer other && other._valueMap.Equals(_valueMap);
+    }
+
+    public IEnumerator<KeyValuePair<ColumnMetadata, object>> GetEnumerator()
     {
         return _valueMap.GetEnumerator();
     }
@@ -27,10 +52,8 @@ internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnInfo, object>
         return GetEnumerator();
     }
 
-    public object GetPrimaryKey()
+    public override int GetHashCode()
     {
-        return _valueMap
-            .First(keyVal => keyVal.Key.Constraints.HasFlag(Constraints.PrimaryKey))
-            .Value!;
+        return _valueMap.GetHashCode();
     }
 }

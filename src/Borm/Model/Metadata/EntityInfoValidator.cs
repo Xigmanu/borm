@@ -6,32 +6,32 @@ namespace Borm.Model.Metadata;
 
 internal sealed class EntityInfoValidator
 {
-    private readonly IEnumerable<EntityInfo> _entityInfos;
+    private readonly IEnumerable<EntityMetadata> _entityInfos;
 
-    public EntityInfoValidator(IEnumerable<EntityInfo> entityInfos)
+    public EntityInfoValidator(IEnumerable<EntityMetadata> entityInfos)
     {
         _entityInfos = entityInfos;
     }
 
-    public bool IsValid(EntityInfo entityInfo, [NotNullWhen(false)] out Exception? exception)
+    public bool IsValid(EntityMetadata entityMetadata, [NotNullWhen(false)] out Exception? exception)
     {
-        exception = ValidatePrimaryKeyColumn(entityInfo);
+        exception = ValidatePrimaryKeyColumn(entityMetadata);
         if (exception != null)
         {
             return false;
         }
 
-        foreach (ColumnInfo columnInfo in entityInfo.Columns)
+        foreach (ColumnMetadata column in entityMetadata.Columns)
         {
-            exception = ValidateColumnIndex(entityInfo, columnInfo);
+            exception = ValidateColumnIndex(entityMetadata, column);
             if (exception != null)
             {
                 return false;
             }
 
-            if (columnInfo.Reference != null)
+            if (column.Reference != null)
             {
-                exception = ValidateForeignKeyColumn(entityInfo, columnInfo);
+                exception = ValidateForeignKeyColumn(entityMetadata, column);
                 if (exception != null)
                 {
                     return false;
@@ -43,41 +43,41 @@ internal sealed class EntityInfoValidator
     }
 
     private static InvalidOperationException? ValidateColumnIndex(
-        EntityInfo entityInfo,
-        ColumnInfo columnInfo
+        EntityMetadata entityMetadata,
+        ColumnMetadata column
     )
     {
-        bool isIndexValid = entityInfo.Columns.Count > columnInfo.Index && columnInfo.Index >= 0;
+        bool isIndexValid = entityMetadata.Columns.Count > column.Index && column.Index >= 0;
         return isIndexValid
             ? null
             : new InvalidOperationException(
-                $"Invalid column index {columnInfo.Index} in entity {entityInfo.DataType.FullName}. Valid range is [0, {entityInfo.Columns.Count})"
+                $"Invalid column index {column.Index} in entity {entityMetadata.DataType.FullName}. Valid range is [0, {entityMetadata.Columns.Count})"
             );
     }
 
-    private static Exception? ValidatePrimaryKeyColumn(EntityInfo entityInfo)
+    private static Exception? ValidatePrimaryKeyColumn(EntityMetadata entityMetadata)
     {
-        IEnumerable<ColumnInfo> primaryKeys = entityInfo.Columns.Where(column =>
+        IEnumerable<ColumnMetadata> primaryKeys = entityMetadata.Columns.Where(column =>
             column.Constraints.HasFlag(Constraints.PrimaryKey)
         );
         if (!primaryKeys.Any())
         {
             return new MissingPrimaryKeyException(
-                $"Entity {entityInfo.DataType.FullName} has no primary key"
+                $"Entity {entityMetadata.DataType.FullName} has no primary key"
             );
         }
         if (primaryKeys.Count() > 1)
         {
             return new InvalidOperationException(
-                $"Entity {entityInfo.DataType.FullName} has multiple primary keys"
+                $"Entity {entityMetadata.DataType.FullName} has multiple primary keys"
             );
         }
 
-        ColumnInfo primaryKey = primaryKeys.First();
+        ColumnMetadata primaryKey = primaryKeys.First();
         if (primaryKey.Constraints.HasFlag(Constraints.AllowDbNull))
         {
             return new InvalidOperationException(
-                $"Primary key cannot be nullable. Entity: {entityInfo.DataType.FullName}"
+                $"Primary key cannot be nullable. Entity: {entityMetadata.DataType.FullName}"
             );
         }
 
@@ -85,16 +85,16 @@ internal sealed class EntityInfoValidator
     }
 
     private InvalidOperationException? ValidateForeignKeyColumn(
-        EntityInfo entityInfo,
-        ColumnInfo columnInfo
+        EntityMetadata entityMetadata,
+        ColumnMetadata column
     )
     {
-        Type dataType = columnInfo.Constraints.HasFlag(Constraints.AllowDbNull)
-            ? columnInfo.DataType
-            : columnInfo.PropertyType;
+        Type dataType = column.Constraints.HasFlag(Constraints.AllowDbNull)
+            ? column.DataType
+            : column.PropertyType;
 
-        Type reference = columnInfo.Reference!;
-        EntityInfo? successor = _entityInfos.FirstOrDefault(m => m.DataType.Equals(reference));
+        Type reference = column.Reference!;
+        EntityMetadata? successor = _entityInfos.FirstOrDefault(m => m.DataType.Equals(reference));
         if (successor == null)
         {
             return new NodeNotFoundException(
@@ -104,12 +104,12 @@ internal sealed class EntityInfoValidator
         }
 
         bool isFKValid =
-            dataType.Equals(columnInfo.Reference) || dataType.Equals(successor.PrimaryKey.DataType);
+            dataType.Equals(column.Reference) || dataType.Equals(successor.PrimaryKey.DataType);
 
         return isFKValid
             ? null
             : new InvalidOperationException(
-                $"The foreign key property must be of the referenced type or the type of its primary key. Entity: {entityInfo.DataType.FullName}"
+                $"The foreign key property must be of the referenced type or the type of its primary key. Entity: {entityMetadata.DataType.FullName}"
             );
     }
 }

@@ -1,6 +1,4 @@
-﻿using Borm.Data;
-
-namespace Borm.Model.Metadata;
+﻿namespace Borm.Data;
 
 internal sealed class TableGraph
 {
@@ -24,7 +22,7 @@ internal sealed class TableGraph
 
     public void AddTable(Table table)
     {
-        Type entityType = table.EntityInfo.DataType;
+        Type entityType = table.EntityMetadata.DataType;
         if (!_tables.ContainsKey(entityType))
         {
             _tables[entityType] = table;
@@ -51,7 +49,7 @@ internal sealed class TableGraph
                 return;
             }
 
-            foreach (Table dependency in table.ForeignKeyRelations.Values.Cast<Table>())
+            foreach (Table dependency in table.ForeignKeyRelations.Values)
             {
                 Visit(dependency);
             }

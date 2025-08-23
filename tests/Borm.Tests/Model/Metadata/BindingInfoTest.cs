@@ -13,20 +13,20 @@ public sealed class BindingInfoTest
         int id = 1;
         string name = "Alice";
 
-        ColumnInfo idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        ColumnInfo nameColumn = new(1, "name", "Name", typeof(string), Constraints.None, null);
+        ColumnMetadata idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        ColumnMetadata nameColumn = new(1, "name", "Name", typeof(string), Constraints.None, null);
 
-        ColumnInfoCollection columns = new([idColumn, nameColumn]);
+        ColumnMetadataCollection columns = new([idColumn, nameColumn]);
 
-        BindingInfo bindingInfo = new(typeof(PersonB), columns);
-        ConversionBinding binding = bindingInfo.CreateBinding();
+        EntityMaterializationBinding binding = new(typeof(PersonB), columns);
+        EntityConversionBinding conversionBinding = binding.CreateBinding();
 
         ValueBuffer buffer = new();
         buffer[idColumn] = id;
         buffer[nameColumn] = name;
 
         // Act
-        PersonB person = (PersonB)binding.MaterializeEntity(buffer);
+        PersonB person = (PersonB)conversionBinding.MaterializeEntity(buffer);
 
         // Assert
         Assert.Equal(id, person.Id);
@@ -40,20 +40,20 @@ public sealed class BindingInfoTest
         int id = 1;
         string name = "Alice";
 
-        ColumnInfo idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        ColumnInfo nameColumn = new(1, "name", "Name", typeof(string), Constraints.None, null);
+        ColumnMetadata idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        ColumnMetadata nameColumn = new(1, "name", "Name", typeof(string), Constraints.None, null);
 
-        ColumnInfoCollection columns = new([idColumn, nameColumn]);
+        ColumnMetadataCollection columns = new([idColumn, nameColumn]);
 
-        BindingInfo bindingInfo = new(typeof(PersonA), columns);
-        ConversionBinding binding = bindingInfo.CreateBinding();
+        EntityMaterializationBinding binding = new(typeof(PersonA), columns);
+        EntityConversionBinding conversionBinding = binding.CreateBinding();
 
         ValueBuffer buffer = new();
         buffer[idColumn] = id;
         buffer[nameColumn] = name;
 
         // Act
-        PersonA person = (PersonA)binding.MaterializeEntity(buffer);
+        PersonA person = (PersonA)conversionBinding.MaterializeEntity(buffer);
 
         // Assert
         Assert.Equal(id, person.Id);
@@ -66,20 +66,27 @@ public sealed class BindingInfoTest
         // Arrange
         int id = 1;
 
-        ColumnInfo idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        ColumnInfo nameColumn = new(1, "name", "Name", typeof(string), Constraints.AllowDbNull, null);
+        ColumnMetadata idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        ColumnMetadata nameColumn = new(
+            1,
+            "name",
+            "Name",
+            typeof(string),
+            Constraints.AllowDbNull,
+            null
+        );
 
-        ColumnInfoCollection columns = new([idColumn, nameColumn]);
+        ColumnMetadataCollection columns = new([idColumn, nameColumn]);
 
-        BindingInfo bindingInfo = new(typeof(PersonA), columns);
-        ConversionBinding binding = bindingInfo.CreateBinding();
+        EntityMaterializationBinding binding = new(typeof(PersonA), columns);
+        EntityConversionBinding conversionBinding = binding.CreateBinding();
 
         ValueBuffer buffer = new();
         buffer[idColumn] = id;
         buffer[nameColumn] = DBNull.Value;
 
         // Act
-        PersonA person = (PersonA)binding.MaterializeEntity(buffer);
+        PersonA person = (PersonA)conversionBinding.MaterializeEntity(buffer);
 
         // Assert
         Assert.Equal(id, person.Id);

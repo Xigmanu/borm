@@ -2,24 +2,20 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Borm.Model.Metadata;
-using Borm.Properties;
 
 namespace Borm.Data;
 
-[DebuggerDisplay("Changes={_changes}")]
 internal sealed class ChangeTracker
 {
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private static readonly object _lock = new();
 
-    private readonly List<Change> _changes = [];
-    private readonly Dictionary<long, List<Change>> _pendingChanges = [];
+    private readonly ChangeSet _changeSet = [];
+    private readonly Dictionary<long, ChangeSet> _txChangeSets = [];
 
     public void AcceptPendingChanges(long txId)
     {
-        if (
-            !_pendingChanges.TryGetValue(txId, out List<Change>? pendingChanges)
-            || pendingChanges == null
-        )
+        if (!_txChangeSets.TryGetValue(txId, out ChangeSet? pendingSet))
         {
             return;
         }
@@ -28,118 +24,62 @@ internal sealed class ChangeTracker
         {
             lock (_lock)
             {
-                List<Change> merged = Merge(_changes, pendingChanges);
-                _changes.Clear();
-                _changes.AddRange(merged);
+                ChangeSet merged = ChangeSet.Merge(_changeSet, pendingSet);
+                _changeSet.ReplaceRange(merged);
             }
         }
         finally
         {
-            _ = _pendingChanges.Remove(txId);
+            _ = _txChangeSets.Remove(txId);
         }
     }
 
-    public IImmutableList<Change> GetChanges()
+    public IImmutableList<Change> Changes
     {
-        lock (_lock)
+        get
         {
-            return _changes.ToImmutableList();
+            lock (_lock)
+            {
+                return _changeSet.ToImmutableList();
+            }
         }
     }
 
     public void MarkChangesAsWritten()
     {
-        _changes.RemoveAll(change => change.RowAction == RowAction.Delete);
-        foreach (Change change in _changes)
-        {
-            change.MarkAsWritten();
-        }
+        _changeSet.MarkAsWritten();
     }
 
     public void PendChange(Change change)
     {
         long writeTxId = change.WriteTxId;
-        if (!_pendingChanges.TryGetValue(writeTxId, out List<Change>? pendingChanges))
+        if (!_txChangeSets.TryGetValue(writeTxId, out ChangeSet? pendingSet))
         {
-            pendingChanges = [.. _changes];
-            _pendingChanges[writeTxId] = pendingChanges;
+            pendingSet = [.. _changeSet];
+            _txChangeSets[writeTxId] = pendingSet;
         }
 
-        Change? existing = pendingChanges.FirstOrDefault(existing =>
-            existing.Buffer.GetPrimaryKey().Equals(change.Buffer.GetPrimaryKey())
-        );
-        if (existing == null)
-        {
-            pendingChanges.Add(change);
-            return;
-        }
-
-        Change? merged = existing.Merge(change, false);
-        pendingChanges.Remove(existing);
-        if (merged != null)
-        {
-            pendingChanges.Add(merged);
-        }
+        pendingSet.Add(change);
     }
 
     public bool TryGetChange(object primaryKey, long txId, [NotNullWhen(true)] out Change? change)
     {
-        change = FindChange(txId, (buffer) => buffer.GetPrimaryKey().Equals(primaryKey));
+        change = FindChange(txId, (buffer) => buffer.PrimaryKey.Equals(primaryKey));
         return change != null;
     }
 
-    public bool TryGetChange(
-        ColumnInfo column,
-        object columnValue,
-        long txId,
-        [NotNullWhen(true)] out Change? change
-    )
+    public bool IsColumnValueUnique(ColumnMetadata column, object columnValue, long txId)
     {
-        change = FindChange(txId, (buffer) => buffer[column].Equals(columnValue));
-        return change != null;
-    }
-
-    private static List<Change> Merge(List<Change> original, List<Change> incoming)
-    {
-        Dictionary<object, Change> resultMap = original
-            .GroupBy(c => c.Buffer.GetPrimaryKey())
-            .ToDictionary(g => g.Key, g => g.First());
-
-        foreach (Change change in incoming)
-        {
-            object key = change.Buffer.GetPrimaryKey();
-            if (resultMap.TryGetValue(key, out Change? existing))
-            {
-                Change? merged = existing.Merge(change, true);
-                if (merged != null)
-                {
-                    resultMap[key] = merged;
-                }
-                else
-                {
-                    resultMap.Remove(key);
-                }
-            }
-            else
-            {
-                if (change.RowAction != RowAction.Insert)
-                {
-                    throw new InvalidOperationException(Strings.ModificationOfNonExistingRow());
-                }
-                resultMap[key] = change;
-            }
-        }
-
-        return [.. resultMap.Values];
+        return FindChange(txId, (buffer) => buffer[column].Equals(columnValue)) == null;
     }
 
     private Change? FindChange(long txId, Func<ValueBuffer, bool> predicate)
     {
-        if (_pendingChanges.TryGetValue(txId, out List<Change>? pendingChanges))
+        if (_txChangeSets.TryGetValue(txId, out ChangeSet? pendingSet))
         {
-            return pendingChanges.FirstOrDefault(change => predicate(change.Buffer));
+            return pendingSet.FirstOrDefault(change => predicate(change.Buffer));
         }
 
-        return _changes.FirstOrDefault(change => predicate(change.Buffer));
+        return _changeSet.FirstOrDefault(change => predicate(change.Buffer));
     }
 }

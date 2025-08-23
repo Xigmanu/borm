@@ -2,11 +2,11 @@
 
 public interface ISqlStatementFactory
 {
-    SqlStatement NewCreateTableStatement(ITable table);
-    SqlStatement NewDeleteStatement(ITable table);
+    SqlStatement NewCreateTableStatement(TableInfo tableSchema);
+    SqlStatement NewDeleteStatement(TableInfo tableSchema);
 
-    SqlStatement NewInsertStatement(ITable table);
+    SqlStatement NewInsertStatement(TableInfo tableSchema);
 
-    SqlStatement NewSelectAllStatement(ITable table);
-    SqlStatement NewUpdateStatement(ITable table);
+    SqlStatement NewSelectAllStatement(TableInfo tableSchema);
+    SqlStatement NewUpdateStatement(TableInfo tableSchema);
 }

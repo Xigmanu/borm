@@ -1,5 +1,5 @@
-﻿using Borm.Reflection;
-using static Borm.Tests.Mocks.EntityMetadataParserTestMocks;
+﻿using Borm.Model;
+using Borm.Reflection;
 
 namespace Borm.Tests.Reflection;
 
@@ -9,7 +9,7 @@ public sealed class MetadataParserTest
     public void Parse_ReturnsReflectedInfo_WithValidEntity()
     {
         // Arrange
-        Type entityType = typeof(ValidEntity);
+        Type entityType = typeof(EntityMetadataParserTestMocks.ValidEntity);
         int numColumns = 2;
         object[][] expectedPropData =
         [
@@ -47,5 +47,21 @@ public sealed class MetadataParserTest
 
         // Assert
         Assert.IsType<MemberAccessException>(exception);
+    }
+
+    private static class EntityMetadataParserTestMocks
+    {
+        [Entity("entities")]
+        public sealed class ValidEntity
+        {
+            [PrimaryKey(0)]
+            public int Id { get; }
+
+            [Column(1, "entity_name")]
+            public string? Name { get; }
+#pragma warning disable S1144
+            public bool Exists { get; }
+#pragma warning restore S1144
+        }
     }
 }

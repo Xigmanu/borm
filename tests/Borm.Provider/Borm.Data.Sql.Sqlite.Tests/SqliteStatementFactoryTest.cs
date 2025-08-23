@@ -1,16 +1,17 @@
-﻿using Borm.Tests.Common;
-
-namespace Borm.Data.Sql.Sqlite.Tests;
+﻿namespace Borm.Data.Sql.Sqlite.Tests;
 
 public class SqliteStatementFactoryTest
 {
+    private static readonly TableInfo AddressesTableSchema = CreateSimpleTableSchema();
+    private static readonly TableInfo PersonsTableSchema = CreateRelationalTableSchema();
+
     [Fact]
     public void NewCreateTableStatement_ReturnsSqliteCreateTableStatement_WithSimpleTable()
     {
         // Arrange
         string expectedSql =
             "CREATE TABLE addresses(id INTEGER PRIMARY KEY,address TEXT NOT NULL,address_1 TEXT NULL,city TEXT NOT NULL);";
-        TestTable table = Mocks.AddressesTable;
+        TableInfo table = AddressesTableSchema;
         SqliteStatementFactory statementFactory = new();
 
         // Act
@@ -27,7 +28,7 @@ public class SqliteStatementFactoryTest
         // Arrange
         string expectedSql =
             "CREATE TABLE persons(id INTEGER PRIMARY KEY,name TEXT UNIQUE NOT NULL,salary REAL NOT NULL,address INTEGER NULL REFERENCES addresses(id));";
-        TestTable table = Mocks.PersonsTable;
+        TableInfo table = PersonsTableSchema;
         SqliteStatementFactory statementFactory = new();
 
         // Act
@@ -43,7 +44,7 @@ public class SqliteStatementFactoryTest
     {
         // Arrange
         string expectedSql = "DELETE FROM addresses WHERE id = $id;";
-        TestTable table = Mocks.AddressesTable;
+        TableInfo table = AddressesTableSchema;
         string expectedPKName = SqlStatement.DefaultParameterPrefix + table.Columns.First().Name;
         SqliteStatementFactory statementFactory = new();
 
@@ -61,7 +62,7 @@ public class SqliteStatementFactoryTest
     {
         // Arrange
         string expectedSql = "INSERT INTO addresses VALUES($id,$address,$address_1,$city);";
-        TestTable table = Mocks.AddressesTable;
+        TableInfo table = AddressesTableSchema;
         string[] expectedParamNames = CreateExpectedParameterNames(table.Columns);
         SqliteStatementFactory statementFactory = new();
 
@@ -82,7 +83,7 @@ public class SqliteStatementFactoryTest
     {
         // Arrange
         string expectedSql = "SELECT * FROM addresses;";
-        TestTable table = Mocks.AddressesTable;
+        TableInfo table = AddressesTableSchema;
         SqliteStatementFactory statementFactory = new();
 
         // Act
@@ -99,7 +100,7 @@ public class SqliteStatementFactoryTest
         // Arrange
         string expectedSql =
             "UPDATE addresses SET address = $address,address_1 = $address_1,city = $city WHERE id = $id;";
-        TestTable table = Mocks.AddressesTable;
+        TableInfo table = AddressesTableSchema;
         string[] expectedParamNames = CreateExpectedParameterNames(table.Columns, 1);
         SqliteStatementFactory statementFactory = new();
 
@@ -120,7 +121,7 @@ public class SqliteStatementFactoryTest
     }
 
     private static string[] CreateExpectedParameterNames(
-        IEnumerable<IColumn> columns,
+        IEnumerable<ColumnInfo> columns,
         int offset = 0
     )
     {
@@ -130,5 +131,39 @@ public class SqliteStatementFactoryTest
             res[i] = SqlStatement.DefaultParameterPrefix + columns.ElementAt(i + offset).Name;
         }
         return res;
+    }
+
+    private static TableInfo CreateRelationalTableSchema()
+    {
+        List<ColumnInfo> columns =
+        [
+            new ColumnInfo("id", typeof(int), false, false),
+            new ColumnInfo("name", typeof(string), true, false),
+            new ColumnInfo("salary", typeof(double), false, false),
+            new ColumnInfo("address", typeof(int), false, true),
+        ];
+        return new TableInfo(
+            "persons",
+            columns,
+            columns[0],
+            new Dictionary<ColumnInfo, TableInfo>() { [columns[^1]] = AddressesTableSchema }
+        );
+    }
+
+    private static TableInfo CreateSimpleTableSchema()
+    {
+        List<ColumnInfo> columns =
+        [
+            new ColumnInfo("id", typeof(int), false, false),
+            new ColumnInfo("address", typeof(string), false, false),
+            new ColumnInfo("address_1", typeof(string), false, true),
+            new ColumnInfo("city", typeof(string), false, false),
+        ];
+        return new TableInfo(
+            "addresses",
+            columns,
+            columns[0],
+            new Dictionary<ColumnInfo, TableInfo>()
+        );
     }
 }
