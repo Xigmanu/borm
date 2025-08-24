@@ -5,8 +5,8 @@ namespace Borm;
 
 public sealed class BormConfiguration
 {
-    public required IDbStatementExecutor CommandExecutor { get; init; }
+    public required IDbCommandExecutor CommandExecutor { get; init; }
     public required EntityModel Model { get; init; }
-    public required ISqlStatementFactory SqlStatementFactory { get; init; }
+    public required ISqlCommandDefinitionFactory SqlStatementFactory { get; init; }
     public bool TransactionWriteOnCommit { get; init; } = false;
 }

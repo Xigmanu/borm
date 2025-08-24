@@ -1,6 +1,6 @@
 ﻿namespace Borm.Data.Sql.Sqlite.Tests;
 
-public class SqliteStatementFactoryTest
+public class SqliteCommandFactoryTest
 {
     private static readonly TableInfo AddressesTableSchema = CreateSimpleTableSchema();
     private static readonly TableInfo PersonsTableSchema = CreateRelationalTableSchema();
@@ -12,10 +12,10 @@ public class SqliteStatementFactoryTest
         string expectedSql =
             "CREATE TABLE addresses(id INTEGER PRIMARY KEY,address TEXT NOT NULL,address_1 TEXT NULL,city TEXT NOT NULL);";
         TableInfo table = AddressesTableSchema;
-        SqliteStatementFactory statementFactory = new();
+        SqliteCommandDefinitionFactory commandFactory = new();
 
         // Act
-        SqlStatement actual = statementFactory.NewCreateTableStatement(table);
+        DbCommandDefinition actual = commandFactory.CreateTable(table);
 
         // Assert
         Assert.Equal(expectedSql, actual.Sql);
@@ -29,10 +29,10 @@ public class SqliteStatementFactoryTest
         string expectedSql =
             "CREATE TABLE persons(id INTEGER PRIMARY KEY,name TEXT UNIQUE NOT NULL,salary REAL NOT NULL,address INTEGER NULL REFERENCES addresses(id));";
         TableInfo table = PersonsTableSchema;
-        SqliteStatementFactory statementFactory = new();
+        SqliteCommandDefinitionFactory commandFactory = new();
 
         // Act
-        SqlStatement actual = statementFactory.NewCreateTableStatement(table);
+        DbCommandDefinition actual = commandFactory.CreateTable(table);
 
         // Assert
         Assert.Equal(expectedSql, actual.Sql);
@@ -45,11 +45,11 @@ public class SqliteStatementFactoryTest
         // Arrange
         string expectedSql = "DELETE FROM addresses WHERE id = $id;";
         TableInfo table = AddressesTableSchema;
-        string expectedPKName = SqlStatement.DefaultParameterPrefix + table.Columns.First().Name;
-        SqliteStatementFactory statementFactory = new();
+        string expectedPKName = DbCommandDefinition.DefaultParameterPrefix + table.Columns.First().Name;
+        SqliteCommandDefinitionFactory commandFactory = new();
 
         // Act
-        SqlStatement actual = statementFactory.NewDeleteStatement(table);
+        DbCommandDefinition actual = commandFactory.Delete(table);
 
         // Assert
         Assert.Equal(expectedSql, actual.Sql);
@@ -64,10 +64,10 @@ public class SqliteStatementFactoryTest
         string expectedSql = "INSERT INTO addresses VALUES($id,$address,$address_1,$city);";
         TableInfo table = AddressesTableSchema;
         string[] expectedParamNames = CreateExpectedParameterNames(table.Columns);
-        SqliteStatementFactory statementFactory = new();
+        SqliteCommandDefinitionFactory commandFactory = new();
 
         // Act
-        SqlStatement actual = statementFactory.NewInsertStatement(table);
+        DbCommandDefinition actual = commandFactory.Insert(table);
 
         // Assert
         Assert.Equal(expectedSql, actual.Sql);
@@ -84,10 +84,10 @@ public class SqliteStatementFactoryTest
         // Arrange
         string expectedSql = "SELECT * FROM addresses;";
         TableInfo table = AddressesTableSchema;
-        SqliteStatementFactory statementFactory = new();
+        SqliteCommandDefinitionFactory commandFactory = new();
 
         // Act
-        SqlStatement actual = statementFactory.NewSelectAllStatement(table);
+        DbCommandDefinition actual = commandFactory.SelectAll(table);
 
         // Assert
         Assert.Equal(expectedSql, actual.Sql);
@@ -102,10 +102,10 @@ public class SqliteStatementFactoryTest
             "UPDATE addresses SET address = $address,address_1 = $address_1,city = $city WHERE id = $id;";
         TableInfo table = AddressesTableSchema;
         string[] expectedParamNames = CreateExpectedParameterNames(table.Columns, 1);
-        SqliteStatementFactory statementFactory = new();
+        SqliteCommandDefinitionFactory commandFactory = new();
 
         // Act
-        SqlStatement actual = statementFactory.NewUpdateStatement(table);
+        DbCommandDefinition actual = commandFactory.Update(table);
 
         // Assert
         Assert.Equal(expectedSql, actual.Sql);
@@ -115,7 +115,7 @@ public class SqliteStatementFactoryTest
             Assert.Equal(expectedParamNames[i], actual.Parameters[i].ParameterName);
         }
         Assert.Equal(
-            SqlStatement.DefaultParameterPrefix + table.PrimaryKey.Name,
+            DbCommandDefinition.DefaultParameterPrefix + table.PrimaryKey.Name,
             actual.Parameters[^1].ParameterName
         );
     }
@@ -128,7 +128,7 @@ public class SqliteStatementFactoryTest
         string[] res = new string[columns.Count() - offset];
         for (int i = 0; i < res.Length; i++)
         {
-            res[i] = SqlStatement.DefaultParameterPrefix + columns.ElementAt(i + offset).Name;
+            res[i] = DbCommandDefinition.DefaultParameterPrefix + columns.ElementAt(i + offset).Name;
         }
         return res;
     }

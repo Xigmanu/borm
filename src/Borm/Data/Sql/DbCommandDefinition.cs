@@ -3,13 +3,13 @@ using System.Data.Common;
 
 namespace Borm.Data.Sql;
 
-public sealed class SqlStatement
+public sealed class DbCommandDefinition
 {
     public const char DefaultParameterPrefix = '$';
     private readonly DbParameter[] _parameters;
     private readonly string _sql;
 
-    public SqlStatement(string sql, DbParameter[] parameters)
+    public DbCommandDefinition(string sql, DbParameter[] parameters)
     {
         _sql = sql;
         _parameters = parameters;

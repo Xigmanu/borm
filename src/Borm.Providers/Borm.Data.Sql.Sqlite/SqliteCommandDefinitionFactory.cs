@@ -3,7 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Borm.Data.Sql.Sqlite;
 
-public sealed class SqliteStatementFactory : ISqlStatementFactory
+public sealed class SqliteCommandDefinitionFactory : ISqlCommandDefinitionFactory
 {
     private const string CreateTableStatementFormat = "CREATE TABLE {0}({1});";
     private const string DeleteStatementFormat = "DELETE FROM {0} WHERE {1};";
@@ -11,7 +11,7 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
     private const string SelectAllStatementFormat = "SELECT * FROM {0};";
     private const string UpdateStatementFormat = "UPDATE {0} SET {1} WHERE {2};";
 
-    public SqlStatement NewCreateTableStatement(TableInfo tableSchema)
+    public DbCommandDefinition CreateTable(TableInfo tableSchema)
     {
         string tableName = tableSchema.Name;
         IEnumerable<ColumnInfo> columns = tableSchema.Columns;
@@ -38,10 +38,10 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
             .ToString();
 
         string sql = string.Format(CreateTableStatementFormat, tableName, columnDefinitionsStr);
-        return new SqlStatement(sql, []);
+        return new DbCommandDefinition(sql, []);
     }
 
-    public SqlStatement NewDeleteStatement(TableInfo tableSchema)
+    public DbCommandDefinition Delete(TableInfo tableSchema)
     {
         ColumnInfo primaryKey = tableSchema.PrimaryKey;
         (string expression, SqliteParameter[] parameters) = CreateParametrizedExpression(
@@ -49,26 +49,26 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
             (columnName, paramName) => $"{columnName} = {paramName}"
         );
         string sql = string.Format(DeleteStatementFormat, tableSchema.Name, expression);
-        return new SqlStatement(sql, parameters);
+        return new DbCommandDefinition(sql, parameters);
     }
 
-    public SqlStatement NewInsertStatement(TableInfo tableSchema)
+    public DbCommandDefinition Insert(TableInfo tableSchema)
     {
         (string expression, SqliteParameter[] parameters) = CreateParametrizedExpression(
             [.. tableSchema.Columns],
             (_, paramName) => paramName
         );
         string sql = string.Format(InsertStatementFormat, tableSchema.Name, expression);
-        return new SqlStatement(sql, parameters);
+        return new DbCommandDefinition(sql, parameters);
     }
 
-    public SqlStatement NewSelectAllStatement(TableInfo tableSchema)
+    public DbCommandDefinition SelectAll(TableInfo tableSchema)
     {
         string sql = string.Format(SelectAllStatementFormat, tableSchema.Name);
-        return new SqlStatement(sql, []);
+        return new DbCommandDefinition(sql, []);
     }
 
-    public SqlStatement NewUpdateStatement(TableInfo tableSchema)
+    public DbCommandDefinition Update(TableInfo tableSchema)
     {
         ColumnInfo primaryKey = tableSchema.PrimaryKey;
         ColumnInfo[] columns = [.. tableSchema.Columns.Where(col => !col.Equals(primaryKey))];
@@ -89,7 +89,7 @@ public sealed class SqliteStatementFactory : ISqlStatementFactory
             expression,
             $"{primaryKey.Name} = {conditionalParam.ParameterName}"
         );
-        return new SqlStatement(sql, parameters);
+        return new DbCommandDefinition(sql, parameters);
     }
 
     private static void AppendConstraints(

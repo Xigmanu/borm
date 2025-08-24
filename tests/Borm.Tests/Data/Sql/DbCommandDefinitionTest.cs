@@ -5,16 +5,16 @@ using Moq;
 
 namespace Borm.Tests.Data.Sql;
 
-public sealed class SqlStatementTest
+public sealed class DbCommandDefinitionTest
 {
     [Fact]
     public void Constructor_ShouldInitializeBatchQueue()
     {
         // Act
-        SqlStatement statement = new(string.Empty, []);
+        DbCommandDefinition command = new(string.Empty, []);
 
         // Assert
-        Assert.NotNull(statement.BatchQueue);
+        Assert.NotNull(command.BatchQueue);
     }
 
     [Fact]
@@ -28,7 +28,7 @@ public sealed class SqlStatementTest
             CreateParameter("name", DbType.String),
         ];
 
-        SqlStatement statement = new(sql, parameters);
+        DbCommandDefinition command = new(sql, parameters);
 
         Mock<IDbCommand> mockCommand = new();
         Mock<IDataParameterCollection> mockParams = new();
@@ -45,7 +45,7 @@ public sealed class SqlStatementTest
         mockCommand.Setup(c => c.Prepare());
 
         // Act
-        statement.Prepare(mockCommand.Object);
+        command.Prepare(mockCommand.Object);
 
         // Assert
         Assert.Equal(sql, mockCommand.Object.CommandText);

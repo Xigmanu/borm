@@ -6,19 +6,19 @@ namespace Borm.Data;
 
 internal sealed class DataAdapter
 {
-    private readonly IDbStatementExecutor _executor;
-    private readonly ISqlStatementFactory _statementFactory;
+    private readonly IDbCommandExecutor _executor;
+    private readonly ISqlCommandDefinitionFactory _commandFactory;
     private readonly TableGraph _tableGraph;
 
     public DataAdapter(
-        IDbStatementExecutor executor,
+        IDbCommandExecutor executor,
         TableGraph tableGraph,
-        ISqlStatementFactory statementFactory
+        ISqlCommandDefinitionFactory statementFactory
     )
     {
         _executor = executor;
         _tableGraph = tableGraph;
-        _statementFactory = statementFactory;
+        _commandFactory = statementFactory;
     }
 
     public void CreateTables()
@@ -27,8 +27,8 @@ internal sealed class DataAdapter
         foreach (Table table in sorted)
         {
             TableInfo tableSchema = table.GetTableSchema();
-            SqlStatement statement = _statementFactory.NewCreateTableStatement(tableSchema);
-            _executor.ExecuteBatch(statement);
+            DbCommandDefinition command = _commandFactory.CreateTable(tableSchema);
+            _executor.ExecuteBatch(command);
         }
     }
 
@@ -39,8 +39,8 @@ internal sealed class DataAdapter
         foreach (Table table in sorted)
         {
             TableInfo tableSchema = table.GetTableSchema();
-            SqlStatement statement = _statementFactory.NewSelectAllStatement(tableSchema);
-            using DbDataReader dataReader = _executor.ExecuteReader(statement);
+            DbCommandDefinition command = _commandFactory.SelectAll(tableSchema);
+            using DbDataReader dataReader = _executor.ExecuteReader(command);
             transaction.Execute(
                 table,
                 (arg, txId) => table.Load((DbDataReader)arg, txId),
@@ -54,10 +54,10 @@ internal sealed class DataAdapter
         IEnumerable<Table> sorted = _tableGraph.TopSort();
         foreach (Table table in sorted)
         {
-            IEnumerable<SqlStatement> statements = CreateUpdateStatements(table);
-            foreach (SqlStatement statement in statements)
+            IEnumerable<DbCommandDefinition> commands = CreateUpdateStatements(table);
+            foreach (DbCommandDefinition command in commands)
             {
-                _executor.ExecuteBatch(statement);
+                _executor.ExecuteBatch(command);
             }
             table.Tracker.MarkChangesAsWritten();
         }
@@ -68,35 +68,37 @@ internal sealed class DataAdapter
         IEnumerable<Table> sorted = _tableGraph.TopSort();
         foreach (Table table in sorted)
         {
-            IEnumerable<SqlStatement> statements = CreateUpdateStatements(table);
-            foreach (SqlStatement statement in statements)
+            IEnumerable<DbCommandDefinition> commands = CreateUpdateStatements(table);
+            foreach (DbCommandDefinition command in commands)
             {
-                await _executor.ExecuteBatchAsync(statement);
+                await _executor.ExecuteBatchAsync(command);
             }
         }
     }
 
-    private static SqlStatement GetOrCreateSqlStatement(
+    private static DbCommandDefinition GetOrCreateSqlStatement(
         TableInfo tableSchema,
         Change entry,
-        Dictionary<RowAction, SqlStatement> rowStateStatements,
-        Func<TableInfo, SqlStatement> factoryMethod
+        Dictionary<RowAction, DbCommandDefinition> rowStateStatements,
+        Func<TableInfo, DbCommandDefinition> factoryMethod
     )
     {
-        if (rowStateStatements.TryGetValue(entry.RowAction, out SqlStatement? cached))
+        if (rowStateStatements.TryGetValue(entry.RowAction, out DbCommandDefinition? cached))
         {
             return cached;
         }
 
-        SqlStatement statement = factoryMethod(tableSchema);
-        rowStateStatements[entry.RowAction] = statement;
-        return statement;
+        DbCommandDefinition command = factoryMethod(tableSchema);
+        rowStateStatements[entry.RowAction] = command;
+        return command;
     }
 
-    private Dictionary<RowAction, SqlStatement>.ValueCollection CreateUpdateStatements(Table table)
+    private Dictionary<RowAction, DbCommandDefinition>.ValueCollection CreateUpdateStatements(
+        Table table
+    )
     {
         IEnumerable<Change> changes = table.Tracker.Changes;
-        Dictionary<RowAction, SqlStatement> rowStateStatements = [];
+        Dictionary<RowAction, DbCommandDefinition> rowStateStatements = [];
         if (!changes.Any())
         {
             return rowStateStatements.Values;
@@ -106,39 +108,39 @@ internal sealed class DataAdapter
 
         foreach (Change entry in changes)
         {
-            SqlStatement statement;
+            DbCommandDefinition command;
             switch (entry.RowAction)
             {
                 case RowAction.Insert:
-                    statement = GetOrCreateSqlStatement(
+                    command = GetOrCreateSqlStatement(
                         tableSchema,
                         entry,
                         rowStateStatements,
-                        _statementFactory.NewInsertStatement
+                        _commandFactory.Insert
                     );
                     break;
                 case RowAction.Update:
-                    statement = GetOrCreateSqlStatement(
+                    command = GetOrCreateSqlStatement(
                         tableSchema,
                         entry,
                         rowStateStatements,
-                        _statementFactory.NewUpdateStatement
+                        _commandFactory.Update
                     );
                     break;
                 case RowAction.Delete:
-                    statement = GetOrCreateSqlStatement(
+                    command = GetOrCreateSqlStatement(
                         tableSchema,
                         entry,
                         rowStateStatements,
-                        _statementFactory.NewDeleteStatement
+                        _commandFactory.Delete
                     );
                     break;
                 default:
                     continue;
             }
 
-            Debug.Assert(!string.IsNullOrEmpty(statement.Sql));
-            statement.BatchQueue.Enqueue(entry.Buffer);
+            Debug.Assert(!string.IsNullOrEmpty(command.Sql));
+            command.BatchQueue.Enqueue(entry.Buffer);
         }
 
         return rowStateStatements.Values;

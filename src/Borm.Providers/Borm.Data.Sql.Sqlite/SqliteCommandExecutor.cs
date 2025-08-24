@@ -3,7 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Borm.Data.Sql.Sqlite;
 
-public sealed class SqliteCommandExecutor : IDbStatementExecutor
+public sealed class SqliteCommandExecutor : IDbCommandExecutor
 {
     private readonly string _connectionString;
 
@@ -12,31 +12,31 @@ public sealed class SqliteCommandExecutor : IDbStatementExecutor
         _connectionString = connectionString;
     }
 
-    public void ExecuteBatch(SqlStatement statement)
+    public void ExecuteBatch(DbCommandDefinition command)
     {
         using SqliteConnection connection = new(_connectionString);
-        using SqliteCommand command = connection.CreateCommand();
+        using SqliteCommand sqliteCommand = connection.CreateCommand();
 
         connection.Open();
         using SqliteTransaction transaction = connection.BeginTransaction();
-        command.Transaction = transaction;
+        sqliteCommand.Transaction = transaction;
 
         try
         {
-            statement.Prepare(command);
+            command.Prepare(sqliteCommand);
 
-            ParameterBatchQueue batchQueue = statement.BatchQueue;
+            ParameterBatchQueue batchQueue = command.BatchQueue;
             if (batchQueue.Count > 0)
             {
                 while (batchQueue.HasNext())
                 {
-                    batchQueue.SetParameterValues(command);
-                    _ = command.ExecuteNonQuery();
+                    batchQueue.SetParameterValues(sqliteCommand);
+                    _ = sqliteCommand.ExecuteNonQuery();
                 }
             }
             else
             {
-                _ = command.ExecuteNonQuery();
+                _ = sqliteCommand.ExecuteNonQuery();
             }
 
             transaction.Commit();
@@ -50,31 +50,31 @@ public sealed class SqliteCommandExecutor : IDbStatementExecutor
         connection.Close();
     }
 
-    public async Task ExecuteBatchAsync(SqlStatement statement)
+    public async Task ExecuteBatchAsync(DbCommandDefinition command)
     {
         await using SqliteConnection connection = new(_connectionString);
-        await using DbCommand command = connection.CreateCommand();
+        await using DbCommand dbCommand = connection.CreateCommand();
 
         await connection.OpenAsync();
         await using DbTransaction transaction = await connection.BeginTransactionAsync();
-        command.Transaction = transaction;
+        dbCommand.Transaction = transaction;
 
         try
         {
-            statement.Prepare(command);
+            command.Prepare(dbCommand);
 
-            ParameterBatchQueue batchQueue = statement.BatchQueue;
+            ParameterBatchQueue batchQueue = command.BatchQueue;
             if (batchQueue.Count > 0)
             {
                 while (batchQueue.HasNext())
                 {
-                    batchQueue.SetParameterValues(command);
-                    await command.ExecuteNonQueryAsync();
+                    batchQueue.SetParameterValues(dbCommand);
+                    await dbCommand.ExecuteNonQueryAsync();
                 }
             }
             else
             {
-                await command.ExecuteNonQueryAsync();
+                await dbCommand.ExecuteNonQueryAsync();
             }
 
             await transaction.CommitAsync();
@@ -89,19 +89,19 @@ public sealed class SqliteCommandExecutor : IDbStatementExecutor
         await connection.CloseAsync();
     }
 
-    public DbDataReader ExecuteReader(SqlStatement statement)
+    public DbDataReader ExecuteReader(DbCommandDefinition command)
     {
         using SqliteConnection connection = new(_connectionString);
         using SqliteTransaction transaction = connection.BeginTransaction();
-        using SqliteCommand command = connection.CreateCommand();
-        command.Transaction = transaction;
+        using SqliteCommand sqliteCommand = connection.CreateCommand();
+        sqliteCommand.Transaction = transaction;
 
         SqliteDataReader dataReader;
         connection.Open();
         try
         {
-            statement.Prepare(command);
-            dataReader = command.ExecuteReader();
+            command.Prepare(sqliteCommand);
+            dataReader = sqliteCommand.ExecuteReader();
         }
         catch
         {
