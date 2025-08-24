@@ -1,8 +1,8 @@
-﻿using Borm.Data;
-using static Borm.Tests.Mocks.ValueBufferMockHelper;
+﻿using static Borm.Tests.Mocks.ValueBufferMockHelper;
 using static Borm.Tests.Mocks.TableMocks;
+using Borm.Data.Storage;
 
-namespace Borm.Tests.Data;
+namespace Borm.Tests.Data.Storage;
 
 public sealed class ChangeSetTest
 {

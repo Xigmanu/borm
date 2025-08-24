@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using Borm.Properties;
 
-namespace Borm.Data;
+namespace Borm.Data.Storage;
 
 internal sealed class ChangeSet : IEnumerable<Change>
 {

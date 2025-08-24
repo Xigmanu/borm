@@ -1,8 +1,8 @@
-﻿using Borm.Data;
+﻿using Borm.Data.Storage;
 using Borm.Model.Metadata;
 using Borm.Tests.Mocks;
 
-namespace Borm.Tests.Data;
+namespace Borm.Tests.Data.Storage;
 
 public sealed class ValueBufferTest
 {

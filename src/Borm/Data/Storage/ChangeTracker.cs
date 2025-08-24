@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Borm.Model.Metadata;
 
-namespace Borm.Data;
+namespace Borm.Data.Storage;
 
 internal sealed class ChangeTracker
 {

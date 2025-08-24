@@ -1,4 +1,4 @@
-﻿namespace Borm.Data;
+﻿namespace Borm.Data.Storage;
 
 public sealed class TransactionIdMismatchException : InvalidOperationException
 {

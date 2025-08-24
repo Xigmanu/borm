@@ -1,4 +1,4 @@
-﻿using Borm.Data;
+﻿using Borm.Data.Storage;
 using Borm.Model.Metadata;
 
 namespace Borm.Tests.Mocks;

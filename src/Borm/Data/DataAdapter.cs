@@ -1,13 +1,14 @@
 ﻿using System.Data.Common;
 using System.Diagnostics;
 using Borm.Data.Sql;
+using Borm.Data.Storage;
 
 namespace Borm.Data;
 
 internal sealed class DataAdapter
 {
-    private readonly IDbCommandExecutor _executor;
     private readonly ISqlCommandDefinitionFactory _commandFactory;
+    private readonly IDbCommandExecutor _executor;
     private readonly TableGraph _tableGraph;
 
     public DataAdapter(

@@ -1,9 +1,9 @@
-﻿using Borm.Data;
+﻿using Borm.Data.Storage;
 using Borm.Model.Metadata;
 using static Borm.Tests.Mocks.EntityMetadataMocks;
 using static Borm.Tests.Mocks.TableMocks;
 
-namespace Borm.Tests.Data;
+namespace Borm.Tests.Data.Storage;
 
 public sealed class TableGraphBuilderTest
 {

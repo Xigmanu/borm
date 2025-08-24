@@ -1,6 +1,6 @@
-﻿using Borm.Data;
+﻿using Borm.Data.Storage;
 
-namespace Borm.Tests.Data;
+namespace Borm.Tests.Data.Storage;
 
 public sealed class TransactionIdMismatchExceptionTest
 {

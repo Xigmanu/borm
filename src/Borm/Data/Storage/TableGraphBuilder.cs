@@ -1,6 +1,6 @@
 ﻿using Borm.Model.Metadata;
 
-namespace Borm.Data;
+namespace Borm.Data.Storage;
 
 internal sealed class TableGraphBuilder
 {

@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Borm.Data;
+namespace Borm.Data.Storage;
 
 internal sealed class Change
 {

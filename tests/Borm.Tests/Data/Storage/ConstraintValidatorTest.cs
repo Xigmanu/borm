@@ -1,9 +1,9 @@
 ﻿using System.Data;
-using Borm.Data;
+using Borm.Data.Storage;
 using static Borm.Tests.Mocks.TableMocks;
 using static Borm.Tests.Mocks.ValueBufferMockHelper;
 
-namespace Borm.Tests.Data;
+namespace Borm.Tests.Data.Storage;
 
 public sealed class ConstraintValidatorTest
 {

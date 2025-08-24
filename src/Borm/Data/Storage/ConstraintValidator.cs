@@ -3,7 +3,7 @@ using Borm.Model;
 using Borm.Model.Metadata;
 using Borm.Properties;
 
-namespace Borm.Data;
+namespace Borm.Data.Storage;
 
 internal class ConstraintValidator
 {

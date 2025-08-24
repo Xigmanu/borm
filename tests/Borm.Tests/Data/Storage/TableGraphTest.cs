@@ -1,7 +1,7 @@
-﻿using Borm.Data;
+﻿using Borm.Data.Storage;
 using static Borm.Tests.Mocks.TableMocks;
 
-namespace Borm.Tests.Data;
+namespace Borm.Tests.Data.Storage;
 
 public sealed class TableGraphTest
 {

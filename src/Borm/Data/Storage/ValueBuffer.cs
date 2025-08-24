@@ -3,7 +3,7 @@ using System.Diagnostics;
 using Borm.Model;
 using Borm.Model.Metadata;
 
-namespace Borm.Data;
+namespace Borm.Data.Storage;
 
 internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnMetadata, object>>
 {

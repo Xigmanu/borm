@@ -1,4 +1,4 @@
-﻿using Borm.Data;
+﻿using Borm.Data.Storage;
 
 namespace Borm.Model.Metadata;
 

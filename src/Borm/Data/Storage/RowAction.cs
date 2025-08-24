@@ -1,4 +1,4 @@
-﻿namespace Borm.Data;
+﻿namespace Borm.Data.Storage;
 
 internal enum RowAction
 {
