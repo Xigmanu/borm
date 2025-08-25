@@ -1,8 +1,10 @@
 ﻿using System.Collections;
+using System.Diagnostics;
 using Borm.Properties;
 
 namespace Borm.Data.Storage;
 
+[DebuggerDisplay("Count = {_changePKMap.Count}")]
 internal sealed class ChangeSet : IEnumerable<Change>
 {
     private readonly Dictionary<object, Change> _changePKMap;
@@ -33,7 +35,10 @@ internal sealed class ChangeSet : IEnumerable<Change>
             }
             else
             {
-                if (incomingChange.RowAction != RowAction.Insert && incomingChange.WriteTxId != InternalTransaction.InitId)
+                if (
+                    incomingChange.RowAction != RowAction.Insert
+                    && incomingChange.WriteTxId != InternalTransaction.InitId
+                )
                 {
                     throw new InvalidOperationException(Strings.ModificationOfNonExistingRow());
                 }

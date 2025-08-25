@@ -1,8 +1,6 @@
 ﻿using System.Data;
-using System.Data.Common;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using Borm.Data.Sql;
 using Borm.Model;
 using Borm.Model.Metadata;
@@ -11,6 +9,7 @@ using Borm.Properties;
 namespace Borm.Data.Storage;
 
 [DebuggerTypeProxy(typeof(TableDebugView))]
+[DebuggerDisplay("Name = {Name}")]
 internal sealed class Table
 {
     private readonly ConstraintValidator _constraintValidator;

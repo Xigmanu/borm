@@ -18,7 +18,7 @@ public sealed class ResultSet
         {
             if (_cursor < 0 || _cursor >= _rows.Count)
             {
-                throw new InvalidOperationException(); // TODO
+                throw new InvalidOperationException("Cursor is not positioned on a valid row."); // TODO
             }
             return _rows[_cursor];
         }

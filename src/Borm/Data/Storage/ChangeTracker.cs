@@ -5,6 +5,7 @@ using Borm.Model.Metadata;
 
 namespace Borm.Data.Storage;
 
+[DebuggerDisplay("ChangeCount = {Changes.Count}")]
 internal sealed class ChangeTracker
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]

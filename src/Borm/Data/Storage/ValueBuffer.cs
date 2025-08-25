@@ -5,6 +5,7 @@ using Borm.Model.Metadata;
 
 namespace Borm.Data.Storage;
 
+[DebuggerDisplay("PrimaryKey = {PrimaryKey}")]
 internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnMetadata, object>>
 {
     private readonly Dictionary<ColumnMetadata, object> _valueMap = [];

@@ -1,5 +1,4 @@
-﻿using System.Data.Common;
-using Borm.Data.Sql;
+﻿using Borm.Data.Sql;
 using Borm.Data.Storage;
 
 namespace Borm.Data;

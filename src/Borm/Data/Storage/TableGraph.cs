@@ -1,5 +1,8 @@
-﻿namespace Borm.Data.Storage;
+﻿using System.Diagnostics;
 
+namespace Borm.Data.Storage;
+
+[DebuggerDisplay("TableCount = {TableCount}")]
 internal sealed class TableGraph
 {
     private readonly Dictionary<Type, Table> _tables;
