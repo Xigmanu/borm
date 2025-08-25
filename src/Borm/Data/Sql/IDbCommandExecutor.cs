@@ -1,10 +1,13 @@
-﻿using System.Data.Common;
-
-namespace Borm.Data.Sql;
+﻿namespace Borm.Data.Sql;
 
 public interface IDbCommandExecutor
 {
     void ExecuteBatch(DbCommandDefinition command);
+
     Task ExecuteBatchAsync(DbCommandDefinition command);
-    DbDataReader ExecuteReader(DbCommandDefinition command);
+
+    ResultSet ReadRows(DbCommandDefinition command);
+
+    // TODO Move this somewhere else for migrations
+    bool TableExists(string tableName);
 }

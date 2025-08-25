@@ -1,4 +1,6 @@
 ﻿using System.Data.Common;
+using System.Diagnostics;
+using Borm.Extensions;
 using Microsoft.Data.Sqlite;
 
 namespace Borm.Data.Sql.Sqlite;
@@ -89,27 +91,48 @@ public sealed class SqliteCommandExecutor : IDbCommandExecutor
         await connection.CloseAsync();
     }
 
-    public DbDataReader ExecuteReader(DbCommandDefinition command)
+    public ResultSet ReadRows(DbCommandDefinition command)
     {
         using SqliteConnection connection = new(_connectionString);
-        using SqliteTransaction transaction = connection.BeginTransaction();
         using SqliteCommand sqliteCommand = connection.CreateCommand();
-        sqliteCommand.Transaction = transaction;
 
-        SqliteDataReader dataReader;
         connection.Open();
         try
         {
             command.Prepare(sqliteCommand);
-            dataReader = sqliteCommand.ExecuteReader();
+            using DbDataReader reader = sqliteCommand.ExecuteReader();
+            return reader.ToResultSet();
         }
-        catch
+        finally
         {
-            transaction.Rollback();
             connection.Close();
-            throw;
         }
+    }
 
-        return dataReader;
+    public bool TableExists(string tableName)
+    {
+        string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name='{0}'";
+        using SqliteConnection connection = new(_connectionString);
+        using SqliteCommand sqliteCommand = connection.CreateCommand();
+        sqliteCommand.CommandText = string.Format(sql, tableName);
+
+        connection.Open();
+        try
+        {
+            using DbDataReader reader = sqliteCommand.ExecuteReader();
+            ResultSet resultSet = reader.ToResultSet();
+            Debug.Assert(resultSet.RowCount < 2);
+
+            if (resultSet.MoveNext())
+            {
+                return (string)resultSet.Current["name"] == tableName;
+            }
+
+            return false;
+        }
+        finally
+        {
+            connection.Close();
+        }
     }
 }

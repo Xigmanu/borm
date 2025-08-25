@@ -21,8 +21,11 @@ public class InternalTransaction : IDisposable
     private bool _isDisposed;
 
     internal InternalTransaction()
+        : this(IdProvider.Next()) { }
+
+    internal InternalTransaction(long id)
     {
-        id = IdProvider.Next();
+        this.id = id;
         exception = null;
         _operationQueue = [];
         _changedTables = [];

@@ -3,6 +3,7 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using Borm.Data.Sql;
 using Borm.Model;
 using Borm.Model.Metadata;
 using Borm.Properties;
@@ -162,24 +163,33 @@ internal sealed class Table
         _tracker.PendChange(change);
     }
 
-    internal void Load(DbDataReader dataReader, long txId)
+    internal void Load(ResultSet resultSet, long txId)
     {
         Debug.Assert(txId == InternalTransaction.InitId);
-        if (!dataReader.HasRows)
+        if (resultSet.RowCount == 0)
         {
             return;
         }
 
         ColumnMetadataCollection schemaColumns = _entityMetadata.Columns;
-        IEnumerable<string> dbColumnNames = dataReader.GetColumnSchema().Select(c => c.ColumnName);
 
-        while (dataReader.Read())
+        while (resultSet.MoveNext())
         {
             ValueBuffer rowBuffer = new();
-            foreach (string dbColumnName in dbColumnNames)
+            foreach ((string columnName, object columnValue) in resultSet.Current)
             {
-                ColumnMetadata schemaColumn = schemaColumns[dbColumnName]; // This might throw an exception when migrating
-                rowBuffer[schemaColumn] = dataReader.GetValue(dbColumnName);
+                ColumnMetadata schemaColumn = schemaColumns[columnName]; // This might throw an exception when migrating
+                if (columnValue is string columnValueStr)
+                {
+                    rowBuffer[schemaColumn] = TypeParser.Parse(
+                        columnValueStr,
+                        schemaColumn.DataType
+                    );
+                }
+                else
+                {
+                    rowBuffer[schemaColumn] = columnValue;
+                }
             }
 
             Change initChange = Change.Initial(rowBuffer, txId);
