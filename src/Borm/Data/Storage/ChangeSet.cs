@@ -33,7 +33,7 @@ internal sealed class ChangeSet : IEnumerable<Change>
             }
             else
             {
-                if (incomingChange.RowAction != RowAction.Insert)
+                if (incomingChange.RowAction != RowAction.Insert && incomingChange.WriteTxId != InternalTransaction.InitId)
                 {
                     throw new InvalidOperationException(Strings.ModificationOfNonExistingRow());
                 }
