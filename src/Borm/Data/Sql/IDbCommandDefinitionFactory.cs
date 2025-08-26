@@ -1,6 +1,6 @@
 ﻿namespace Borm.Data.Sql;
 
-public interface ISqlCommandDefinitionFactory
+public interface IDbCommandDefinitionFactory
 {
     DbCommandDefinition CreateTable(TableInfo tableSchema);
 

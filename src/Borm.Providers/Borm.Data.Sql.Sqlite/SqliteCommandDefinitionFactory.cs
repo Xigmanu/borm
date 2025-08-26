@@ -3,7 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Borm.Data.Sql.Sqlite;
 
-public sealed class SqliteCommandDefinitionFactory : ISqlCommandDefinitionFactory
+public sealed class SqliteCommandDefinitionFactory : IDbCommandDefinitionFactory
 {
     private const string CreateTableStatementFormat = "CREATE TABLE {0}({1});";
     private const string DeleteStatementFormat = "DELETE FROM {0} WHERE {1};";

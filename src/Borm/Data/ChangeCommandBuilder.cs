@@ -7,10 +7,10 @@ namespace Borm.Data;
 internal sealed class ChangeCommandBuilder
 {
     private readonly Dictionary<RowAction, DbCommandDefinition> _commandCache;
-    private readonly ISqlCommandDefinitionFactory _commandFactory;
+    private readonly IDbCommandDefinitionFactory _commandFactory;
     private readonly Table _table;
 
-    public ChangeCommandBuilder(Table table, ISqlCommandDefinitionFactory commandFactory)
+    public ChangeCommandBuilder(Table table, IDbCommandDefinitionFactory commandFactory)
     {
         _commandFactory = commandFactory;
         _table = table;

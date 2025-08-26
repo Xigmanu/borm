@@ -5,14 +5,14 @@ namespace Borm.Data;
 
 internal sealed class DataSynchronizer
 {
-    private readonly ISqlCommandDefinitionFactory _commandFactory;
+    private readonly IDbCommandDefinitionFactory _commandFactory;
     private readonly IDbCommandExecutor _executor;
     private readonly TableGraph _tableGraph;
 
     public DataSynchronizer(
         IDbCommandExecutor executor,
         TableGraph tableGraph,
-        ISqlCommandDefinitionFactory statementFactory
+        IDbCommandDefinitionFactory statementFactory
     )
     {
         _executor = executor;
