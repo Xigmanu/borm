@@ -20,11 +20,53 @@ public sealed class EntityMetadataTest
         Assert.IsType<ArgumentException>(exception);
     }
 
-    public void Equals_ShouldCheckIfEntityInfosAreEqual()
+    [Fact]
+    public void Equals_ReturnsFalse_WhenEntityNamesAreNotEqual()
     {
         // Arrange
+        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        ColumnMetadataCollection columns = new([pkColumn]);
+        EntityMetadata metadata = new("foo", typeof(object), columns);
+        EntityMetadata other = new("bar", typeof(object), columns);
+
         // Act
+        bool equals = metadata.Equals(other);
+
         // Assert
+        Assert.False(equals);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public void Equals_ReturnsFalse_WhenOtherIsOfDifferentTypeOrNull(object? other)
+    {
+        // Arrange
+        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        ColumnMetadataCollection columns = new([pkColumn]);
+        EntityMetadata metadata = new("foo", typeof(object), columns);
+
+        // Act
+        bool equals = metadata.Equals(other);
+
+        // Assert
+        Assert.False(equals);
+    }
+
+    [Fact]
+    public void Equals_ReturnsTrue_WhenEntityNamesAreEqual()
+    {
+        // Arrange
+        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        ColumnMetadataCollection columns = new([pkColumn]);
+        EntityMetadata metadata = new("foo", typeof(object), columns);
+        EntityMetadata other = new("foo", typeof(object), columns);
+
+        // Act
+        bool equals = metadata.Equals(other);
+
+        // Assert
+        Assert.True(equals);
     }
 
     [Fact]

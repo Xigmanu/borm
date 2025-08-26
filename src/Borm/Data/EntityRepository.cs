@@ -1,4 +1,6 @@
-﻿namespace Borm.Data;
+﻿using Borm.Data.Storage;
+
+namespace Borm.Data;
 
 internal sealed class EntityRepository<T> : IEntityRepository<T>
     where T : class

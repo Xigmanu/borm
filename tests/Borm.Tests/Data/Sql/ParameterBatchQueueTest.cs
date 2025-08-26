@@ -1,6 +1,6 @@
 ﻿using System.Data;
-using Borm.Data;
 using Borm.Data.Sql;
+using Borm.Data.Storage;
 using Borm.Model.Metadata;
 using Borm.Tests.Mocks;
 using Moq;

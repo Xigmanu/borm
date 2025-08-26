@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Borm.Data.Storage;
 using Borm.Properties;
 
 namespace Borm.Data;
@@ -20,8 +21,11 @@ public class InternalTransaction : IDisposable
     private bool _isDisposed;
 
     internal InternalTransaction()
+        : this(IdProvider.Next()) { }
+
+    internal InternalTransaction(long id)
     {
-        id = IdProvider.Next();
+        this.id = id;
         exception = null;
         _operationQueue = [];
         _changedTables = [];

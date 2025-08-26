@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Borm.Data;
+using Borm.Data.Storage;
 using Borm.Model;
 using Borm.Model.Metadata;
 using Borm.Properties;
@@ -9,18 +10,18 @@ namespace Borm;
 
 public sealed class DataContext
 {
-    private readonly BormConfiguration _configuration;
-    private readonly DataAdapter _dataAdapter;
+    private readonly BormConfig _configuration;
+    private readonly DataSynchronizer _dataSynchronizer;
     private readonly TableGraph _tableGraph;
 
-    public DataContext(BormConfiguration configuration)
+    public DataContext(BormConfig configuration)
     {
         _configuration = configuration;
         _tableGraph = new();
-        _dataAdapter = new(
+        _dataSynchronizer = new(
             configuration.CommandExecutor,
             _tableGraph,
-            configuration.SqlStatementFactory
+            configuration.CommandDefinitionFactory
         );
     }
 
@@ -81,19 +82,19 @@ public sealed class DataContext
         IEnumerable<Table> tables = new TableGraphBuilder(entityInfos).BuildAll();
         _tableGraph.AddTableRange(tables);
 
-        _dataAdapter.CreateTables();
+        _dataSynchronizer.SyncSchemaWithDataSource();
 
         OnInitialized();
     }
 
     public void SaveChanges()
     {
-        _dataAdapter.Update();
+        _dataSynchronizer.SaveChanges();
     }
 
     public Task SaveChangesAsync()
     {
-        return _dataAdapter.UpdateAsync();
+        return _dataSynchronizer.SaveChangesAsync();
     }
 
     private void OnInitialized()
