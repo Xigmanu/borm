@@ -10,18 +10,18 @@ namespace Borm;
 
 public sealed class DataContext
 {
-    private readonly BormConfiguration _configuration;
+    private readonly BormConfig _configuration;
     private readonly DataSynchronizer _dataSynchronizer;
     private readonly TableGraph _tableGraph;
 
-    public DataContext(BormConfiguration configuration)
+    public DataContext(BormConfig configuration)
     {
         _configuration = configuration;
         _tableGraph = new();
         _dataSynchronizer = new(
             configuration.CommandExecutor,
             _tableGraph,
-            configuration.SqlStatementFactory
+            configuration.CommandDefinitionFactory
         );
     }
 
