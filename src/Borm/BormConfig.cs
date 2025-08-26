@@ -25,8 +25,8 @@ public sealed class BormConfig
 
     public sealed class Builder
     {
+        private IDbCommandDefinitionFactory? _commandDefinitionFactory;
         private IDbCommandExecutor? _commandExecutor;
-        private IDbCommandDefinitionFactory? _commandFactory;
         private EntityModel? _model;
         private bool _txWriteOnCommit;
 
@@ -45,7 +45,7 @@ public sealed class BormConfig
             {
                 throw new InvalidOperationException("Command executor must be provided");
             }
-            if (_commandFactory == null)
+            if (_commandDefinitionFactory == null)
             {
                 throw new InvalidOperationException("Command definition factory must be provided");
             }
@@ -53,15 +53,17 @@ public sealed class BormConfig
             return new BormConfig(
                 _commandExecutor,
                 _model,
-                _commandFactory,
+                _commandDefinitionFactory,
                 _txWriteOnCommit
             );
         }
 
-        public Builder CommandDefinitionFactory(IDbCommandDefinitionFactory definitionFactory)
+        public Builder CommandDefinitionFactory(
+            IDbCommandDefinitionFactory commandDefinitionFactory
+        )
         {
-            ArgumentNullException.ThrowIfNull(definitionFactory);
-            _commandFactory = definitionFactory;
+            ArgumentNullException.ThrowIfNull(commandDefinitionFactory);
+            _commandDefinitionFactory = commandDefinitionFactory;
             return this;
         }
 
@@ -69,6 +71,13 @@ public sealed class BormConfig
         {
             ArgumentNullException.ThrowIfNull(commandExecutor);
             _commandExecutor = commandExecutor;
+            return this;
+        }
+
+        public Builder InMemory()
+        {
+            _commandExecutor = new InMemoryCommandExecutor();
+            _commandDefinitionFactory = new InMemoryCommandDefinitionFactory();
             return this;
         }
 

@@ -6,7 +6,7 @@ public interface IDbCommandExecutor
 
     Task ExecuteBatchAsync(DbCommandDefinition command);
 
-    ResultSet ReadRows(DbCommandDefinition command);
+    ResultSet Query(DbCommandDefinition command);
 
     // TODO Move this somewhere else for migrations
     bool TableExists(string tableName);

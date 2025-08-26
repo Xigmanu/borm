@@ -91,7 +91,7 @@ public sealed class SqliteCommandExecutor : IDbCommandExecutor
         await connection.CloseAsync();
     }
 
-    public ResultSet ReadRows(DbCommandDefinition command)
+    public ResultSet Query(DbCommandDefinition command)
     {
         using SqliteConnection connection = new(_connectionString);
         using SqliteCommand sqliteCommand = connection.CreateCommand();

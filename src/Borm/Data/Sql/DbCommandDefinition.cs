@@ -6,6 +6,8 @@ namespace Borm.Data.Sql;
 public sealed class DbCommandDefinition
 {
     public const char DefaultParameterPrefix = '$';
+    internal static readonly DbCommandDefinition Empty = new("sql", []);
+
     private readonly DbParameter[] _parameters;
     private readonly string _sql;
 
