@@ -5,6 +5,7 @@ using Borm.Data.Sql;
 using Borm.Model;
 using Borm.Model.Metadata;
 using Borm.Properties;
+using Borm.Util;
 
 namespace Borm.Data.Storage;
 
@@ -183,7 +184,7 @@ internal sealed class Table
                 ColumnMetadata schemaColumn = schemaColumns[columnName]; // This might throw an exception when migrating
                 if (columnValue is string columnValueStr)
                 {
-                    rowBuffer[schemaColumn] = TypeParser.Parse(
+                    rowBuffer[schemaColumn] = ColumnDataTypeHelper.Parse(
                         columnValueStr,
                         schemaColumn.DataType
                     );

@@ -26,6 +26,7 @@ internal static class SqliteTypeHelper
             case Type _ when type == typeof(bool):
             case Type _ when type == typeof(string):
             case Type _ when type == typeof(Guid):
+            case Type _ when type == typeof(DateTime):
                 return SqliteType.Text;
             default:
                 throw new NotSupportedException(Strings.TypeNotSupported(type.FullName!));
