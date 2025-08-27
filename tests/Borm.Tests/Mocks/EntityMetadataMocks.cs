@@ -54,6 +54,13 @@ internal static class EntityMetadataMocks
             }
         );
         metadata.Binding = binding;
+        metadata.Validator = (entity) =>
+        {
+            if (string.IsNullOrWhiteSpace(((AddressEntity)entity).Address))
+            {
+                throw new InvalidOperationException(name);
+            }
+        };
 
         return metadata;
     }
@@ -147,8 +154,7 @@ internal static class EntityMetadataMocks
                 buffer[columns["id"]] = person.Id;
                 buffer[columns["name"]] = person.Name;
                 buffer[columns["salary"]] = person.Salary;
-                buffer[columns["address"]] =
-                    person.Address == null ? DBNull.Value : person.Address.Id;
+                buffer[columns["address"]] = person.Address == null ? DBNull.Value : person.Address;
                 return buffer;
             }
         );
@@ -183,6 +189,17 @@ internal static class EntityMetadataMocks
         public override int GetHashCode()
         {
             return HashCode.Combine(Id, Address, Address_1, City);
+        }
+
+        internal sealed class Validator : IEntityValidator<AddressEntity>
+        {
+            public void Validate(AddressEntity entity)
+            {
+                if (string.IsNullOrWhiteSpace(entity.Address))
+                {
+                    throw new InvalidOperationException();
+                }
+            }
         }
     }
 

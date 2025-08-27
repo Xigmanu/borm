@@ -8,8 +8,7 @@ using Borm.Properties;
 
 namespace Borm.Data.Storage;
 
-[DebuggerTypeProxy(typeof(TableDebugView))]
-[DebuggerDisplay("Name = {Name}")]
+[DebuggerDisplay("Name = {Name}"), DebuggerTypeProxy(typeof(TableDebugView))]
 internal sealed class Table
 {
     private readonly ConstraintValidator _constraintValidator;
@@ -46,6 +45,8 @@ internal sealed class Table
 
     public void Delete(object entity, long txId)
     {
+        Debug.Assert(entity.GetType().Equals(_entityMetadata.DataType));
+
         ValueBuffer buffer = _entityMetadata.Binding.ToValueBuffer(entity);
         object primaryKey = buffer.PrimaryKey;
 
@@ -108,22 +109,26 @@ internal sealed class Table
 
     public void Insert(object entity, long txId)
     {
+        Debug.Assert(entity.GetType().Equals(_entityMetadata.DataType));
+
         _entityMetadata.Validator?.Invoke(entity);
 
         ValueBuffer incoming = _entityMetadata.Binding.ToValueBuffer(entity);
         object primaryKey = incoming.PrimaryKey;
-
         if (_tracker.TryGetChange(primaryKey, txId, out _))
         {
             throw new ConstraintException(Strings.PrimaryKeyConstraintViolation(Name, primaryKey));
         }
-
         _constraintValidator.ValidateBuffer(incoming, txId);
 
         IEnumerable<EntityMaterializer.ResolvedForeignKey> resolvedKeys =
             _materializer.ResolveForeignKeys(incoming, txId);
         foreach (EntityMaterializer.ResolvedForeignKey resolvedKey in resolvedKeys)
         {
+            if (!resolvedKey.ChangeExists)
+            {
+                ForeignKeyRelations[resolvedKey.Column].Insert(resolvedKey.RawValue, txId);
+            }
             incoming[resolvedKey.Column] = resolvedKey.ResolvedKey;
         }
 
@@ -138,7 +143,9 @@ internal sealed class Table
 
     public void Update(object entity, long txId)
     {
-        EntityMetadata.Validator?.Invoke(entity);
+        Debug.Assert(entity.GetType().Equals(_entityMetadata.DataType));
+
+        _entityMetadata.Validator?.Invoke(entity);
 
         ValueBuffer incoming = _entityMetadata.Binding.ToValueBuffer(entity);
         object primaryKey = incoming.PrimaryKey;
@@ -151,10 +158,6 @@ internal sealed class Table
             _materializer.ResolveForeignKeys(incoming, txId);
         foreach (EntityMaterializer.ResolvedForeignKey resolvedKey in resolvedKeys)
         {
-            if (!resolvedKey.ChangeExists)
-            {
-                ForeignKeyRelations[resolvedKey.Column].Insert(resolvedKey.RawValue, txId);
-            }
             incoming[resolvedKey.Column] = resolvedKey.ResolvedKey;
         }
 
