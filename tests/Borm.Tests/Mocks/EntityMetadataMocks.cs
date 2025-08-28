@@ -1,6 +1,7 @@
 ﻿using Borm.Data.Storage;
 using Borm.Model;
 using Borm.Model.Metadata;
+using Borm.Tests.Common;
 
 namespace Borm.Tests.Mocks;
 
@@ -95,11 +96,12 @@ internal static class EntityMetadataMocks
         EntityConversionBinding binding = new(
             (buffer) =>
             {
-                return new EmployeeEntity(
-                    (int)buffer["id"],
-                    (int)buffer["person_id"],
-                    (bool)buffer["is_active"]
-                );
+                return new EmployeeEntity()
+                {
+                    Id = (int)buffer["id"],
+                    Person = (int)buffer["person_id"],
+                    IsActive = (bool)buffer["is_active"],
+                };
             },
             (entity) =>
             {
@@ -160,93 +162,5 @@ internal static class EntityMetadataMocks
         );
         metadata.Binding = binding;
         return metadata;
-    }
-
-    [Entity("addresses")]
-    internal sealed class AddressEntity(int id, string address, string? address_1, string city)
-    {
-        [Column(1, "address")]
-        public string Address { get; } = address;
-
-        [Column(2, "address_1")]
-        public string? Address_1 { get; } = address_1;
-
-        [Column(3, "city")]
-        public string City { get; } = city;
-
-        [PrimaryKey(0)]
-        public int Id { get; } = id;
-
-        public override bool Equals(object? obj)
-        {
-            return obj is AddressEntity other
-                && Id.Equals(other.Id)
-                && Address.Equals(other.Address)
-                && Address_1 == other.Address_1
-                && City.Equals(other.City);
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Id, Address, Address_1, City);
-        }
-
-        internal sealed class Validator : IEntityValidator<AddressEntity>
-        {
-            public void Validate(AddressEntity entity)
-            {
-                if (string.IsNullOrWhiteSpace(entity.Address))
-                {
-                    throw new InvalidOperationException();
-                }
-            }
-        }
-    }
-
-    [Entity("employees")]
-    internal sealed class EmployeeEntity(int id, int person_id, bool is_active)
-    {
-        [PrimaryKey(0, "id")]
-        public int Id { get; } = id;
-
-        [Column(2, "is_active")]
-        public bool IsActive { get; } = is_active;
-
-        [ForeignKey(1, "person_id", typeof(PersonEntity), IsUnique = true)]
-        public int Person { get; } = person_id;
-    }
-
-    [Entity("persons")]
-    internal sealed class PersonEntity(int id, string name, double salary, AddressEntity? address)
-    {
-        [ForeignKey(3, "address", typeof(AddressEntity))]
-        public AddressEntity? Address { get; } = address;
-
-        [PrimaryKey(0)]
-        public int Id { get; } = id;
-
-        [Column(1, "name")]
-        public string Name { get; } = name;
-
-        [Column(2, "salary")]
-        public double Salary { get; } = salary;
-
-        public override bool Equals(object? obj)
-        {
-            return obj is PersonEntity other
-                && Id.Equals(other.Id)
-                && Name.Equals(other.Name)
-                && Salary.Equals(other.Salary)
-                && (
-                    Address is not null && Address.Equals(other.Address)
-                    || (other.Address is not null && other.Address.Equals(Address))
-                    || Address == other.Address
-                );
-        }
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(Id, Name, Salary, Address);
-        }
     }
 }
