@@ -5,11 +5,10 @@ using Borm.Data.Storage;
 using Borm.Model;
 using Borm.Model.Metadata;
 using Borm.Tests.Common;
-using static Borm.Tests.Mocks.EntityMetadataMocks;
 using static Borm.Tests.Mocks.TableMocks;
 using static Borm.Tests.Mocks.ValueBufferMockHelper;
 
-namespace Borm.Tests.Data;
+namespace Borm.Tests.Data.Storage;
 
 public sealed class TableTest
 {
@@ -356,5 +355,23 @@ public sealed class TableTest
         // Assert
         Assert.NotNull(exception);
         Assert.Equal(table.EntityMetadata.Name, exception.Message);
+    }
+
+    [Fact]
+    public void Update_ThrowsException_WhenForeignKeyDoesNotExist()
+    {
+        // Arrange
+        Table addresses = CreateAddressesTable();
+        Table persons = CreatePersonsTable(addresses);
+        AddressEntity address = new(1, string.Empty, null, "city");
+        PersonEntity person = new(1, "name", 42.619, address);
+        long txId = 0;
+
+        // Act
+        Exception? exception = Record.Exception(() => persons.Update(person, txId));
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<RowNotFoundException>(exception);
     }
 }
