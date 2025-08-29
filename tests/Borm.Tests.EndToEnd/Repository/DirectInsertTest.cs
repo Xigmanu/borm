@@ -9,7 +9,34 @@ namespace Borm.Tests.EndToEnd.Repository;
 public sealed class DirectInsertTest
 {
     [Fact]
-    public void Direct_InsertInvalidSimpleEntity()
+    public void InvalidSimpleEntity_WithNullableConstraintViolation()
+    {
+        // Arrange
+        DataContext context = DataContextProvider.CreateDataContext();
+        context.Initialize();
+
+        AddressEntity entity = new(1, "address", "address2", null!);
+        IEntityRepository<AddressEntity> repository = context.GetRepository<AddressEntity>();
+
+        // Act
+        Exception? exception = Record.Exception(() => repository.Insert(entity));
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<InvalidOperationException>(exception);
+        Assert.Equal(Strings.TransactionFailed(), exception.Message);
+
+        Exception? inner = exception.InnerException;
+        Assert.NotNull(inner);
+        Assert.IsType<ConstraintException>(inner);
+        Assert.Equal(Strings.NullableConstraintViolation("city", "addresses"), inner.Message);
+
+        IEnumerable<AddressEntity> addresses = repository.Select();
+        Assert.Empty(addresses);
+    }
+
+    [Fact]
+    public void InvalidSimpleEntity_WithValidationFail()
     {
         // Arrange
         DataContext context = DataContextProvider.CreateDataContext();
@@ -36,7 +63,24 @@ public sealed class DirectInsertTest
     }
 
     [Fact]
-    public void Direct_InsertValidComplexRelationalEntity_WithForeignKeyCollision()
+    public void NullEntity()
+    {
+        // Arrange
+        DataContext context = DataContextProvider.CreateDataContext();
+        context.Initialize();
+
+        IEntityRepository<AddressEntity> repository = context.GetRepository<AddressEntity>();
+
+        // Act
+        Exception? exception = Record.Exception(() => repository.Insert(null!));
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<ArgumentNullException>(exception);
+    }
+
+    [Fact]
+    public void ValidComplexRelationalEntity_WithForeignKeyCollision()
     {
         // Arrange
         DataContext context = DataContextProvider.CreateDataContext();
@@ -63,7 +107,7 @@ public sealed class DirectInsertTest
     }
 
     [Fact]
-    public void Direct_InsertValidComplexRelationalEntity_WithoutForeignKeyCollision()
+    public void ValidComplexRelationalEntity_WithoutForeignKeyCollision()
     {
         // Arrange
         DataContext context = DataContextProvider.CreateDataContext();
@@ -89,7 +133,7 @@ public sealed class DirectInsertTest
     }
 
     [Fact]
-    public void Direct_InsertValidComplexRelationalEntity_WithoutForeignKeyCollision_WithInvalidDependency()
+    public void ValidComplexRelationalEntity_WithoutForeignKeyCollision_WithInvalidDependency()
     {
         // Arrange
         DataContext context = DataContextProvider.CreateDataContext();
@@ -121,7 +165,7 @@ public sealed class DirectInsertTest
     }
 
     [Fact]
-    public void Direct_InsertValidSimpleEntity_WithoutSavingChanges()
+    public void ValidSimpleEntity_WithoutSavingChanges()
     {
         // Arrange
         DataContext context = DataContextProvider.CreateDataContext();
@@ -141,7 +185,7 @@ public sealed class DirectInsertTest
     }
 
     [Fact]
-    public void Direct_InsertValidSimpleEntity_WithPrimaryKeyCollision_WithoutSavingChanges()
+    public void ValidSimpleEntity_WithPrimaryKeyCollision_WithoutSavingChanges()
     {
         // Arrange
         DataContext context = DataContextProvider.CreateDataContext();
@@ -169,7 +213,7 @@ public sealed class DirectInsertTest
     }
 
     [Fact]
-    public void Direct_InsertValidSimpleEntity_WithPrimaryKeyCollision_WithSavingChanges()
+    public void ValidSimpleEntity_WithPrimaryKeyCollision_WithSavingChanges()
     {
         // Arrange
         DataContext context = DataContextProvider.CreateDataContext();
@@ -198,7 +242,7 @@ public sealed class DirectInsertTest
     }
 
     [Fact]
-    public void Direct_InsertValidSimpleEntity_WithSavingChanges()
+    public void ValidSimpleEntity_WithSavingChanges()
     {
         // Arrange
         DataContext context = DataContextProvider.CreateDataContext();
@@ -219,7 +263,7 @@ public sealed class DirectInsertTest
     }
 
     [Fact]
-    public void Direct_InsertValidSimpleRelationalEntity()
+    public void ValidSimpleRelationalEntity()
     {
         // Arrange
         DataContext context = DataContextProvider.CreateDataContext();
@@ -247,7 +291,7 @@ public sealed class DirectInsertTest
     }
 
     [Fact]
-    public void Direct_InsertValidSimpleRelationalEntity_WithNoPrimaryKeyCollision()
+    public void ValidSimpleRelationalEntity_WithNoPrimaryKeyCollision()
     {
         // Arrange
         DataContext context = DataContextProvider.CreateDataContext();
