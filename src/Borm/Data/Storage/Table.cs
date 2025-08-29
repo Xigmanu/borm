@@ -159,6 +159,15 @@ internal sealed class Table
             _materializer.ResolveForeignKeys(incoming, txId);
         foreach (EntityMaterializer.ResolvedForeignKey resolvedKey in resolvedKeys)
         {
+            if (!resolvedKey.ChangeExists)
+            {
+                Table parent = _foreignKeyRelations[resolvedKey.Column];
+                throw new RowNotFoundException(
+                    Strings.RowNotFound(parent.Name, resolvedKey.ResolvedKey),
+                    parent.Name,
+                    resolvedKey.ResolvedKey
+                );
+            }
             incoming[resolvedKey.Column] = resolvedKey.ResolvedKey;
         }
 
