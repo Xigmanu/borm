@@ -38,79 +38,20 @@ public sealed class DirectUpdateTest
     }
 
     [Fact]
-    public void SimpleValidEntity_WithoutPrimaryKeyCollision()
+    public void NullEntity()
     {
         // Arrange
         DataContext context = DataContextProvider.CreateDataContext();
         context.Initialize();
 
-        AddressEntity address = new(1, "address", "address2", "city");
-        AddressEntity newAddress = new(2, "address", null, "city");
         IEntityRepository<AddressEntity> repository = context.GetRepository<AddressEntity>();
 
         // Act
-        repository.Insert(address);
-        Exception? exception = Record.Exception(() => repository.Update(newAddress));
+        Exception? exception = Record.Exception(() => repository.Update(null!));
 
         // Assert
-        IEnumerable<AddressEntity> addresses = repository.Select();
-
-        Assert.Single(addresses);
-        Assert.Equal(address, addresses.First());
-
         Assert.NotNull(exception);
-        Assert.IsType<InvalidOperationException>(exception);
-        Assert.Equal(Strings.TransactionFailed(), exception.Message);
-
-        Exception? inner = exception.InnerException;
-        Assert.NotNull(inner);
-        Assert.IsType<RowNotFoundException>(inner);
-        Assert.Equal(Strings.RowNotFound("addresses", newAddress.Id), inner.Message);
-    }
-
-    [Fact]
-    public void SimpleValidEntity_WithoutSavingChanges()
-    {
-        // Arrange
-        DataContext context = DataContextProvider.CreateDataContext();
-        context.Initialize();
-
-        AddressEntity address = new(1, "address", "address2", "city");
-        AddressEntity newAddress = new(1, "address", null, "city");
-        IEntityRepository<AddressEntity> repository = context.GetRepository<AddressEntity>();
-
-        // Act
-        repository.Insert(address);
-        repository.Update(newAddress);
-
-        // Assert
-        IEnumerable<AddressEntity> addresses = repository.Select();
-
-        Assert.Single(addresses);
-        Assert.Equal(newAddress, addresses.First());
-    }
-
-    [Fact]
-    public void SimpleValidEntity_WithSavingChanges()
-    {
-        // Arrange
-        DataContext context = DataContextProvider.CreateDataContext();
-        context.Initialize();
-
-        AddressEntity address = new(1, "address", "address2", "city");
-        AddressEntity newAddress = new(1, "address", null, "city");
-        IEntityRepository<AddressEntity> repository = context.GetRepository<AddressEntity>();
-
-        // Act
-        repository.Insert(address);
-        context.SaveChanges();
-        repository.Update(newAddress);
-
-        // Assert
-        IEnumerable<AddressEntity> addresses = repository.Select();
-
-        Assert.Single(addresses);
-        Assert.Equal(newAddress, addresses.First());
+        Assert.IsType<ArgumentNullException>(exception);
     }
 
     [Fact]
@@ -184,6 +125,82 @@ public sealed class DirectUpdateTest
         Exception? inner = exception.InnerException;
         Assert.IsType<RowNotFoundException>(inner);
         Assert.Equal(Strings.RowNotFound("addresses", 2), inner.Message);
+    }
+
+    [Fact]
+    public void ValidSimpleEntity_WithoutPrimaryKeyCollision()
+    {
+        // Arrange
+        DataContext context = DataContextProvider.CreateDataContext();
+        context.Initialize();
+
+        AddressEntity address = new(1, "address", "address2", "city");
+        AddressEntity newAddress = new(2, "address", null, "city");
+        IEntityRepository<AddressEntity> repository = context.GetRepository<AddressEntity>();
+
+        // Act
+        repository.Insert(address);
+        Exception? exception = Record.Exception(() => repository.Update(newAddress));
+
+        // Assert
+        IEnumerable<AddressEntity> addresses = repository.Select();
+
+        Assert.Single(addresses);
+        Assert.Equal(address, addresses.First());
+
+        Assert.NotNull(exception);
+        Assert.IsType<InvalidOperationException>(exception);
+        Assert.Equal(Strings.TransactionFailed(), exception.Message);
+
+        Exception? inner = exception.InnerException;
+        Assert.NotNull(inner);
+        Assert.IsType<RowNotFoundException>(inner);
+        Assert.Equal(Strings.RowNotFound("addresses", newAddress.Id), inner.Message);
+    }
+
+    [Fact]
+    public void ValidSimpleEntity_WithoutSavingChanges()
+    {
+        // Arrange
+        DataContext context = DataContextProvider.CreateDataContext();
+        context.Initialize();
+
+        AddressEntity address = new(1, "address", "address2", "city");
+        AddressEntity newAddress = new(1, "address", null, "city");
+        IEntityRepository<AddressEntity> repository = context.GetRepository<AddressEntity>();
+
+        // Act
+        repository.Insert(address);
+        repository.Update(newAddress);
+
+        // Assert
+        IEnumerable<AddressEntity> addresses = repository.Select();
+
+        Assert.Single(addresses);
+        Assert.Equal(newAddress, addresses.First());
+    }
+
+    [Fact]
+    public void ValidSimpleEntity_WithSavingChanges()
+    {
+        // Arrange
+        DataContext context = DataContextProvider.CreateDataContext();
+        context.Initialize();
+
+        AddressEntity address = new(1, "address", "address2", "city");
+        AddressEntity newAddress = new(1, "address", null, "city");
+        IEntityRepository<AddressEntity> repository = context.GetRepository<AddressEntity>();
+
+        // Act
+        repository.Insert(address);
+        context.SaveChanges();
+        repository.Update(newAddress);
+
+        // Assert
+        IEnumerable<AddressEntity> addresses = repository.Select();
+
+        Assert.Single(addresses);
+        Assert.Equal(newAddress, addresses.First());
     }
 
     [Fact]

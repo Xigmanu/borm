@@ -8,6 +8,23 @@ namespace Borm.Tests.EndToEnd.Repository;
 public sealed class DirectDeleteTest
 {
     [Fact]
+    public void NullEntity()
+    {
+        // Arrange
+        DataContext context = DataContextProvider.CreateDataContext();
+        context.Initialize();
+
+        IEntityRepository<AddressEntity> repository = context.GetRepository<AddressEntity>();
+
+        // Act
+        Exception? exception = Record.Exception(() => repository.Delete(null!));
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<ArgumentNullException>(exception);
+    }
+
+    [Fact]
     public void ValidComplexRelationalEntity_WithForeignKeyCollision()
     {
         // Arrange
