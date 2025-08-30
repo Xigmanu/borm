@@ -25,6 +25,7 @@ public class SqliteTypeHelperTest
         [typeof(bool)],
         [typeof(string)],
         [typeof(Guid)],
+        [typeof(DateTime)],
     ];
 
     [Theory]

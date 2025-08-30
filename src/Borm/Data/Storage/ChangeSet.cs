@@ -19,8 +19,16 @@ internal sealed class ChangeSet : IEnumerable<Change>
         _changePKMap = changePkMap;
     }
 
+    public int Count => _changePKMap.Count;
+
     public static ChangeSet Merge(ChangeSet existing, ChangeSet incoming)
     {
+        if (incoming.Count == 0)
+        {
+            // Assume that all changes have been deleted
+            return [];
+        }
+
         Dictionary<object, Change> resultMap = new(existing._changePKMap);
         foreach ((object incomingPk, Change incomingChange) in incoming._changePKMap)
         {

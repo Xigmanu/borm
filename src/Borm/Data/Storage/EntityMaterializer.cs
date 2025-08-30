@@ -89,7 +89,7 @@ internal sealed class EntityMaterializer
             if (!changeExists)
             {
                 throw new RowNotFoundException(
-                    Strings.RowNotFound(_table.Name, columnValue),
+                    Strings.RowNotFound(dependencyTable.Name, columnValue),
                     _table.Name,
                     columnValue
                 );

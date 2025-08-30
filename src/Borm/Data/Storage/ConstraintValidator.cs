@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Runtime.CompilerServices;
 using Borm.Model;
 using Borm.Model.Metadata;
 using Borm.Properties;
@@ -14,15 +15,24 @@ internal class ConstraintValidator
         _table = table;
     }
 
-    public void ValidateBuffer(ValueBuffer buffer, long txId)
+    public void ValidateBuffer(
+        ValueBuffer buffer,
+        long txId,
+        [CallerMemberName] string? method = null
+    )
     {
         foreach ((ColumnMetadata column, object columnValue) in buffer)
         {
-            ValidateConstraints(column, columnValue, txId);
+            ValidateConstraints(column, columnValue, txId, method == "Update");
         }
     }
 
-    private void ValidateConstraints(ColumnMetadata column, object columnValue, long txId)
+    private void ValidateConstraints(
+        ColumnMetadata column,
+        object columnValue,
+        long txId,
+        bool isUpdate
+    )
     {
         Constraints constraints = column.Constraints;
 
@@ -34,6 +44,7 @@ internal class ConstraintValidator
         }
         if (
             constraints.HasFlag(Constraints.Unique)
+            && !isUpdate
             && !_table.Tracker.IsColumnValueUnique(column, columnValue, txId)
         )
         {

@@ -5,11 +5,11 @@ using Borm.Data.Sql;
 using Borm.Model;
 using Borm.Model.Metadata;
 using Borm.Properties;
+using Borm.Util;
 
 namespace Borm.Data.Storage;
 
-[DebuggerTypeProxy(typeof(TableDebugView))]
-[DebuggerDisplay("Name = {Name}")]
+[DebuggerDisplay("Name = {Name}"), DebuggerTypeProxy(typeof(TableDebugView))]
 internal sealed class Table
 {
     private readonly ConstraintValidator _constraintValidator;
@@ -46,6 +46,8 @@ internal sealed class Table
 
     public void Delete(object entity, long txId)
     {
+        Debug.Assert(entity.GetType().Equals(_entityMetadata.DataType));
+
         ValueBuffer buffer = _entityMetadata.Binding.ToValueBuffer(entity);
         object primaryKey = buffer.PrimaryKey;
 
@@ -108,22 +110,26 @@ internal sealed class Table
 
     public void Insert(object entity, long txId)
     {
+        Debug.Assert(entity.GetType().Equals(_entityMetadata.DataType));
+
         _entityMetadata.Validator?.Invoke(entity);
 
         ValueBuffer incoming = _entityMetadata.Binding.ToValueBuffer(entity);
         object primaryKey = incoming.PrimaryKey;
-
         if (_tracker.TryGetChange(primaryKey, txId, out _))
         {
             throw new ConstraintException(Strings.PrimaryKeyConstraintViolation(Name, primaryKey));
         }
-
         _constraintValidator.ValidateBuffer(incoming, txId);
 
         IEnumerable<EntityMaterializer.ResolvedForeignKey> resolvedKeys =
             _materializer.ResolveForeignKeys(incoming, txId);
         foreach (EntityMaterializer.ResolvedForeignKey resolvedKey in resolvedKeys)
         {
+            if (!resolvedKey.ChangeExists)
+            {
+                ForeignKeyRelations[resolvedKey.Column].Insert(resolvedKey.RawValue, txId);
+            }
             incoming[resolvedKey.Column] = resolvedKey.ResolvedKey;
         }
 
@@ -138,7 +144,9 @@ internal sealed class Table
 
     public void Update(object entity, long txId)
     {
-        EntityMetadata.Validator?.Invoke(entity);
+        Debug.Assert(entity.GetType().Equals(_entityMetadata.DataType));
+
+        _entityMetadata.Validator?.Invoke(entity);
 
         ValueBuffer incoming = _entityMetadata.Binding.ToValueBuffer(entity);
         object primaryKey = incoming.PrimaryKey;
@@ -153,7 +161,12 @@ internal sealed class Table
         {
             if (!resolvedKey.ChangeExists)
             {
-                ForeignKeyRelations[resolvedKey.Column].Insert(resolvedKey.RawValue, txId);
+                Table parent = _foreignKeyRelations[resolvedKey.Column];
+                throw new RowNotFoundException(
+                    Strings.RowNotFound(parent.Name, resolvedKey.ResolvedKey),
+                    parent.Name,
+                    resolvedKey.ResolvedKey
+                );
             }
             incoming[resolvedKey.Column] = resolvedKey.ResolvedKey;
         }
@@ -180,7 +193,7 @@ internal sealed class Table
                 ColumnMetadata schemaColumn = schemaColumns[columnName]; // This might throw an exception when migrating
                 if (columnValue is string columnValueStr)
                 {
-                    rowBuffer[schemaColumn] = TypeParser.Parse(
+                    rowBuffer[schemaColumn] = ColumnDataTypeHelper.Parse(
                         columnValueStr,
                         schemaColumn.DataType
                     );

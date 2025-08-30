@@ -1,19 +1,23 @@
 ﻿using System.Data;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Borm.Properties;
+using Borm.Util;
 
 namespace Borm.Model.Metadata;
 
 internal sealed class EntityInfoValidator
 {
-    private readonly IEnumerable<EntityMetadata> _entityInfos;
+    private readonly IEnumerable<EntityMetadata> _entityMetadata;
 
-    public EntityInfoValidator(IEnumerable<EntityMetadata> entityInfos)
+    public EntityInfoValidator(IEnumerable<EntityMetadata> entityMetadata)
     {
-        _entityInfos = entityInfos;
+        _entityMetadata = entityMetadata;
     }
 
-    public bool IsValid(EntityMetadata entityMetadata, [NotNullWhen(false)] out Exception? exception)
+    public bool IsValid(
+        EntityMetadata entityMetadata,
+        [NotNullWhen(false)] out Exception? exception
+    )
     {
         exception = ValidatePrimaryKeyColumn(entityMetadata);
         if (exception != null)
@@ -32,10 +36,14 @@ internal sealed class EntityInfoValidator
             if (column.Reference != null)
             {
                 exception = ValidateForeignKeyColumn(entityMetadata, column);
-                if (exception != null)
-                {
-                    return false;
-                }
+                return exception == null;
+            }
+
+            if (!ColumnDataTypeHelper.IsSupported(column.DataType))
+            {
+                throw new NotSupportedException(
+                    Strings.TypeNotSupported(column.DataType.FullName!)
+                );
             }
         }
 
@@ -94,7 +102,9 @@ internal sealed class EntityInfoValidator
             : column.PropertyType;
 
         Type reference = column.Reference!;
-        EntityMetadata? successor = _entityInfos.FirstOrDefault(m => m.DataType.Equals(reference));
+        EntityMetadata? successor = _entityMetadata.FirstOrDefault(m =>
+            m.DataType.Equals(reference)
+        );
         if (successor == null)
         {
             return new NodeNotFoundException(
