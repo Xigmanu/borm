@@ -107,7 +107,7 @@ internal sealed class EntityInfoValidator
         );
         if (successor == null)
         {
-            return new NodeNotFoundException(
+            return new EntityNotFoundException(
                 $"Referenced entity type {reference.FullName} does not exist",
                 reference
             );

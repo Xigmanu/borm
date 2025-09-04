@@ -159,7 +159,7 @@ public sealed class EntityMetadataValidatorTest
 
         // Assert
         Assert.False(isValid);
-        Assert.IsType<NodeNotFoundException>(exception);
+        Assert.IsType<EntityNotFoundException>(exception);
     }
 
     [Theory]
