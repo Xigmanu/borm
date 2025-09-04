@@ -2,13 +2,11 @@
 
 public sealed class TransactionIdMismatchException : InvalidOperationException
 {
-    public TransactionIdMismatchException(string message, long currentTxId, long incomingTxId)
-        : base(message)
-    {
-        CurrentTxId = currentTxId;
-        IncomingTxId = incomingTxId;
-    }
+    public TransactionIdMismatchException() { }
 
-    public long CurrentTxId { get; }
-    public long IncomingTxId { get; }
+    public TransactionIdMismatchException(string message)
+        : base(message) { }
+
+    public TransactionIdMismatchException(string message, Exception? innerException)
+        : base(message, innerException) { }
 }
