@@ -3,6 +3,9 @@ using Borm.Model;
 
 namespace Borm;
 
+/// <summary>
+/// Configuration to be used to initialize <see cref="DataContext"/>.
+/// </summary>
 public sealed class BormConfig
 {
     private BormConfig(
@@ -18,11 +21,30 @@ public sealed class BormConfig
         TransactionWriteOnCommit = transactionWriteOnCommit;
     }
 
+    /// <summary>
+    /// Factory responsible for creating <see cref="DbCommandDefinition"/> instances
+    /// for database operations.
+    /// </summary>
     public IDbCommandDefinitionFactory CommandDefinitionFactory { get; }
+
+    /// <summary>
+    /// Executor responsible for executing database commands.
+    /// </summary>
     public IDbCommandExecutor CommandExecutor { get; }
+
+    /// <summary>
+    /// Entity model to be used for table creation.
+    /// </summary>
     public EntityModel Model { get; }
+
+    /// <summary>
+    /// This flag indicates whether transactions are written automatically to the data source when they are committed.
+    /// </summary>
     public bool TransactionWriteOnCommit { get; }
 
+    /// <summary>
+    /// Builder for constructing <see cref="BormConfig"/> instances.
+    /// </summary>
     public sealed class Builder
     {
         private IDbCommandDefinitionFactory? _commandDefinitionFactory;
@@ -30,11 +52,18 @@ public sealed class BormConfig
         private EntityModel? _model;
         private bool _txWriteOnCommit;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Builder"/> class.
+        /// </summary>
         public Builder()
         {
             _txWriteOnCommit = false;
         }
 
+        /// <summary>
+        /// Builds a new <see cref="BormConfig"/> instance using the values set on this builder.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown if required components are not provided.</exception>
         public BormConfig Build()
         {
             if (_model == null)
@@ -74,6 +103,10 @@ public sealed class BormConfig
             return this;
         }
 
+        /// <summary>
+        /// Configures the builder to use an in-memory database implementation.
+        /// </summary>
+        /// <returns></returns>
         public Builder InMemory()
         {
             _commandExecutor = new InMemoryCommandExecutor();
