@@ -91,7 +91,7 @@ internal sealed class Change
         // Here, I attempt to trigger a 'rerun' for the transaction.
         if (_readTxId > incoming._readTxId)
         {
-            throw new TransactionIdMismatchException("Row was modified by another transaction");
+            throw new ConcurrencyConflictException("Row was modified by another transaction");
         }
 
         RowAction rowAction;

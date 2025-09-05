@@ -4,6 +4,9 @@ using Borm.Properties;
 
 namespace Borm.Data;
 
+/// <summary>
+/// Represents an internal transactional scope for direct write operations through a <see cref="DataContext"/>.
+/// </summary>
 public class InternalTransaction : IDisposable
 {
     internal const long InitId = -1;
@@ -51,7 +54,7 @@ public class InternalTransaction : IDisposable
 
     internal virtual void Execute(Table table, Action<object, long> tableOperation, object arg)
     {
-        if (Execute(tableOperation, arg))
+        if (TryExecute(tableOperation, arg))
         {
             _changedTables.Add(table);
         }
@@ -61,7 +64,7 @@ public class InternalTransaction : IDisposable
     {
         if (exception != null)
         {
-            Debug.Assert(exception is not TransactionIdMismatchException);
+            Debug.Assert(exception is not ConcurrencyConflictException);
             throw new InvalidOperationException(Strings.TransactionFailed(), exception);
         }
 
@@ -72,7 +75,7 @@ public class InternalTransaction : IDisposable
                 changedTable.AcceptPendingChanges(id);
             }
         }
-        catch (TransactionIdMismatchException ex)
+        catch (ConcurrencyConflictException ex)
         {
             if (_attempt >= MaxRetries)
             {
@@ -104,11 +107,11 @@ public class InternalTransaction : IDisposable
         for (int i = 0; i < _operationQueue.Count; i++)
         {
             (Action<object, long> operation, object arg) = _operationQueue.Dequeue();
-            _ = Execute(operation, arg);
+            _ = TryExecute(operation, arg);
         }
     }
 
-    private bool Execute(Action<object, long> tableOperation, object arg)
+    private bool TryExecute(Action<object, long> tableOperation, object arg)
     {
         if (exception != null)
         {

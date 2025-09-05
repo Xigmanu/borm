@@ -196,7 +196,7 @@ public sealed class ChangeTest
 
         // Assert
         Assert.NotNull(exception);
-        Assert.IsType<TransactionIdMismatchException>(exception);
+        Assert.IsType<ConcurrencyConflictException>(exception);
     }
 
     [Fact]

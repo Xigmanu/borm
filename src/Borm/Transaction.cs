@@ -3,13 +3,16 @@
 namespace Borm;
 
 /// <summary>
-/// Represents a transactional scope for operations performed through a <see cref="DataContext"/>.
-/// Operations executed within this scope are only committed internally if there are no errors. Otherwise, all changes are rolled back. 
-/// If any of the entries affected by this transaction have been changed by another transaction, the operations are re-executed in the same order.
+/// Represents a transactional scope for write operations performed through a <see cref="DataContext"/>.
 /// </summary>
 /// 
 /// <remarks>
-///     Created by calling <see cref="DataContext.BeginTransaction"/>.
+///     <para>
+///         If any of the entries affected by this transaction have been changed by another transaction, the operations will be re-executed in the same order.
+///     </para>
+///     <para>
+///         Created by calling <see cref="DataContext.BeginTransaction"/>.
+///     </para>
 /// </remarks>
 public sealed class Transaction : InternalTransaction
 {
