@@ -4,12 +4,12 @@ using Borm.Properties;
 
 namespace Borm.Model.Metadata;
 
-internal sealed class EntityConstructorSelector
+internal sealed class ConstructorSelector
 {
     private readonly ColumnMetadataCollection _columns;
     private readonly ConstructorInfo[] _entityConstructors;
 
-    public EntityConstructorSelector(
+    public ConstructorSelector(
         ColumnMetadataCollection columns,
         ConstructorInfo[] entityConstructors
     )

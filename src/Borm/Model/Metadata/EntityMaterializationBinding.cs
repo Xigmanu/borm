@@ -22,7 +22,7 @@ internal sealed class EntityMaterializationBinding
         ConstructorInfo[] constructors = entityType.GetConstructors();
         Debug.Assert(constructors.Length > 0);
 
-        EntityConstructorSelector selector = new(_columns, constructors);
+        ConstructorSelector selector = new(_columns, constructors);
         _constructor = selector.Select() ?? constructors[0];
     }
 
