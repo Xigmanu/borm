@@ -20,7 +20,7 @@ public sealed class EntityMetadataValidatorTest
         );
         EntityMetadata info = new("foo", typeof(object), columns);
 
-        EntityInfoValidator validator = new([info]);
+        EntityMetadataValidator validator = new([info]);
 
         // Act
         bool isValid = validator.IsValid(info, out Exception? exception);
@@ -54,7 +54,7 @@ public sealed class EntityMetadataValidatorTest
         EntityMetadata info0 = new("foo", typeof(EntityA), columns0);
         EntityMetadata info1 = new("foo", typeof(EntityB), columns1);
 
-        EntityInfoValidator validator = new([info0, info1]);
+        EntityMetadataValidator validator = new([info0, info1]);
 
         // Act
         bool isValid = validator.IsValid(info0, out Exception? exception);
@@ -76,7 +76,7 @@ public sealed class EntityMetadataValidatorTest
         );
         EntityMetadata info = new("foo", typeof(EntityA), columns);
 
-        EntityInfoValidator validator = new([info]);
+        EntityMetadataValidator validator = new([info]);
 
         // Act
         bool isValid = validator.IsValid(info, out Exception? exception);
@@ -104,7 +104,7 @@ public sealed class EntityMetadataValidatorTest
         );
         EntityMetadata info = new("foo", typeof(EntityA), columns);
 
-        EntityInfoValidator validator = new([info]);
+        EntityMetadataValidator validator = new([info]);
 
         // Act
         bool isValid = validator.IsValid(info, out Exception? exception);
@@ -123,7 +123,7 @@ public sealed class EntityMetadataValidatorTest
         );
         EntityMetadata info = new("foo", typeof(EntityA), columns);
 
-        EntityInfoValidator validator = new([info]);
+        EntityMetadataValidator validator = new([info]);
 
         // Act
         bool isValid = validator.IsValid(info, out Exception? exception);
@@ -152,7 +152,7 @@ public sealed class EntityMetadataValidatorTest
         );
         EntityMetadata info = new("foo", typeof(EntityA), columns0);
 
-        EntityInfoValidator validator = new([info]);
+        EntityMetadataValidator validator = new([info]);
 
         // Act
         bool isValid = validator.IsValid(info, out Exception? exception);
@@ -181,7 +181,7 @@ public sealed class EntityMetadataValidatorTest
         EntityMetadata info0 = new("foo", typeof(EntityA), columns0);
         EntityMetadata info1 = new("foo", typeof(EntityB), columns1);
 
-        EntityInfoValidator validator = new([info0, info1]);
+        EntityMetadataValidator validator = new([info0, info1]);
 
         // Act
         bool isValid = validator.IsValid(info0, out Exception? exception);
