@@ -13,8 +13,8 @@ public sealed class BindingInfoTest
         int id = 1;
         string name = "Alice";
 
-        ColumnMetadata idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        ColumnMetadata nameColumn = new(1, "name", "Name", typeof(string), Constraints.None, null);
+        ColumnMetadata idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
+        ColumnMetadata nameColumn = new(1, "name", "Name", typeof(string), Constraints.None);
 
         ColumnMetadataCollection columns = new([idColumn, nameColumn]);
 
@@ -40,8 +40,8 @@ public sealed class BindingInfoTest
         int id = 1;
         string name = "Alice";
 
-        ColumnMetadata idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        ColumnMetadata nameColumn = new(1, "name", "Name", typeof(string), Constraints.None, null);
+        ColumnMetadata idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
+        ColumnMetadata nameColumn = new(1, "name", "Name", typeof(string), Constraints.None);
 
         ColumnMetadataCollection columns = new([idColumn, nameColumn]);
 
@@ -66,14 +66,13 @@ public sealed class BindingInfoTest
         // Arrange
         int id = 1;
 
-        ColumnMetadata idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        ColumnMetadata idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
         ColumnMetadata nameColumn = new(
             1,
             "name",
             "Name",
             typeof(string),
-            Constraints.AllowDbNull,
-            null
+            Constraints.AllowDbNull
         );
 
         ColumnMetadataCollection columns = new([idColumn, nameColumn]);

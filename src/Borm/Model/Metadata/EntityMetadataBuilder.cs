@@ -32,9 +32,11 @@ internal static class EntityMetadataBuilder
             columnName,
             property.Name,
             property.Type,
-            constraints,
-            reference
-        );
+            constraints
+        )
+        {
+            Reference = reference,
+        };
     }
 
     private static string CreateDefaultName(string memberName)

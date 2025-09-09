@@ -14,8 +14,8 @@ public sealed class EntityMetadataValidatorTest
         // Arrange
         ColumnMetadataCollection columns = new(
             [
-                new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null),
-                new ColumnMetadata(index, "bar", "Bar", typeof(string), Constraints.AllowDbNull, null),
+                new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey),
+                new ColumnMetadata(index, "bar", "Bar", typeof(string), Constraints.AllowDbNull),
             ]
         );
         EntityMetadata info = new("foo", typeof(object), columns);
@@ -36,19 +36,15 @@ public sealed class EntityMetadataValidatorTest
         // Arrange
         ColumnMetadataCollection columns0 = new(
             [
-                new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null),
-                new ColumnMetadata(
-                    1,
-                    "bar",
-                    "Bar",
-                    typeof(object),
-                    Constraints.AllowDbNull,
-                    typeof(EntityB)
-                ),
+                new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey),
+                new ColumnMetadata(1, "bar", "Bar", typeof(object), Constraints.AllowDbNull)
+                {
+                    Reference = typeof(EntityB),
+                },
             ]
         );
         ColumnMetadataCollection columns1 = new(
-            [new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null)]
+            [new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey)]
         );
 
         EntityMetadata info0 = new("foo", typeof(EntityA), columns0);
@@ -70,8 +66,8 @@ public sealed class EntityMetadataValidatorTest
         // Arrange
         ColumnMetadataCollection columns = new(
             [
-                new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null),
-                new ColumnMetadata(1, "bar", "Bar", typeof(int), Constraints.PrimaryKey, null),
+                new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey),
+                new ColumnMetadata(1, "bar", "Bar", typeof(int), Constraints.PrimaryKey),
             ]
         );
         EntityMetadata info = new("foo", typeof(EntityA), columns);
@@ -97,8 +93,7 @@ public sealed class EntityMetadataValidatorTest
                     "foo",
                     "Foo",
                     typeof(int),
-                    Constraints.PrimaryKey | Constraints.AllowDbNull,
-                    null
+                    Constraints.PrimaryKey | Constraints.AllowDbNull
                 ),
             ]
         );
@@ -119,7 +114,7 @@ public sealed class EntityMetadataValidatorTest
     {
         // Arrange
         ColumnMetadataCollection columns = new(
-            [new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.None, null)]
+            [new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.None)]
         );
         EntityMetadata info = new("foo", typeof(EntityA), columns);
 
@@ -139,15 +134,11 @@ public sealed class EntityMetadataValidatorTest
         // Arrange
         ColumnMetadataCollection columns0 = new(
             [
-                new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null),
-                new ColumnMetadata(
-                    1,
-                    "bar",
-                    "Bar",
-                    typeof(float?),
-                    Constraints.AllowDbNull,
-                    typeof(float)
-                ),
+                new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey),
+                new ColumnMetadata(1, "bar", "Bar", typeof(float?), Constraints.AllowDbNull)
+                {
+                    Reference = typeof(float),
+                },
             ]
         );
         EntityMetadata info = new("foo", typeof(EntityA), columns0);
@@ -170,12 +161,15 @@ public sealed class EntityMetadataValidatorTest
         // Arrange
         ColumnMetadataCollection columns0 = new(
             [
-                new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null),
-                new ColumnMetadata(1, "bar", "Bar", references, Constraints.None, typeof(EntityB)),
+                new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey),
+                new ColumnMetadata(1, "bar", "Bar", references, Constraints.None)
+                {
+                    Reference = typeof(EntityB),
+                },
             ]
         );
         ColumnMetadataCollection columns1 = new(
-            [new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey, null)]
+            [new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey)]
         );
 
         EntityMetadata info0 = new("foo", typeof(EntityA), columns0);
