@@ -4,23 +4,21 @@ namespace Borm.Tests.Mocks;
 
 internal static class TableMocks
 {
-    public static Table CreateAddressesTable() => new(EntityMetadataMocks.AddressesEntity, []);
+    public static Table CreateAddressesTable() => new(EntityMetadataMocks.AddressesEntity);
 
-    public static Table CreateEmployeesTable(Table personsTable) =>
-        new(
-            EntityMetadataMocks.EmployeesEntity,
-            new Dictionary<Borm.Model.Metadata.ColumnMetadata, Table>()
-            {
-                [EntityMetadataMocks.EmployeesEntity.Columns["person_id"]] = personsTable,
-            }
-        );
+    public static Table CreateEmployeesTable(Table personsTable)
+    {
+        Table table = new(EntityMetadataMocks.EmployeesEntity);
+        table.ParentRelations[EntityMetadataMocks.EmployeesEntity.Columns["person_id"]] =
+            personsTable;
+        return table;
+    }
 
-    public static Table CreatePersonsTable(Table addressesTable) =>
-        new(
-            EntityMetadataMocks.PersonsEntity,
-            new Dictionary<Borm.Model.Metadata.ColumnMetadata, Table>()
-            {
-                [EntityMetadataMocks.PersonsEntity.Columns["address"]] = addressesTable,
-            }
-        );
+    public static Table CreatePersonsTable(Table addressesTable)
+    {
+        Table table = new(EntityMetadataMocks.PersonsEntity);
+        table.ParentRelations[EntityMetadataMocks.PersonsEntity.Columns["address"]] =
+            addressesTable;
+        return table;
+    }
 }

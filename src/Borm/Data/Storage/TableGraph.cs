@@ -52,7 +52,7 @@ internal sealed class TableGraph
                 return;
             }
 
-            foreach (Table dependency in table.ForeignKeyRelations.Values)
+            foreach (Table dependency in table.ParentRelations.Values)
             {
                 Visit(dependency);
             }

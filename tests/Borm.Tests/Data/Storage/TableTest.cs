@@ -17,7 +17,6 @@ public sealed class TableTest
     {
         // Arrange
         Table table = CreateAddressesTable();
-        AddressEntity address = new(1, "address", null, "city");
         ValueBuffer valueBuffer = CreateBuffer(AddressesDummyData, table);
         long initTxId = -1;
         Change initial = Change.Initial(valueBuffer, initTxId);
@@ -26,7 +25,7 @@ public sealed class TableTest
         long txId = 0;
 
         // Act
-        table.Delete(address, txId);
+        table.Delete(valueBuffer, txId);
         table.AcceptPendingChanges(txId);
 
         // Assert
@@ -43,10 +42,11 @@ public sealed class TableTest
         // Arrange
         Table table = CreateAddressesTable();
         AddressEntity address = new(1, "address", null, "city");
+        ValueBuffer valueBuffer = CreateBuffer(AddressesDummyData, table);
         long txId = 0;
 
         // Act
-        Exception? exception = Record.Exception(() => table.Delete(address, txId));
+        Exception? exception = Record.Exception(() => table.Delete(valueBuffer, txId));
 
         // Assert
         Assert.NotNull(exception);
@@ -147,7 +147,7 @@ public sealed class TableTest
         long txId = 0;
 
         // Act
-        table.Insert(address, txId);
+        table.Insert(buffer, txId);
         table.AcceptPendingChanges(txId);
 
         // Assert
@@ -165,13 +165,12 @@ public sealed class TableTest
         AddressEntity address = new(1, "address", null, "city");
 
         Table table = CreatePersonsTable(dependency);
-        PersonEntity person = new(1, "name", 42.619, address);
-        ValueBuffer buffer = CreateBuffer(PersonsDummyData, table);
+        ValueBuffer buffer = CreateBuffer([1, "name", 42.619, address], table);
 
         long txId = 0;
 
         // Act
-        table.Insert(person, txId);
+        table.Insert(buffer, txId);
         table.AcceptPendingChanges(txId);
 
         // Assert
@@ -195,27 +194,11 @@ public sealed class TableTest
         long txId = 0;
 
         // Act
-        Exception? exception = Record.Exception(() => table.Insert(address, txId));
+        Exception? exception = Record.Exception(() => table.Insert(valueBuffer, txId));
 
         // Assert
         Assert.NotNull(exception);
         Assert.IsType<ConstraintException>(exception);
-    }
-
-    [Fact]
-    public void Insert_ThrowsException_WhenEntityValidationFails()
-    {
-        // Arrange
-        Table table = CreateAddressesTable();
-        AddressEntity address = new(1, string.Empty, null, "city");
-        long txId = 0;
-
-        // Act
-        Exception? exception = Record.Exception(() => table.Insert(address, txId));
-
-        // Assert
-        Assert.NotNull(exception);
-        Assert.Equal(table.EntityMetadata.Name, exception.Message);
     }
 
     [Fact]
@@ -296,16 +279,15 @@ public sealed class TableTest
         dependency.Tracker.AcceptPendingChanges(initTxId);
 
         Table table = CreatePersonsTable(dependency);
-        PersonEntity person = new(1, "no_name", 42.619, address);
         ValueBuffer buffer = CreateBuffer(PersonsDummyData, table);
         table.Tracker.PendChange(Change.Initial(buffer, initTxId));
         table.Tracker.AcceptPendingChanges(initTxId);
 
         long txId = 0;
-        ValueBuffer expected = CreateBuffer([1, "no_name", 42.619, 1], table);
+        ValueBuffer expected = CreateBuffer([1, "no_name", 42.619, address], table);
 
         // Act
-        table.Update(person, txId);
+        table.Update(expected, txId);
         table.AcceptPendingChanges(txId);
 
         // Assert
@@ -320,7 +302,6 @@ public sealed class TableTest
     {
         // Arrange
         Table table = CreateAddressesTable();
-        AddressEntity address = new(1, "address", null, "not_city");
         ValueBuffer buffer = CreateBuffer([1, "address", DBNull.Value, "not_city"], table);
         ValueBuffer valueBuffer = CreateBuffer(AddressesDummyData, table);
         long initTxId = -1;
@@ -330,7 +311,7 @@ public sealed class TableTest
         long txId = 0;
 
         // Act
-        table.Update(address, txId);
+        table.Update(buffer, txId);
         table.AcceptPendingChanges(txId);
 
         // Assert
@@ -342,22 +323,6 @@ public sealed class TableTest
     }
 
     [Fact]
-    public void Update_ThrowsException_WhenEntityValidationFails()
-    {
-        // Arrange
-        Table table = CreateAddressesTable();
-        AddressEntity address = new(1, string.Empty, null, "city");
-        long txId = 0;
-
-        // Act
-        Exception? exception = Record.Exception(() => table.Update(address, txId));
-
-        // Assert
-        Assert.NotNull(exception);
-        Assert.Equal(table.EntityMetadata.Name, exception.Message);
-    }
-
-    [Fact]
     public void Update_ThrowsException_WhenForeignKeyDoesNotExist()
     {
         // Arrange
@@ -365,10 +330,11 @@ public sealed class TableTest
         Table persons = CreatePersonsTable(addresses);
         AddressEntity address = new(1, string.Empty, null, "city");
         PersonEntity person = new(1, "name", 42.619, address);
+        ValueBuffer valueBuffer = CreateBuffer([1, "name", 42.619, address], persons);
         long txId = 0;
 
         // Act
-        Exception? exception = Record.Exception(() => persons.Update(person, txId));
+        Exception? exception = Record.Exception(() => persons.Update(valueBuffer, txId));
 
         // Assert
         Assert.NotNull(exception);

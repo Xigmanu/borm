@@ -14,41 +14,34 @@ internal sealed class Table
 {
     private readonly ConstraintValidator _constraintValidator;
     private readonly EntityMetadata _entityMetadata;
-    private readonly Dictionary<ColumnMetadata, Table> _foreignKeyRelations;
     private readonly EntityMaterializer _materializer;
     private readonly ChangeTracker _tracker = new();
 
-    public Table(
-        EntityMetadata entityMetadata,
-        Dictionary<ColumnMetadata, Table> foreignKeyRelations
-    )
+    public Table(EntityMetadata entityMetadata)
     {
         _entityMetadata = entityMetadata;
-        _foreignKeyRelations = foreignKeyRelations;
         _materializer = new(this);
         _constraintValidator = new(this);
+        ParentRelations = [];
     }
 
     public string Name => _entityMetadata.Name;
     internal EntityMaterializer Converter => _materializer;
     internal EntityMetadata EntityMetadata => _entityMetadata;
-    internal IReadOnlyDictionary<ColumnMetadata, Table> ForeignKeyRelations => _foreignKeyRelations;
+    internal Dictionary<ColumnMetadata, Table> ParentRelations { get; }
     internal ChangeTracker Tracker => _tracker;
 
     public void AcceptPendingChanges(long txId)
     {
-        foreach (Table dependency in _foreignKeyRelations.Values.Cast<Table>())
+        foreach (Table dependency in ParentRelations.Values.Cast<Table>())
         {
             dependency.AcceptPendingChanges(txId);
         }
         _tracker.AcceptPendingChanges(txId);
     }
 
-    public void Delete(object entity, long txId)
+    public void Delete(ValueBuffer buffer, long txId)
     {
-        Debug.Assert(entity.GetType().Equals(_entityMetadata.DataType));
-
-        ValueBuffer buffer = _entityMetadata.Binding.ToValueBuffer(entity);
         object primaryKey = buffer.PrimaryKey;
 
         Change existing = GetChangeOrThrow(txId, primaryKey);
@@ -92,14 +85,14 @@ internal sealed class Table
                 continue;
             }
 
-            Table dependency = _foreignKeyRelations[column];
+            Table parent = ParentRelations[column];
             columnInfo = new(
                 columnName,
-                dependency._entityMetadata.PrimaryKey.DataType,
+                parent._entityMetadata.PrimaryKey.DataType,
                 isUnique,
                 isNullable
             );
-            TableInfo dependencySchema = dependency.GetTableSchema();
+            TableInfo dependencySchema = parent.GetTableSchema();
 
             fkRelationMap[columnInfo] = dependencySchema;
         }
@@ -108,32 +101,35 @@ internal sealed class Table
         return new TableInfo(_entityMetadata.Name, columns, primaryKey, fkRelationMap);
     }
 
-    public void Insert(object entity, long txId)
+    public void Insert(ValueBuffer buffer, long txId)
     {
-        Debug.Assert(entity.GetType().Equals(_entityMetadata.DataType));
-
-        _entityMetadata.Validator?.Invoke(entity);
-
-        ValueBuffer incoming = _entityMetadata.Binding.ToValueBuffer(entity);
-        object primaryKey = incoming.PrimaryKey;
+        object primaryKey = buffer.PrimaryKey;
         if (_tracker.TryGetChange(primaryKey, txId, out _))
         {
             throw new ConstraintException(Strings.PrimaryKeyConstraintViolation(Name, primaryKey));
         }
-        _constraintValidator.ValidateBuffer(incoming, txId);
+        _constraintValidator.ValidateBuffer(buffer, txId);
 
         IEnumerable<EntityMaterializer.ResolvedForeignKey> resolvedKeys =
-            _materializer.ResolveForeignKeys(incoming, txId);
+            _materializer.ResolveForeignKeys(buffer, txId);
         foreach (EntityMaterializer.ResolvedForeignKey resolvedKey in resolvedKeys)
         {
+            ColumnMetadata foreignKey = resolvedKey.Column;
             if (!resolvedKey.ChangeExists)
             {
-                ForeignKeyRelations[resolvedKey.Column].Insert(resolvedKey.RawValue, txId);
+                object rawValue = resolvedKey.RawValue;
+
+                Table parent = ParentRelations[foreignKey];
+                EntityMetadata parentMetadata = parent.EntityMetadata;
+                parentMetadata.Validator?.Invoke(rawValue);
+                ValueBuffer parentBuffer = parentMetadata.Binding.ToValueBuffer(rawValue);
+
+                parent.Insert(parentBuffer, txId);
             }
-            incoming[resolvedKey.Column] = resolvedKey.ResolvedKey;
+            buffer[foreignKey] = resolvedKey.ResolvedKey;
         }
 
-        Change change = Change.NewChange(incoming, txId);
+        Change change = Change.NewChange(buffer, txId);
         _tracker.PendChange(change);
     }
 
@@ -142,36 +138,31 @@ internal sealed class Table
         return _tracker.Changes.Select(change => _materializer.Materialize(change.Buffer));
     }
 
-    public void Update(object entity, long txId)
+    public void Update(ValueBuffer buffer, long txId)
     {
-        Debug.Assert(entity.GetType().Equals(_entityMetadata.DataType));
+        object primaryKey = buffer.PrimaryKey;
 
-        _entityMetadata.Validator?.Invoke(entity);
-
-        ValueBuffer incoming = _entityMetadata.Binding.ToValueBuffer(entity);
-        object primaryKey = incoming.PrimaryKey;
-
-        _constraintValidator.ValidateBuffer(incoming, txId);
+        _constraintValidator.ValidateBuffer(buffer, txId);
 
         Change existing = GetChangeOrThrow(txId, primaryKey);
 
         IEnumerable<EntityMaterializer.ResolvedForeignKey> resolvedKeys =
-            _materializer.ResolveForeignKeys(incoming, txId);
+            _materializer.ResolveForeignKeys(buffer, txId);
         foreach (EntityMaterializer.ResolvedForeignKey resolvedKey in resolvedKeys)
         {
             if (!resolvedKey.ChangeExists)
             {
-                Table parent = _foreignKeyRelations[resolvedKey.Column];
+                Table parent = ParentRelations[resolvedKey.Column];
                 throw new RowNotFoundException(
                     Strings.RowNotFound(parent.Name, resolvedKey.ResolvedKey),
                     parent.Name,
                     resolvedKey.ResolvedKey
                 );
             }
-            incoming[resolvedKey.Column] = resolvedKey.ResolvedKey;
+            buffer[resolvedKey.Column] = resolvedKey.ResolvedKey;
         }
 
-        Change change = existing.Update(incoming, txId);
+        Change change = existing.Update(buffer, txId);
         _tracker.PendChange(change);
     }
 
@@ -231,7 +222,7 @@ internal sealed class Table
 
         public EntityMetadata EntityMetadata => _table.EntityMetadata;
         public IReadOnlyDictionary<ColumnMetadata, Table> ForeignKeyRelations =>
-            _table.ForeignKeyRelations;
+            _table.ParentRelations;
         public string Name => _table.Name;
         public ChangeTracker Tracker => _table.Tracker;
     }

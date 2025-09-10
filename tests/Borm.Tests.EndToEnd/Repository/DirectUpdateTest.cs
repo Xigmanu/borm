@@ -51,7 +51,12 @@ public sealed class DirectUpdateTest
 
         // Assert
         Assert.NotNull(exception);
-        Assert.IsType<ArgumentNullException>(exception);
+        Assert.IsType<InvalidOperationException>(exception);
+        Assert.Equal(Strings.TransactionFailed(), exception.Message);
+
+        Exception? inner = exception.InnerException;
+        Assert.NotNull(inner);
+        Assert.IsType<ArgumentNullException>(inner);
     }
 
     [Fact]

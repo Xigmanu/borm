@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Borm.Data.Sql;
 using Borm.Data.Storage;
 using Borm.Properties;
 
@@ -17,7 +18,7 @@ public class InternalTransaction : IDisposable
     private const int MaxRetries = 3;
 
     private readonly List<Table> _changedTables;
-    private readonly Queue<(Action<object, long>, object)> _operationQueue;
+    private readonly Queue<Action<long>> _operationQueue;
     private int _attempt;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -52,9 +53,9 @@ public class InternalTransaction : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    internal virtual void Execute(Table table, Action<object, long> tableOperation, object arg)
+    internal virtual void Execute(Table table, Action<long> tableOperation)
     {
-        if (TryExecute(tableOperation, arg))
+        if (TryExecute(tableOperation))
         {
             _changedTables.Add(table);
         }
@@ -106,12 +107,19 @@ public class InternalTransaction : IDisposable
     {
         for (int i = 0; i < _operationQueue.Count; i++)
         {
-            (Action<object, long> operation, object arg) = _operationQueue.Dequeue();
-            _ = TryExecute(operation, arg);
+            Action<long> operation = _operationQueue.Dequeue();
+            _ = TryExecute(operation);
         }
     }
 
-    private bool TryExecute(Action<object, long> tableOperation, object arg)
+    [Conditional("DEBUG")]
+    private static void AssertArgumentTypeIsValid(object arg)
+    {
+        Type type = arg.GetType();
+        Debug.Assert(type == typeof(ValueBuffer) || type == typeof(ResultSet));
+    }
+
+    private bool TryExecute(Action<long> tableOperation)
     {
         if (exception != null)
         {
@@ -120,8 +128,8 @@ public class InternalTransaction : IDisposable
 
         try
         {
-            _operationQueue.Enqueue((tableOperation, arg));
-            tableOperation(arg, id);
+            _operationQueue.Enqueue(tableOperation);
+            tableOperation(id);
         }
         catch (Exception ex)
         {

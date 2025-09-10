@@ -1,4 +1,5 @@
 ﻿using Borm.Data.Storage;
+using Borm.Model.Metadata;
 
 namespace Borm.Data;
 
@@ -79,19 +80,34 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         return ExecuteAsync(entity, _table.Update);
     }
 
-    private void Execute(T entity, Action<object, long> operation, InternalTransaction transaction)
+    private void Execute(
+        T entity,
+        Action<ValueBuffer, long> operation,
+        InternalTransaction transaction
+    )
     {
-        ArgumentNullException.ThrowIfNull(entity);
-        transaction.Execute(_table, operation, entity);
+        EntityMetadata metadata = _table.EntityMetadata;
+        transaction.Execute(
+            _table,
+            (txId) =>
+            {
+                ArgumentNullException.ThrowIfNull(entity);
+
+                metadata.Validator?.Invoke(entity);
+                ValueBuffer buffer = metadata.Binding.ToValueBuffer(entity);
+
+                operation(buffer, txId);
+            }
+        );
     }
 
-    private void Execute(T entity, Action<object, long> operation)
+    private void Execute(T entity, Action<ValueBuffer, long> operation)
     {
         using InternalTransaction transaction = new();
         Execute(entity, operation, transaction);
     }
 
-    private async ValueTask ExecuteAsync(T entity, Action<object, long> operation)
+    private async ValueTask ExecuteAsync(T entity, Action<ValueBuffer, long> operation)
     {
         await _semaphore.WaitAsync().ConfigureAwait(false);
         try

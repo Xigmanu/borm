@@ -30,8 +30,7 @@ internal sealed class TableGraphBuilder
             return cachedTable;
         }
 
-        Dictionary<ColumnMetadata, Table> columnRelations = [];
-
+        Table table = new(entityMetadata);
         foreach (ColumnMetadata column in entityMetadata.Columns)
         {
             if (column.Reference is null)
@@ -42,7 +41,7 @@ internal sealed class TableGraphBuilder
             if (_entityInfoMap.TryGetValue(column.Reference, out EntityMetadata? dependency))
             {
                 Table dependencyTable = BuildTableRecursive(dependency);
-                columnRelations[column] = dependencyTable;
+                table.ParentRelations[column] = dependencyTable;
             }
             else
             {
@@ -52,7 +51,6 @@ internal sealed class TableGraphBuilder
             }
         }
 
-        Table table = new(entityMetadata, columnRelations);
         return _tableCache[entityMetadata] = table;
     }
 }

@@ -36,6 +36,34 @@ public sealed class TransactionInsertTest
     }
 
     [Fact]
+    public void Exception_InsideOfTransactionScope_WithSecondNullArgument()
+    {
+        // Arrange
+        DataContext context = DataContextProvider.CreateDataContext();
+        context.Initialize();
+
+        AddressEntity address0 = new(1, "address", "address2", "city");
+
+        IEntityRepository<AddressEntity> repository = context.GetRepository<AddressEntity>();
+
+        // Act
+        Exception? exception = Record.Exception(() =>
+        {
+            using Transaction transaction = context.BeginTransaction();
+            repository.Insert(address0, transaction);
+            repository.Insert(null!, transaction);
+        });
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<InvalidOperationException>(exception);
+        Assert.Equal(Strings.TransactionFailed(), exception.Message);
+
+        IEnumerable<AddressEntity> addresses = repository.Select();
+        Assert.Empty(addresses);
+    }
+
+    [Fact]
     public void ValidSimpleEntity()
     {
         // Arrange

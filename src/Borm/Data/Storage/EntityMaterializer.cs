@@ -26,7 +26,7 @@ internal sealed class EntityMaterializer
 
             tempBuffer[column] = isSimpleValue
                 ? columnValue
-                : MaterializeDependency(_table.ForeignKeyRelations[column], columnValue);
+                : MaterializeDependency(_table.ParentRelations[column], columnValue);
         }
 
         return _table.EntityMetadata.Binding.MaterializeEntity(tempBuffer);
@@ -77,7 +77,7 @@ internal sealed class EntityMaterializer
         out bool changeExists
     )
     {
-        Table dependencyTable = _table.ForeignKeyRelations[column];
+        Table dependencyTable = _table.ParentRelations[column];
         EntityMetadata depNode = dependencyTable.EntityMetadata;
         if (column.DataType != depNode.DataType)
         {
