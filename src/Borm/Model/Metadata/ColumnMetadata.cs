@@ -30,6 +30,8 @@ internal sealed class ColumnMetadata
     public Type DataType { get; }
     public int Index { get; }
     public string Name { get; }
+    public ReferentialAction OnDelete { get; internal set; }
+    public ReferentialAction OnUpdate { get; internal set; }
     public string PropertyName { get; }
     public Type PropertyType { get; }
     public Type? Reference { get; internal set; }

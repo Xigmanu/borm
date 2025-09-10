@@ -25,18 +25,23 @@ internal static class EntityMetadataBuilder
         string? columnName = columnAttribute.Name ?? CreateDefaultName(property.Name);
 
         Constraints constraints = GetConstraints(property);
-        Type? reference = FindReferencedEntityType(columnAttribute);
 
-        return new ColumnMetadata(
+        ColumnMetadata columnMetadata = new(
             columnAttribute.Index,
             columnName,
             property.Name,
             property.Type,
             constraints
-        )
+        );
+
+        if (columnAttribute is ForeignKeyAttribute foreignKeyAttribute)
         {
-            Reference = reference,
-        };
+            columnMetadata.Reference = foreignKeyAttribute.Reference;
+            columnMetadata.OnUpdate = foreignKeyAttribute.OnUpdate;
+            columnMetadata.OnDelete = foreignKeyAttribute.OnDelete;
+        }
+
+        return columnMetadata;
     }
 
     private static string CreateDefaultName(string memberName)
@@ -49,13 +54,6 @@ internal static class EntityMetadataBuilder
                 : char.ToLower(first) + memberName[1..];
         }
         return memberName;
-    }
-
-    private static Type? FindReferencedEntityType(ColumnAttribute columnAttribute)
-    {
-        return columnAttribute is ForeignKeyAttribute foreignKeyAttribute
-            ? foreignKeyAttribute.Reference
-            : null;
     }
 
     private static Constraints GetConstraints(Property property)
