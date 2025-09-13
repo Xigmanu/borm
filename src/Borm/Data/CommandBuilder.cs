@@ -4,28 +4,28 @@ using Borm.Data.Storage;
 
 namespace Borm.Data;
 
-internal sealed class ChangeCommandBuilder
+internal sealed class CommandBuilder
 {
     private readonly Dictionary<RowAction, DbCommandDefinition> _commandCache;
+    private readonly TableGraph _graph;
     private readonly IDbCommandDefinitionFactory _commandFactory;
-    private readonly Table _table;
 
-    public ChangeCommandBuilder(Table table, IDbCommandDefinitionFactory commandFactory)
+    public CommandBuilder(TableGraph graph, IDbCommandDefinitionFactory commandFactory)
     {
+        _graph = graph;
         _commandFactory = commandFactory;
-        _table = table;
         _commandCache = [];
     }
 
-    public IEnumerable<DbCommandDefinition> BuildUpdateCommands()
+    public IEnumerable<DbCommandDefinition> BuildUpdateCommands(Table table)
     {
-        IEnumerable<Change> changes = _table.Tracker.Changes;
+        IEnumerable<Change> changes = table.Tracker.Changes;
         if (!changes.Any())
         {
             return [];
         }
 
-        TableInfo schema = _table.GetTableSchema();
+        TableInfo schema = _graph.GetSchema(table);
 
         foreach (Change change in changes)
         {

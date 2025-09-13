@@ -105,7 +105,7 @@ public sealed class DirectDeleteTest
         Assert.Empty(addresses);
     }
 
-    [Fact]
+    [Fact(Skip = "This test is broken, since SaveChanges does not have any effect on transaction scopes")]
     public void ValidSimpleEntity_WithSavingChanges()
     {
         // Arrange

@@ -5,52 +5,52 @@ namespace Borm.Data.Storage;
 internal sealed class TableGraphBuilder
 {
     private readonly Dictionary<Type, EntityMetadata> _entityInfoMap;
-    private readonly Dictionary<EntityMetadata, Table> _tableCache;
 
     public TableGraphBuilder(IEnumerable<EntityMetadata> entityInfos)
     {
         _entityInfoMap = entityInfos.ToDictionary(e => e.DataType);
-        _tableCache = [];
     }
 
-    public IEnumerable<Table> BuildAll()
+    public TableGraph Build()
     {
-        List<Table> tables = [];
+        TableGraph graph = new();
         foreach (EntityMetadata entityMetadata in _entityInfoMap.Values)
         {
-            tables.Add(BuildTableRecursive(entityMetadata));
+            BuildTableRecursive(entityMetadata, graph);
         }
-        return tables;
+        return graph;
     }
 
-    private Table BuildTableRecursive(EntityMetadata entityMetadata)
+    private Table BuildTableRecursive(EntityMetadata entityMetadata, TableGraph graph)
     {
-        if (_tableCache.TryGetValue(entityMetadata, out Table? cachedTable))
+        Table? cached = graph[entityMetadata.DataType];
+        if (cached != null)
         {
-            return cachedTable;
+            return cached;
         }
 
         Table table = new(entityMetadata);
-        foreach (ColumnMetadata column in entityMetadata.Columns)
+        graph.AddTable(table);
+
+        foreach (Type? reference in entityMetadata.Columns.Select(column => column.Reference))
         {
-            if (column.Reference is null)
+            if (reference is null)
             {
                 continue;
             }
 
-            if (_entityInfoMap.TryGetValue(column.Reference, out EntityMetadata? dependency))
-            {
-                Table dependencyTable = BuildTableRecursive(dependency);
-                table.ParentRelations[column] = dependencyTable;
-            }
-            else
+            if (!_entityInfoMap.TryGetValue(reference, out EntityMetadata? dependency))
             {
                 throw new InvalidOperationException(
-                    $"No node found for referenced type {column.Reference}"
+                    $"No node found for referenced type {reference}"
                 );
             }
+
+            Table parent = BuildTableRecursive(dependency, graph);
+            graph.AddParent(table, parent);
+            graph.AddChild(parent, table);
         }
 
-        return _tableCache[entityMetadata] = table;
+        return table;
     }
 }

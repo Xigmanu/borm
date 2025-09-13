@@ -6,6 +6,7 @@ internal static class TableMocks
 {
     public static Table CreateAddressesTable() => new(EntityMetadataMocks.AddressesEntity);
 
+    /*
     public static Table CreateEmployeesTable(Table personsTable)
     {
         Table table = new(EntityMetadataMocks.EmployeesEntity);
@@ -20,5 +21,5 @@ internal static class TableMocks
         table.ParentRelations[EntityMetadataMocks.PersonsEntity.Columns["address"]] =
             addressesTable;
         return table;
-    }
+    }*/
 }

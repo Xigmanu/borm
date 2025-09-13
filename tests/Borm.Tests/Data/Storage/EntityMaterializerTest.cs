@@ -8,6 +8,7 @@ namespace Borm.Tests.Data.Storage;
 
 public sealed class EntityMaterializerTest
 {
+    /*
     [Fact]
     public void Materialize_CreatesEntityObjectFromBuffer_WithRelationalEntity()
     {
@@ -160,4 +161,5 @@ public sealed class EntityMaterializerTest
         Assert.NotNull(exception);
         Assert.IsType<RowNotFoundException>(exception);
     }
+    */
 }

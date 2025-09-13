@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using Borm.Data.Sql;
+using System.Linq;
 using Borm.Data.Storage;
 using Borm.Properties;
 
@@ -19,18 +19,20 @@ public class InternalTransaction : IDisposable
 
     private readonly List<Table> _changedTables;
     private readonly Queue<Action<long>> _operationQueue;
+    private readonly TableGraph _graph;
     private int _attempt;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private bool _isDisposed;
 
-    internal InternalTransaction()
-        : this(IdProvider.Next()) { }
+    internal InternalTransaction(TableGraph graph)
+        : this(IdProvider.Next(), graph) { }
 
-    internal InternalTransaction(long id)
+    internal InternalTransaction(long id, TableGraph graph)
     {
         this.id = id;
         exception = null;
+        _graph = graph;
         _operationQueue = [];
         _changedTables = [];
         _isDisposed = false;
@@ -41,6 +43,7 @@ public class InternalTransaction : IDisposable
     {
         id = IdProvider.Next();
         exception = null;
+        _graph = original._graph;
         _operationQueue = original._operationQueue;
         _changedTables = original._changedTables;
         _isDisposed = false;
@@ -71,9 +74,14 @@ public class InternalTransaction : IDisposable
 
         try
         {
+            HashSet<Table> processed = [];
             foreach (Table changedTable in _changedTables)
             {
-                changedTable.AcceptPendingChanges(id);
+                List<Table> tables = [.. _graph.GetParents(changedTable), changedTable];
+                foreach (Table table in tables.Where(processed.Add))
+                {
+                    table.AcceptPendingChanges(id);
+                }
             }
         }
         catch (ConcurrencyConflictException ex)
@@ -110,13 +118,6 @@ public class InternalTransaction : IDisposable
             Action<long> operation = _operationQueue.Dequeue();
             _ = TryExecute(operation);
         }
-    }
-
-    [Conditional("DEBUG")]
-    private static void AssertArgumentTypeIsValid(object arg)
-    {
-        Type type = arg.GetType();
-        Debug.Assert(type == typeof(ValueBuffer) || type == typeof(ResultSet));
     }
 
     private bool TryExecute(Action<long> tableOperation)

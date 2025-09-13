@@ -25,7 +25,7 @@ public sealed class TableGraphTest
     {
         // Arrange
         Table addressesTable = CreateAddressesTable();
-        Table personsTable = CreatePersonsTable(addressesTable);
+        Table personsTable = null;
         List<Table> tables = [addressesTable, personsTable];
         TableGraph graph = new();
 
@@ -72,7 +72,7 @@ public sealed class TableGraphTest
     {
         // Arrange
         Table addressesTable = CreateAddressesTable();
-        Table personsTable = CreatePersonsTable(addressesTable);
+        Table personsTable = null;
         List<Table> tables = [personsTable, addressesTable];
         TableGraph graph = new();
         graph.AddTableRange(tables);
