@@ -1,4 +1,7 @@
-﻿using Borm.Data.Storage;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using Borm.Data.Storage;
+using Borm.Model;
 using Borm.Model.Metadata;
 using Borm.Properties;
 
@@ -107,6 +110,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             );
 
             _table.Delete(preProcessed, txId);
+            ExecuteReferentialIntegrityOperation(txId, preProcessed.PrimaryKey);
         };
     }
 
@@ -142,27 +146,83 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             );
             foreach (ResolvedForeignKey resolvedKey in resolvedKeys)
             {
-                Table parent = resolvedKey.Table;
+                Table parent = resolvedKey.Parent;
 
                 if (resolvedKey.IsComplexRecord)
                 {
-                    if (!parent.Tracker.TryGetChange(resolvedKey.Value, txId, out _))
+                    if (!parent.Tracker.TryGetChange(resolvedKey.PrimaryKey, txId, out _))
                     {
                         throw new RowNotFoundException(
-                            Strings.RowNotFound(parent.Name, resolvedKey.Value)
+                            Strings.RowNotFound(parent.Name, resolvedKey.PrimaryKey)
                         );
                     }
                 }
-                else if (!parent.Tracker.TryGetChange(resolvedKey.Value, txId, out _))
+                else if (!parent.Tracker.TryGetChange(resolvedKey.PrimaryKey, txId, out _))
                 {
                     throw new RowNotFoundException(
-                        Strings.RowNotFound(parent.Name, resolvedKey.Value)
+                        Strings.RowNotFound(parent.Name, resolvedKey.PrimaryKey)
                     );
                 }
             }
 
             _table.Update(preProcessed, txId);
+            ExecuteReferentialIntegrityOperation(txId, preProcessed.PrimaryKey);
         };
+    }
+
+    private void ExecuteReferentialIntegrityOperation(
+        long txId,
+        object parentPrimaryKey,
+        [CallerMemberName] string? operation = null
+    )
+    {
+        Debug.Assert(
+            operation == nameof(CreateDeleteClosure) || operation == nameof(CreateUpdateClosure),
+            $"{nameof(ExecuteReferentialIntegrityOperation)} should only be called during Update/Delete"
+        );
+
+        IEnumerable<Table> children = _graph.GetChildren(_table);
+        foreach (Table child in children)
+        {
+            EntityMetadata childMetadata = child.EntityMetadata;
+            foreach (ColumnMetadata column in childMetadata.Columns)
+            {
+                ReferentialAction action = operation switch
+                {
+                    nameof(CreateDeleteClosure) => column.OnDelete,
+                    nameof(CreateUpdateClosure) => column.OnUpdate,
+                    _ => default,
+                };
+
+                if (action == default)
+                {
+                    continue;
+                }
+
+                Debug.Assert(column.Reference is not null);
+
+                IEnumerable<ValueBuffer> affected = child
+                    .Tracker.Changes.Where(change =>
+                        Equals(change.Buffer[column], parentPrimaryKey)
+                    )
+                    .Select(change => change.Buffer.Copy()); // Copy here as a safeguard against mutations via reference
+                foreach (ValueBuffer buffer in affected)
+                {
+                    Debug.Assert(action != ReferentialAction.NoAction);
+                    object value = action switch
+                    {
+                        ReferentialAction.Cascade => parentPrimaryKey,
+                        ReferentialAction.SetNull => DBNull.Value,
+                        _ => throw new NotSupportedException(
+                            $"Unexpected {nameof(ReferentialAction)}: {action}"
+                        ),
+                    };
+                    buffer[column] = value;
+
+                    child.Update(buffer, txId);
+                }
+            }
+        }
     }
 
     private void InsertRecursively(Table table, ValueBuffer buffer, long txId)
@@ -179,7 +239,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
                 continue;
             }
 
-            Table parent = resolvedKey.Table;
+            Table parent = resolvedKey.Parent;
             EntityMetadata metadata = parent.EntityMetadata;
 
             if (resolvedKey.IsComplexRecord)
@@ -193,7 +253,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             else
             {
                 throw new RowNotFoundException(
-                    Strings.RowNotFound(parent.Name, primaryKey: resolvedKey.Value)
+                    Strings.RowNotFound(parent.Name, primaryKey: resolvedKey.PrimaryKey)
                 );
             }
         }

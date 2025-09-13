@@ -1,9 +1,13 @@
-﻿namespace Borm.Data.Storage;
+﻿using Borm.Model;
+
+namespace Borm.Data.Storage;
 
 internal sealed record ResolvedForeignKey(
-    Table Table,
-    object Value,
+    Table Parent,
+    object PrimaryKey,
     object RawValue,
     bool IsComplexRecord,
-    bool ChangeExists
+    bool ChangeExists,
+    ReferentialAction OnDelete,
+    ReferentialAction OnUpdate
 );

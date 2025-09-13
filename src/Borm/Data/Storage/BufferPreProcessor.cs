@@ -26,8 +26,8 @@ internal sealed class BufferPreProcessor
             if (!IsValueSimple(column, columnValue))
             {
                 ResolvedForeignKey key = ResolveKey(column, columnValue, txId);
-                Debug.Assert(key.Value != null);
-                resolved[column] = key.Value;
+                Debug.Assert(key.PrimaryKey != null);
+                resolved[column] = key.PrimaryKey;
                 resolvedKeys.Add(key);
                 continue;
             }
@@ -60,7 +60,9 @@ internal sealed class BufferPreProcessor
                 columnValue,
                 columnValue,
                 IsComplexRecord: false,
-                changeExists
+                changeExists,
+                column.OnDelete,
+                column.OnUpdate
             );
         }
 
@@ -73,7 +75,9 @@ internal sealed class BufferPreProcessor
             primaryKey,
             columnValue,
             IsComplexRecord: true,
-            changeExists
+            changeExists,
+            column.OnDelete,
+            column.OnUpdate
         );
     }
 }
