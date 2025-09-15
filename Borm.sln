@@ -8,6 +8,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		Borm.Tests.slnf = Borm.Tests.slnf
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Providers", "Providers", "{101AF233-85AE-430A-A946-19F076D92931}"
@@ -18,13 +19,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{8C4AF561
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Borm.Providers", "Borm.Providers", "{031910A2-C4BB-4D37-8F1B-73D8FA5FF17C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm.Data.Sql.Sqlite.Tests", "tests\Borm.Provider\Borm.Data.Sql.Sqlite.Tests\Borm.Data.Sql.Sqlite.Tests.csproj", "{F4304A3A-9D9B-BD23-5473-400D3A428A42}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm.Tests", "tests\Borm.Tests\Borm.Tests.csproj", "{7266B37F-20A3-9C28-EEA3-B7258286EE7F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm.Tests.EndToEnd", "tests\Borm.Tests.EndToEnd\Borm.Tests.EndToEnd.csproj", "{B685DF57-C8FE-4706-806C-06E5C66FAD0E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm.Tests.Common", "tests\Borm.Tests.Common\Borm.Tests.Common.csproj", "{9DB1EA90-1D1C-40EE-A2A0-905BC79B1F11}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm.Data.Sql.Sqlite.Tests", "tests\Borm.Providers\Borm.Data.Sql.Sqlite.Tests\Borm.Data.Sql.Sqlite.Tests.csproj", "{05B9E1E0-61B4-5BA2-734C-0FAC269373DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,10 +41,6 @@ Global
 		{8E70E0A2-AE16-44EE-8850-3520BE563B47}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E70E0A2-AE16-44EE-8850-3520BE563B47}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E70E0A2-AE16-44EE-8850-3520BE563B47}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F4304A3A-9D9B-BD23-5473-400D3A428A42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F4304A3A-9D9B-BD23-5473-400D3A428A42}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F4304A3A-9D9B-BD23-5473-400D3A428A42}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F4304A3A-9D9B-BD23-5473-400D3A428A42}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7266B37F-20A3-9C28-EEA3-B7258286EE7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7266B37F-20A3-9C28-EEA3-B7258286EE7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7266B37F-20A3-9C28-EEA3-B7258286EE7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -56,6 +53,10 @@ Global
 		{9DB1EA90-1D1C-40EE-A2A0-905BC79B1F11}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9DB1EA90-1D1C-40EE-A2A0-905BC79B1F11}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9DB1EA90-1D1C-40EE-A2A0-905BC79B1F11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05B9E1E0-61B4-5BA2-734C-0FAC269373DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05B9E1E0-61B4-5BA2-734C-0FAC269373DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05B9E1E0-61B4-5BA2-734C-0FAC269373DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05B9E1E0-61B4-5BA2-734C-0FAC269373DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -63,10 +64,10 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{8E70E0A2-AE16-44EE-8850-3520BE563B47} = {101AF233-85AE-430A-A946-19F076D92931}
 		{031910A2-C4BB-4D37-8F1B-73D8FA5FF17C} = {8C4AF561-F3A7-4BDA-9939-6DFC45E62DD8}
-		{F4304A3A-9D9B-BD23-5473-400D3A428A42} = {031910A2-C4BB-4D37-8F1B-73D8FA5FF17C}
 		{7266B37F-20A3-9C28-EEA3-B7258286EE7F} = {8C4AF561-F3A7-4BDA-9939-6DFC45E62DD8}
 		{B685DF57-C8FE-4706-806C-06E5C66FAD0E} = {8C4AF561-F3A7-4BDA-9939-6DFC45E62DD8}
 		{9DB1EA90-1D1C-40EE-A2A0-905BC79B1F11} = {8C4AF561-F3A7-4BDA-9939-6DFC45E62DD8}
+		{05B9E1E0-61B4-5BA2-734C-0FAC269373DC} = {031910A2-C4BB-4D37-8F1B-73D8FA5FF17C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C0529543-5A4C-401A-8DFC-A8D05907E7AE}
