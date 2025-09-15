@@ -1,0 +1,9 @@
+{
+    "solution": {
+        "path": "Borm.sln",
+        "projects": [
+            "tests\\Borm.Tests\\Borm.Tests.csproj",
+            "tests\\Borm.Providers\\Borm.Data.Sql.Sqlite.Tests\\Borm.Data.Sql.Sqlite.Tests.csproj"
+        ]
+    }
+}
