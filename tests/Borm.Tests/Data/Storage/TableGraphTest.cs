@@ -1,15 +1,18 @@
 ﻿using Borm.Data.Storage;
-using static Borm.Tests.Mocks.TableMocks;
+using Borm.Tests.Common;
+using Borm.Tests.Mocks;
 
 namespace Borm.Tests.Data.Storage;
 
 public sealed class TableGraphTest
 {
+    private readonly TableGraph _graph = TableGraphMock.Create();
+
     [Fact]
     public void AddTable_InsertsTableAndMapsItToEntityType_IfTableNotExists()
     {
         // Arrange
-        Table table = CreateAddressesTable();
+        Table table = _graph[typeof(AddressEntity)]!;
         TableGraph graph = new();
 
         // Act
@@ -24,8 +27,8 @@ public sealed class TableGraphTest
     public void AddTableRange_InsertsTableEnumeration()
     {
         // Arrange
-        Table addressesTable = CreateAddressesTable();
-        Table personsTable = null;
+        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        Table personsTable = _graph[typeof(PersonEntity)]!;
         List<Table> tables = [addressesTable, personsTable];
         TableGraph graph = new();
 
@@ -39,13 +42,8 @@ public sealed class TableGraphTest
     [Fact]
     public void Indexer_ReturnsNull_IfTableNotExists()
     {
-        // Arrange
-        Table table = CreateAddressesTable();
-        TableGraph graph = new();
-        graph.AddTable(table);
-
         // Act
-        Table? actual = graph[typeof(int)];
+        Table? actual = _graph[typeof(int)];
 
         // Assert
         Assert.Null(actual);
@@ -55,12 +53,10 @@ public sealed class TableGraphTest
     public void Indexer_ReturnsTable_IfTableExists()
     {
         // Arrange
-        Table table = CreateAddressesTable();
-        TableGraph graph = new();
-        graph.AddTable(table);
+        Table table = _graph[typeof(AddressEntity)]!;
 
         // Act
-        Table? actual = graph[table.EntityMetadata.DataType];
+        Table? actual = _graph[table.EntityMetadata.DataType];
 
         // Assert
         Assert.NotNull(actual);
@@ -71,14 +67,11 @@ public sealed class TableGraphTest
     public void TopSort_ReturnsTopologicallySortedRangeOfTables()
     {
         // Arrange
-        Table addressesTable = CreateAddressesTable();
-        Table personsTable = null;
-        List<Table> tables = [personsTable, addressesTable];
-        TableGraph graph = new();
-        graph.AddTableRange(tables);
+        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        Table personsTable = _graph[typeof(PersonEntity)]!;
 
         // Act
-        IEnumerable<Table> sorted = graph.TopSort();
+        IEnumerable<Table> sorted = _graph.TopSort();
 
         // Assert
         Assert.Equal(addressesTable, sorted.ElementAt(0));

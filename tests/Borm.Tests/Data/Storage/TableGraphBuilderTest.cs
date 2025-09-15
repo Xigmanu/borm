@@ -1,7 +1,7 @@
 ﻿using Borm.Data.Storage;
 using Borm.Model.Metadata;
 using static Borm.Tests.Mocks.EntityMetadataMocks;
-using static Borm.Tests.Mocks.TableMocks;
+using static Borm.Tests.Mocks.TableGraphMock;
 
 namespace Borm.Tests.Data.Storage;
 

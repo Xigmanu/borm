@@ -7,9 +7,9 @@ namespace Borm.Tests.Mocks;
 
 internal static class EntityMetadataMocks
 {
-    public static readonly EntityMetadata AddressesEntity = CreateAddressesEntity();
-    public static readonly EntityMetadata EmployeesEntity = CreateEmployeeEntity();
-    public static readonly EntityMetadata PersonsEntity = CreatePersonsEntity();
+    public static readonly EntityMetadata AddressesMetadata = CreateAddressesEntity();
+    public static readonly EntityMetadata EmployeesMetadata = CreateEmployeeEntity();
+    public static readonly EntityMetadata PersonsMetadata = CreatePersonsEntity();
 
     private static EntityMetadata CreateAddressesEntity()
     {
@@ -74,7 +74,7 @@ internal static class EntityMetadataMocks
                 new ColumnMetadata(0, "id", "Id", typeof(int), Constraints.PrimaryKey),
                 new ColumnMetadata(1, "person_id", "Person", typeof(int), Constraints.Unique)
                 {
-                    Reference = typeof(AddressEntity),
+                    Reference = typeof(PersonEntity),
                 },
                 new ColumnMetadata(2, "is_active", "IsActive", typeof(bool), Constraints.None),
             ]

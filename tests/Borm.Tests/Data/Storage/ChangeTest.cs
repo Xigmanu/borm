@@ -1,16 +1,19 @@
 ﻿using Borm.Data.Storage;
-using static Borm.Tests.Mocks.TableMocks;
+using Borm.Tests.Common;
+using Borm.Tests.Mocks;
 using static Borm.Tests.Mocks.ValueBufferMockHelper;
 
 namespace Borm.Tests.Data.Storage;
 
 public sealed class ChangeTest
 {
+    private readonly TableGraph _graph = TableGraphMock.Create();
+
     [Fact]
     public void CommitMerge_ReturnsCommittedMergedChange()
     {
         // Arrange
-        Table addressesTable = CreateAddressesTable();
+        Table addressesTable = _graph[typeof(AddressEntity)]!;
         ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, addressesTable);
         long initTxId = 0;
         Change initChange = Change.NewChange(initBuffer, initTxId);
@@ -34,7 +37,7 @@ public sealed class ChangeTest
     public void Delete_ReturnsDeleteChange()
     {
         // Arrange
-        Table addressesTable = CreateAddressesTable();
+        Table addressesTable = _graph[typeof(AddressEntity)]!;
         ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, addressesTable);
         long initTxId = 0;
         Change change = Change.Initial(initBuffer, initTxId);
@@ -57,7 +60,7 @@ public sealed class ChangeTest
     public void InitChange_ReturnsInitialChange()
     {
         // Arrange
-        Table addressesTable = CreateAddressesTable();
+        Table addressesTable = _graph[typeof(AddressEntity)]!;
         ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
         long txId = 0;
 
@@ -76,7 +79,7 @@ public sealed class ChangeTest
     public void MarkAsWritten_MarksChangeAsWrittenToDataSource()
     {
         // Arrange
-        Table addressesTable = CreateAddressesTable();
+        Table addressesTable = _graph[typeof(AddressEntity)]!;
         ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
         long txId = 0;
         Change change = Change.Initial(buffer, txId);
@@ -95,7 +98,7 @@ public sealed class ChangeTest
     public void Merge_ReturnsExistingChange_WhenExistingAndIncomingReadTxIdsMatch()
     {
         // Arrange
-        Table addressesTable = CreateAddressesTable();
+        Table addressesTable = _graph[typeof(AddressEntity)]!;
         ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, addressesTable);
         long initTxId = 0;
         Change initChange = Change.Initial(initBuffer, initTxId);
@@ -115,7 +118,7 @@ public sealed class ChangeTest
     public void Merge_ReturnsMergedChange_WhenExistingChangeWasNotWrittenToDataSource()
     {
         // Arrange
-        Table addressesTable = CreateAddressesTable();
+        Table addressesTable = _graph[typeof(AddressEntity)]!;
         ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, addressesTable);
         long initTxId = 0;
         Change initChange = Change.NewChange(initBuffer, initTxId);
@@ -139,7 +142,7 @@ public sealed class ChangeTest
     public void Merge_ReturnsMergedChange_WhenExistingChangeWasWrittenToDataSource()
     {
         // Arrange
-        Table addressesTable = CreateAddressesTable();
+        Table addressesTable = _graph[typeof(AddressEntity)]!;
         ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, addressesTable);
         long initTxId = 0;
         Change initChange = Change.Initial(initBuffer, initTxId);
@@ -163,7 +166,7 @@ public sealed class ChangeTest
     public void Merge_ReturnsNull_WhenNewChangeDeletesExistingChangeThatWasNotWrittenToDataSource()
     {
         // Arrange
-        Table addressesTable = CreateAddressesTable();
+        Table addressesTable = _graph[typeof(AddressEntity)]!;
         ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, addressesTable);
         long initTxId = 0;
         Change initChange = Change.NewChange(initBuffer, initTxId);
@@ -182,7 +185,7 @@ public sealed class ChangeTest
     public void Merge_ThrowsTransactionMismatchException_WhenExistingAndIncomingReadTxIdsDoNotMatch()
     {
         // Arrange
-        Table addressesTable = CreateAddressesTable();
+        Table addressesTable = _graph[typeof(AddressEntity)]!;
         ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, addressesTable);
         long initTxId = 1;
         Change initChange = Change.Initial(initBuffer, initTxId);
@@ -203,7 +206,7 @@ public sealed class ChangeTest
     public void NewChange_ReturnsInsertChange()
     {
         // Arrange
-        Table addressesTable = CreateAddressesTable();
+        Table addressesTable = _graph[typeof(AddressEntity)]!;
         ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
         long txId = 0;
 
@@ -222,7 +225,7 @@ public sealed class ChangeTest
     public void Update_ReturnsUpdateChange()
     {
         // Arrange
-        Table addressesTable = CreateAddressesTable();
+        Table addressesTable = _graph[typeof(AddressEntity)]!;
         ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, addressesTable);
         long initTxId = 0;
         Change change = Change.NewChange(initBuffer, initTxId);

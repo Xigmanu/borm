@@ -1,8 +1,7 @@
 ﻿using System.Diagnostics;
-using Borm.Data.Sql;
 using Borm.Data.Storage;
 
-namespace Borm.Data;
+namespace Borm.Data.Sql;
 
 internal sealed class CommandBuilder
 {

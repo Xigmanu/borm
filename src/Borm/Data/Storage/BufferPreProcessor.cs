@@ -13,29 +13,29 @@ internal sealed class BufferPreProcessor
         _graph = graph;
     }
 
-    public ValueBuffer ResolveForeignKeys(
+    public List<ResolvedForeignKey> ResolveForeignKeys(
         ValueBuffer buffer,
         long txId,
-        out List<ResolvedForeignKey> resolvedKeys
+        out ValueBuffer processed
     )
     {
-        ValueBuffer resolved = new();
-        resolvedKeys = [];
+        processed = new();
+        List<ResolvedForeignKey> resolvedKeys = [];
         foreach ((ColumnMetadata column, object columnValue) in buffer)
         {
             if (!IsValueSimple(column, columnValue))
             {
                 ResolvedForeignKey key = ResolveKey(column, columnValue, txId);
                 Debug.Assert(key.PrimaryKey != null);
-                resolved[column] = key.PrimaryKey;
+                processed[column] = key.PrimaryKey;
                 resolvedKeys.Add(key);
                 continue;
             }
 
-            resolved[column] = columnValue;
+            processed[column] = columnValue;
         }
 
-        return resolved;
+        return resolvedKeys;
     }
 
     [DebuggerStepThrough]
@@ -60,9 +60,7 @@ internal sealed class BufferPreProcessor
                 columnValue,
                 columnValue,
                 IsComplexRecord: false,
-                changeExists,
-                column.OnDelete,
-                column.OnUpdate
+                changeExists
             );
         }
 
@@ -75,9 +73,7 @@ internal sealed class BufferPreProcessor
             primaryKey,
             columnValue,
             IsComplexRecord: true,
-            changeExists,
-            column.OnDelete,
-            column.OnUpdate
+            changeExists
         );
     }
 }

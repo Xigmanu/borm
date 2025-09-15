@@ -103,11 +103,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
 
             EntityMetadata metadata = _table.EntityMetadata;
             ValueBuffer buffer = metadata.Binding.ToValueBuffer(entity);
-            ValueBuffer preProcessed = _preProcessor.ResolveForeignKeys(
-                buffer,
-                txId,
-                out List<ResolvedForeignKey> _
-            );
+            _ = _preProcessor.ResolveForeignKeys(buffer, txId, out ValueBuffer preProcessed);
 
             _table.Delete(preProcessed, txId);
             ExecuteReferentialIntegrityOperation(txId, preProcessed.PrimaryKey);
@@ -139,10 +135,10 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
 
             ValueBuffer buffer = metadata.Binding.ToValueBuffer(entity);
 
-            ValueBuffer preProcessed = _preProcessor.ResolveForeignKeys(
+            List<ResolvedForeignKey> resolvedKeys = _preProcessor.ResolveForeignKeys(
                 buffer,
                 txId,
-                out List<ResolvedForeignKey> resolvedKeys
+                out ValueBuffer preProcessed
             );
             foreach (ResolvedForeignKey resolvedKey in resolvedKeys)
             {
@@ -227,10 +223,10 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
 
     private void InsertRecursively(Table table, ValueBuffer buffer, long txId)
     {
-        ValueBuffer preProcessed = _preProcessor.ResolveForeignKeys(
+        List<ResolvedForeignKey> resolvedKeys = _preProcessor.ResolveForeignKeys(
             buffer,
             txId,
-            out List<ResolvedForeignKey> resolvedKeys
+            out ValueBuffer preProcessed
         );
         foreach (ResolvedForeignKey resolvedKey in resolvedKeys)
         {

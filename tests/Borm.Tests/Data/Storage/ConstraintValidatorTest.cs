@@ -1,17 +1,20 @@
 ﻿using System.Data;
 using Borm.Data.Storage;
-using static Borm.Tests.Mocks.TableMocks;
+using Borm.Tests.Common;
+using Borm.Tests.Mocks;
 using static Borm.Tests.Mocks.ValueBufferMockHelper;
 
 namespace Borm.Tests.Data.Storage;
 
 public sealed class ConstraintValidatorTest
 {
+    private readonly TableGraph _graph = TableGraphMock.Create();
+
     [Fact]
     public void ValidateBuffer_ThrowsConstraintException_WhenNullConstraintIsViolated()
     {
         // Arrange
-        Table table = CreateAddressesTable();
+        Table table = _graph[typeof(AddressEntity)]!;
         ValueBuffer buffer = CreateBuffer([1, "address", DBNull.Value, DBNull.Value], table);
 
         ConstraintValidator validator = new(table);
@@ -28,7 +31,7 @@ public sealed class ConstraintValidatorTest
     public void ValidateBuffer_ThrowsConstraintException_WhenUniqueConstraintIsViolated()
     {
         // Arrange
-        Table table = CreateAddressesTable();
+        Table table = _graph[typeof(AddressEntity)]!;
         ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
         table.Tracker.PendChange(Change.NewChange(buffer, -1));
         table.AcceptPendingChanges(-1);
@@ -47,7 +50,7 @@ public sealed class ConstraintValidatorTest
     public void ValidateBuffer_ThrowsNothing_WhenNoConstraintsAreViolated()
     {
         // Arrange
-        Table table = CreateAddressesTable();
+        Table table = _graph[typeof(AddressEntity)]!;
         ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
 
         ConstraintValidator validator = new(table);

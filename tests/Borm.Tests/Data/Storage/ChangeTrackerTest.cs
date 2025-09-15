@@ -1,16 +1,19 @@
-﻿using static Borm.Tests.Mocks.ValueBufferMockHelper;
-using static Borm.Tests.Mocks.TableMocks;
-using Borm.Data.Storage;
+﻿using Borm.Data.Storage;
+using Borm.Tests.Common;
+using Borm.Tests.Mocks;
+using static Borm.Tests.Mocks.ValueBufferMockHelper;
 
 namespace Borm.Tests.Data.Storage;
 
 public sealed class ChangeTrackerTest
 {
+    private readonly TableGraph _graph = TableGraphMock.Create();
+
     [Fact]
     public void AcceptPendingChanges_ConvertsPendingChangeToNormalChange()
     {
         // Arrange
-        Table addressesTable = CreateAddressesTable();
+        Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeTracker tracker = new();
         ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
         long txId = 0;
@@ -48,7 +51,7 @@ public sealed class ChangeTrackerTest
     public void PendChange_PendsIncomingChange_WithNoPendingConflict()
     {
         // Arrange
-        Table addressesTable = CreateAddressesTable();
+        Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeTracker tracker = new();
         ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
         long txId = 0;
@@ -67,7 +70,7 @@ public sealed class ChangeTrackerTest
     public void PendChange_PendsIncomingChange_WithPendingConflict()
     {
         // Arrange
-        Table addressesTable = CreateAddressesTable();
+        Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeTracker tracker = new();
         ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
         long txId = 0;
