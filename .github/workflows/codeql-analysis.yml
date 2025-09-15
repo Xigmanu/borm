@@ -1,0 +1,31 @@
+name: CodeQL Analysis
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    code-analysis:
+        name: Code Analysis
+        runs-on: ubuntu-latest
+        permissions:
+            security-events: write
+            actions: read
+            contents: read
+
+        strategy:
+            fail-fast: false
+            matrix:
+                language: [ 'csharp' ]
+        
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Initialize CodeQL
+              uses: github/codeql-action/init@v3
+              with:
+                languages: ${{ matrix.language }}
+            - name: Autobuild
+              uses: github/codeql-action/autobuild@v3
+            - name: Analyse
+              uses: github/codeql-action/analyze@v3
