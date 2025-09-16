@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Borm.Model;
 using Borm.Model.Metadata;
 
@@ -47,14 +48,6 @@ internal sealed class TableGraph
         }
     }
 
-    public void AddTableRange(IEnumerable<Table> tables)
-    {
-        foreach (Table table in tables)
-        {
-            AddTable(table);
-        }
-    }
-
     public IEnumerable<Table> GetChildren(Table table)
     {
         return GetEdges(table, _children);
@@ -65,7 +58,7 @@ internal sealed class TableGraph
         return GetEdges(table, _parents);
     }
 
-    public TableInfo GetSchema(Table table)
+    public TableInfo GetTableSchema(Table table)
     {
         List<ColumnInfo> columns = [];
         Dictionary<ColumnInfo, TableInfo> fkRelationMap = [];
@@ -99,13 +92,19 @@ internal sealed class TableGraph
                 isUnique,
                 isNullable
             );
-            TableInfo parentSchema = GetSchema(parent);
+            TableInfo parentSchema = GetTableSchema(parent);
 
+            columns.Add(columnInfo);
             fkRelationMap[columnInfo] = parentSchema;
         }
 
         Debug.Assert(primaryKey != null);
-        return new TableInfo(table.EntityMetadata.Name, columns, primaryKey, fkRelationMap);
+        return new TableInfo(
+            table.EntityMetadata.Name,
+            new ReadOnlyCollection<ColumnInfo>(columns),
+            primaryKey,
+            fkRelationMap.AsReadOnly()
+        );
     }
 
     public IEnumerable<Table> TopSort()
@@ -120,9 +119,13 @@ internal sealed class TableGraph
                 return;
             }
 
-            foreach (Type parentDataType in _parents[table.EntityMetadata.DataType])
+            Type entityType = table.EntityMetadata.DataType;
+            if (_parents.TryGetValue(entityType, out HashSet<Type>? parentDataTypes))
             {
-                Visit(_tables[parentDataType]);
+                foreach (Type parentDataType in parentDataTypes)
+                {
+                    Visit(_tables[parentDataType]);
+                }
             }
 
             result.Add(table);

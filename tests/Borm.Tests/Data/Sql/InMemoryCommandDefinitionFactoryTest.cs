@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Borm.Data;
 using Borm.Data.Sql;
 
@@ -81,9 +82,9 @@ public sealed class InMemoryCommandDefinitionFactoryTest
     {
         return new TableInfo(
             string.Empty,
-            [],
+            ReadOnlyCollection<ColumnInfo>.Empty,
             new ColumnInfo(string.Empty, typeof(int), false, false),
-            new Dictionary<ColumnInfo, TableInfo>()
+            ReadOnlyDictionary<ColumnInfo, TableInfo>.Empty
         );
     }
 }

@@ -55,7 +55,7 @@ internal sealed class DataSynchronizer
         using InternalTransaction transaction = new(InternalTransaction.InitId, _graph);
         foreach (Table table in _graph.TopSort())
         {
-            TableInfo tableSchema = _graph.GetSchema(table);
+            TableInfo tableSchema = _graph.GetTableSchema(table);
             if (!_executor.TableExists(table.Name))
             {
                 DbCommandDefinition createTable = _commandFactory.CreateTable(tableSchema);

@@ -24,7 +24,7 @@ internal sealed class CommandBuilder
             return [];
         }
 
-        TableInfo schema = _graph.GetSchema(table);
+        TableInfo schema = _graph.GetTableSchema(table);
 
         foreach (Change change in changes)
         {
