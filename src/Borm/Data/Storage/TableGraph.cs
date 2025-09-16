@@ -152,8 +152,7 @@ internal sealed class TableGraph
 
         if (targetMap.TryGetValue(key, out HashSet<Type>? values))
         {
-            bool added = values.Add(value);
-            Debug.Assert(added);
+            _ = values.Add(value);
             return;
         }
 

@@ -105,28 +105,6 @@ public sealed class DirectDeleteTest
         Assert.Empty(addresses);
     }
 
-    [Fact(Skip = "This test is broken, since SaveChanges does not have any effect on transaction scopes")]
-    public void ValidSimpleEntity_WithSavingChanges()
-    {
-        // Arrange
-        DataContext context = DataContextProvider.CreateDataContext();
-        context.Initialize();
-
-        AddressEntity address = new(1, "address", "address2", "city");
-        IEntityRepository<AddressEntity> repository = context.GetRepository<AddressEntity>();
-
-        // Act
-        repository.Insert(address);
-        context.SaveChanges();
-        repository.Delete(address);
-
-        // Assert
-        IEnumerable<AddressEntity> addresses = repository.Select();
-
-        Assert.Single(addresses);
-        Assert.Equal(address, addresses.First());
-    }
-
     [Fact]
     public void ValidSimpleRelationalEntity()
     {

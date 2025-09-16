@@ -12,7 +12,9 @@ internal static class TableGraphMock
         Table personsTable = new(EntityMetadataMocks.PersonsMetadata);
         Table employeesTable = new(EntityMetadataMocks.EmployeesMetadata);
 
-        graph.AddTableRange([addressesTable, personsTable, employeesTable]);
+        graph.AddTable(addressesTable);
+        graph.AddTable(personsTable);
+        graph.AddTable(employeesTable);
 
         graph.AddChild(addressesTable, personsTable);
         graph.AddParent(personsTable, addressesTable);
