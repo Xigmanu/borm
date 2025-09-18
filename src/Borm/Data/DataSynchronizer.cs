@@ -5,28 +5,29 @@ namespace Borm.Data;
 
 internal sealed class DataSynchronizer
 {
+    private readonly CommandBuilder _commandBuilder;
     private readonly IDbCommandDefinitionFactory _commandFactory;
     private readonly IDbCommandExecutor _executor;
-    private readonly TableGraph _tableGraph;
+    private readonly TableGraph _graph;
 
     public DataSynchronizer(
         IDbCommandExecutor executor,
-        TableGraph tableGraph,
-        IDbCommandDefinitionFactory statementFactory
+        TableGraph graph,
+        IDbCommandDefinitionFactory commandFactory
     )
     {
         _executor = executor;
-        _tableGraph = tableGraph;
-        _commandFactory = statementFactory;
+        _graph = graph;
+        _commandFactory = commandFactory;
+        _commandBuilder = new(graph, commandFactory);
     }
 
     public void SaveChanges()
     {
-        IEnumerable<Table> sorted = _tableGraph.TopSort();
+        IEnumerable<Table> sorted = _graph.TopSort();
         foreach (Table table in sorted)
         {
-            ChangeCommandBuilder commandBuilder = new(table, _commandFactory);
-            IEnumerable<DbCommandDefinition> commands = commandBuilder.BuildUpdateCommands();
+            IEnumerable<DbCommandDefinition> commands = _commandBuilder.BuildUpdateCommands(table);
             foreach (DbCommandDefinition command in commands)
             {
                 _executor.ExecuteBatch(command);
@@ -37,11 +38,10 @@ internal sealed class DataSynchronizer
 
     public async Task SaveChangesAsync()
     {
-        IEnumerable<Table> sorted = _tableGraph.TopSort();
+        IEnumerable<Table> sorted = _graph.TopSort();
         foreach (Table table in sorted)
         {
-            ChangeCommandBuilder commandBuilder = new(table, _commandFactory);
-            IEnumerable<DbCommandDefinition> commands = commandBuilder.BuildUpdateCommands();
+            IEnumerable<DbCommandDefinition> commands = _commandBuilder.BuildUpdateCommands(table);
             foreach (DbCommandDefinition command in commands)
             {
                 await _executor.ExecuteBatchAsync(command);
@@ -52,10 +52,10 @@ internal sealed class DataSynchronizer
 
     public void SyncSchemaWithDataSource()
     {
-        using InternalTransaction transaction = new(InternalTransaction.InitId);
-        foreach (Table table in _tableGraph.TopSort())
+        using InternalTransaction transaction = new(InternalTransaction.InitId, _graph);
+        foreach (Table table in _graph.TopSort())
         {
-            TableInfo tableSchema = table.GetTableSchema();
+            TableInfo tableSchema = _graph.GetTableSchema(table);
             if (!_executor.TableExists(table.Name))
             {
                 DbCommandDefinition createTable = _commandFactory.CreateTable(tableSchema);
@@ -66,7 +66,13 @@ internal sealed class DataSynchronizer
             DbCommandDefinition selectAll = _commandFactory.SelectAll(tableSchema);
             ResultSet resultSet = _executor.Query(selectAll);
 
-            transaction.Execute(table, (arg, txId) => table.Load((ResultSet)arg, txId), resultSet);
+            transaction.Execute(
+                (txId, affectedTables) =>
+                {
+                    table.Load(resultSet, txId);
+                    affectedTables.Add(table);
+                }
+            );
         }
     }
 }

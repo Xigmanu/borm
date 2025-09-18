@@ -1,4 +1,6 @@
-﻿namespace Borm.Data.Sql.Sqlite.Tests;
+﻿using System.Collections.ObjectModel;
+
+namespace Borm.Data.Sql.Sqlite.Tests;
 
 public class SqliteCommandFactoryTest
 {
@@ -45,7 +47,7 @@ public class SqliteCommandFactoryTest
         // Arrange
         string expectedSql = "DELETE FROM addresses WHERE id = $id;";
         TableInfo table = AddressesTableSchema;
-        string expectedPKName = DbCommandDefinition.DefaultParameterPrefix + table.Columns.First().Name;
+        string expectedPKName = DbCommandDefinition.DefaultParameterPrefix + table.Columns[0].Name;
         SqliteCommandDefinitionFactory commandFactory = new();
 
         // Act
@@ -71,7 +73,7 @@ public class SqliteCommandFactoryTest
 
         // Assert
         Assert.Equal(expectedSql, actual.Sql);
-        Assert.Equal(table.Columns.Count(), actual.Parameters.Length);
+        Assert.Equal(table.Columns.Count, actual.Parameters.Length);
         for (int i = 0; i < actual.Parameters.Length; i++)
         {
             Assert.Equal(expectedParamNames[i], actual.Parameters[i].ParameterName);
@@ -109,7 +111,7 @@ public class SqliteCommandFactoryTest
 
         // Assert
         Assert.Equal(expectedSql, actual.Sql);
-        Assert.Equal(table.Columns.Count(), actual.Parameters.Length);
+        Assert.Equal(table.Columns.Count, actual.Parameters.Length);
         for (int i = 1; i < expectedParamNames.Length; i++)
         {
             Assert.Equal(expectedParamNames[i], actual.Parameters[i].ParameterName);
@@ -144,9 +146,9 @@ public class SqliteCommandFactoryTest
         ];
         return new TableInfo(
             "persons",
-            columns,
+            new ReadOnlyCollection<ColumnInfo>(columns),
             columns[0],
-            new Dictionary<ColumnInfo, TableInfo>() { [columns[^1]] = AddressesTableSchema }
+            new Dictionary<ColumnInfo, TableInfo>() { [columns[^1]] = AddressesTableSchema }.AsReadOnly()
         );
     }
 
@@ -161,9 +163,9 @@ public class SqliteCommandFactoryTest
         ];
         return new TableInfo(
             "addresses",
-            columns,
+            new ReadOnlyCollection<ColumnInfo>(columns),
             columns[0],
-            new Dictionary<ColumnInfo, TableInfo>()
+            ReadOnlyDictionary<ColumnInfo, TableInfo>.Empty
         );
     }
 }

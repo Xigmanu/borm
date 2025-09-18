@@ -14,7 +14,7 @@ public sealed class ParameterBatchQueueTest
     {
         // Arrange
         object[] values = [1, "address", DBNull.Value, "city"];
-        EntityMetadata metadata = EntityMetadataMocks.AddressesEntity;
+        EntityMetadata metadata = EntityMetadataMocks.AddressesMetadata;
         ValueBuffer buffer = CreateTestBuffer(metadata.Columns, values);
 
         ParameterBatchQueue queue = new();
@@ -30,7 +30,7 @@ public sealed class ParameterBatchQueueTest
     public void SetDbParameters_ShouldAssignValuesToCommandParameters()
     {
         // Arrange
-        EntityMetadata metadata = EntityMetadataMocks.AddressesEntity;
+        EntityMetadata metadata = EntityMetadataMocks.AddressesMetadata;
         ColumnMetadataCollection columns = metadata.Columns;
         object[] values = [1, "address", DBNull.Value, "city"];
 

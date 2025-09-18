@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Linq;
 using Borm.Data.Storage;
 using Borm.Properties;
 
@@ -16,20 +17,22 @@ public class InternalTransaction : IDisposable
 
     private const int MaxRetries = 3;
 
-    private readonly List<Table> _changedTables;
-    private readonly Queue<(Action<object, long>, object)> _operationQueue;
+    private readonly HashSet<Table> _changedTables;
+    private readonly Queue<Action<long, HashSet<Table>>> _operationQueue;
+    private readonly TableGraph _graph;
     private int _attempt;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private bool _isDisposed;
 
-    internal InternalTransaction()
-        : this(IdProvider.Next()) { }
+    internal InternalTransaction(TableGraph graph)
+        : this(IdProvider.Next(), graph) { }
 
-    internal InternalTransaction(long id)
+    internal InternalTransaction(long id, TableGraph graph)
     {
         this.id = id;
         exception = null;
+        _graph = graph;
         _operationQueue = [];
         _changedTables = [];
         _isDisposed = false;
@@ -40,6 +43,7 @@ public class InternalTransaction : IDisposable
     {
         id = IdProvider.Next();
         exception = null;
+        _graph = original._graph;
         _operationQueue = original._operationQueue;
         _changedTables = original._changedTables;
         _isDisposed = false;
@@ -52,11 +56,21 @@ public class InternalTransaction : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    internal virtual void Execute(Table table, Action<object, long> tableOperation, object arg)
+    internal virtual void Execute(Action<long, HashSet<Table>> tableOperation)
     {
-        if (TryExecute(tableOperation, arg))
+        if (exception != null)
         {
-            _changedTables.Add(table);
+            return;
+        }
+
+        try
+        {
+            _operationQueue.Enqueue(tableOperation);
+            tableOperation(id, _changedTables);
+        }
+        catch (Exception ex)
+        {
+            exception = ex;
         }
     }
 
@@ -70,9 +84,14 @@ public class InternalTransaction : IDisposable
 
         try
         {
+            HashSet<Table> processed = [];
             foreach (Table changedTable in _changedTables)
             {
-                changedTable.AcceptPendingChanges(id);
+                List<Table> tables = [.. _graph.GetParents(changedTable), changedTable];
+                foreach (Table table in tables.Where(processed.Add))
+                {
+                    table.AcceptPendingChanges(id);
+                }
             }
         }
         catch (ConcurrencyConflictException ex)
@@ -106,29 +125,9 @@ public class InternalTransaction : IDisposable
     {
         for (int i = 0; i < _operationQueue.Count; i++)
         {
-            (Action<object, long> operation, object arg) = _operationQueue.Dequeue();
-            _ = TryExecute(operation, arg);
+            Action<long, HashSet<Table>> operation = _operationQueue.Dequeue();
+            Execute(operation);
         }
-    }
-
-    private bool TryExecute(Action<object, long> tableOperation, object arg)
-    {
-        if (exception != null)
-        {
-            return false;
-        }
-
-        try
-        {
-            _operationQueue.Enqueue((tableOperation, arg));
-            tableOperation(arg, id);
-        }
-        catch (Exception ex)
-        {
-            exception = ex;
-        }
-
-        return true;
     }
 
     private static class IdProvider

@@ -21,7 +21,12 @@ public sealed class DirectDeleteTest
 
         // Assert
         Assert.NotNull(exception);
-        Assert.IsType<ArgumentNullException>(exception);
+        Assert.IsType<InvalidOperationException>(exception);
+        Assert.Equal(Strings.TransactionFailed(), exception.Message);
+
+        Exception? inner = exception.InnerException;
+        Assert.NotNull(inner);
+        Assert.IsType<ArgumentNullException>(inner);
     }
 
     [Fact]
@@ -101,28 +106,6 @@ public sealed class DirectDeleteTest
     }
 
     [Fact]
-    public void ValidSimpleEntity_WithSavingChanges()
-    {
-        // Arrange
-        DataContext context = DataContextProvider.CreateDataContext();
-        context.Initialize();
-
-        AddressEntity address = new(1, "address", "address2", "city");
-        IEntityRepository<AddressEntity> repository = context.GetRepository<AddressEntity>();
-
-        // Act
-        repository.Insert(address);
-        context.SaveChanges();
-        repository.Delete(address);
-
-        // Assert
-        IEnumerable<AddressEntity> addresses = repository.Select();
-
-        Assert.Single(addresses);
-        Assert.Equal(address, addresses.First());
-    }
-
-    [Fact]
     public void ValidSimpleRelationalEntity()
     {
         // Arrange
@@ -153,5 +136,69 @@ public sealed class DirectDeleteTest
         Assert.Empty(employees);
         Assert.Single(persons);
         Assert.Equal(person, persons.First());
+    }
+
+    [Fact]
+    public void WithSetNullReferentialAction()
+    {
+        // Arrange
+        DataContext context = DataContextProvider.CreateDataContext();
+        context.Initialize();
+
+        AddressEntity address = new(1, "address", "address2", "city");
+        PersonEntity person = new(1, "name", 42.619, address);
+        IEntityRepository<AddressEntity> addressRepo = context.GetRepository<AddressEntity>();
+        IEntityRepository<PersonEntity> personRepo = context.GetRepository<PersonEntity>();
+
+        // Act
+        personRepo.Insert(person);
+        addressRepo.Delete(address);
+
+        // Assert
+        IEnumerable<AddressEntity> addresses = addressRepo.Select();
+        IEnumerable<PersonEntity> persons = personRepo.Select();
+
+        Assert.Empty(addresses);
+        Assert.Single(persons);
+
+        PersonEntity actual = persons.First();
+        Assert.Null(actual.Address);
+    }
+
+    [Fact]
+    public void WithCascadeReferentialAction()
+    {
+        // Arrange
+        DataContext context = DataContextProvider.CreateDataContext();
+        context.Initialize();
+
+        AddressEntity address = new(1, "address", "address2", "city");
+        PersonEntity person = new(1, "name", 42.619, address);
+        EmployeeEntity employee = new()
+        {
+            Id = 1,
+            Person = person.Id,
+            IsActive = true
+        };
+        IEntityRepository<AddressEntity> addressRepo = context.GetRepository<AddressEntity>();
+        IEntityRepository<PersonEntity> personRepo = context.GetRepository<PersonEntity>();
+        IEntityRepository<EmployeeEntity> employeeRepo = context.GetRepository<EmployeeEntity>();
+
+        // Act
+        personRepo.Insert(person);
+        employeeRepo.Insert(employee);
+
+        personRepo.Delete(person);
+
+        // Assert
+        IEnumerable<AddressEntity> addresses = addressRepo.Select();
+        IEnumerable<PersonEntity> persons = personRepo.Select();
+        IEnumerable<EmployeeEntity> employees = employeeRepo.Select();
+
+        Assert.Empty(persons);
+        Assert.Single(addresses);
+        Assert.Empty(employees);
+
+        Assert.Equal(address, addresses.First());
     }
 }

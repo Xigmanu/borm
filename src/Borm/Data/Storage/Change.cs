@@ -79,13 +79,6 @@ internal sealed class Change
 
     private Change? MergeInternal(Change incoming, bool isCommit)
     {
-        // No change has been made to a row or the row was deleted within the same transaction
-        // => ignore the incoming or delete existing
-        if (_writeTxId == incoming._writeTxId)
-        {
-            return incoming._rowAction != RowAction.Delete ? this : null;
-        }
-
         // Normally, if the read IDs of both changes are equal,
         // it means that the row was not modified by another transaction while the incoming transaction was open.
         // Here, I attempt to trigger a 'rerun' for the transaction.
@@ -101,14 +94,10 @@ internal sealed class Change
         }
         else
         {
-            // If a row is added and then deleted within the same transaction scope, no actual changes have been made.
-            // Remove the dangling entry.
             if (incoming._rowAction == RowAction.Delete)
             {
                 return null;
             }
-
-            Debug.Assert(_rowAction == RowAction.Insert);
             rowAction = _rowAction;
         }
 

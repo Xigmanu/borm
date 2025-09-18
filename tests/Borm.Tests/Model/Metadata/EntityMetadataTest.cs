@@ -24,7 +24,7 @@ public sealed class EntityMetadataTest
     public void Equals_ReturnsFalse_WhenEntityNamesAreNotEqual()
     {
         // Arrange
-        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
         ColumnMetadataCollection columns = new([pkColumn]);
         EntityMetadata metadata = new("foo", typeof(object), columns);
         EntityMetadata other = new("bar", typeof(object), columns);
@@ -42,7 +42,7 @@ public sealed class EntityMetadataTest
     public void Equals_ReturnsFalse_WhenOtherIsOfDifferentTypeOrNull(object? other)
     {
         // Arrange
-        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
         ColumnMetadataCollection columns = new([pkColumn]);
         EntityMetadata metadata = new("foo", typeof(object), columns);
 
@@ -57,7 +57,7 @@ public sealed class EntityMetadataTest
     public void Equals_ReturnsTrue_WhenEntityNamesAreEqual()
     {
         // Arrange
-        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
         ColumnMetadataCollection columns = new([pkColumn]);
         EntityMetadata metadata = new("foo", typeof(object), columns);
         EntityMetadata other = new("foo", typeof(object), columns);
@@ -73,7 +73,7 @@ public sealed class EntityMetadataTest
     public void PrimaryKey_ReturnsPrimaryKeyColumn()
     {
         // Arrange
-        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
+        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
         ColumnMetadataCollection columns = new([pkColumn]);
         EntityMetadata info = new("foo", typeof(object), columns);
 
@@ -88,7 +88,7 @@ public sealed class EntityMetadataTest
     public void PrimaryKey_ThrowsInvalidOperationException_WhenEntityNodeHasNoPrimaryKey()
     {
         // Arrange
-        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.None, null);
+        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.None);
         ColumnMetadataCollection columns = new([pkColumn]);
         EntityMetadata info = new("foo", typeof(object), columns);
 

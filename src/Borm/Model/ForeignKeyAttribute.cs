@@ -48,6 +48,8 @@ public sealed class ForeignKeyAttribute : ColumnAttribute
         Reference = reference;
     }
 
+    public ReferentialAction OnDelete { get; set; } = ReferentialAction.NoAction;
+
     /// <summary>
     /// The entity type that this column references.
     /// </summary>

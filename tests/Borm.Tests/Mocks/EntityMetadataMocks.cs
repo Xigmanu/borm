@@ -7,9 +7,9 @@ namespace Borm.Tests.Mocks;
 
 internal static class EntityMetadataMocks
 {
-    public static readonly EntityMetadata AddressesEntity = CreateAddressesEntity();
-    public static readonly EntityMetadata EmployeesEntity = CreateEmployeeEntity();
-    public static readonly EntityMetadata PersonsEntity = CreatePersonsEntity();
+    public static readonly EntityMetadata AddressesMetadata = CreateAddressesEntity();
+    public static readonly EntityMetadata EmployeesMetadata = CreateEmployeeEntity();
+    public static readonly EntityMetadata PersonsMetadata = CreatePersonsEntity();
 
     private static EntityMetadata CreateAddressesEntity()
     {
@@ -17,17 +17,16 @@ internal static class EntityMetadataMocks
         Type dataType = typeof(AddressEntity);
         ColumnMetadataCollection columns = new(
             [
-                new ColumnMetadata(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null),
-                new ColumnMetadata(1, "address", "Address", typeof(string), Constraints.None, null),
+                new ColumnMetadata(0, "id", "Id", typeof(int), Constraints.PrimaryKey),
+                new ColumnMetadata(1, "address", "Address", typeof(string), Constraints.None),
                 new ColumnMetadata(
                     2,
                     "address_1",
                     "Address_1",
                     typeof(string),
-                    Constraints.AllowDbNull,
-                    null
+                    Constraints.AllowDbNull
                 ),
-                new ColumnMetadata(3, "city", "City", typeof(string), Constraints.Unique, null),
+                new ColumnMetadata(3, "city", "City", typeof(string), Constraints.Unique),
             ]
         );
 
@@ -72,23 +71,12 @@ internal static class EntityMetadataMocks
         Type dataType = typeof(EmployeeEntity);
         ColumnMetadataCollection columns = new(
             [
-                new ColumnMetadata(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null),
-                new ColumnMetadata(
-                    1,
-                    "person_id",
-                    "Person",
-                    typeof(int),
-                    Constraints.Unique,
-                    typeof(AddressEntity)
-                ),
-                new ColumnMetadata(
-                    2,
-                    "is_active",
-                    "IsActive",
-                    typeof(bool),
-                    Constraints.None,
-                    null
-                ),
+                new ColumnMetadata(0, "id", "Id", typeof(int), Constraints.PrimaryKey),
+                new ColumnMetadata(1, "person_id", "Person", typeof(int), Constraints.Unique)
+                {
+                    Reference = typeof(PersonEntity),
+                },
+                new ColumnMetadata(2, "is_active", "IsActive", typeof(bool), Constraints.None),
             ]
         );
 
@@ -124,17 +112,19 @@ internal static class EntityMetadataMocks
         Type dataType = typeof(PersonEntity);
         ColumnMetadataCollection columns = new(
             [
-                new ColumnMetadata(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null),
-                new ColumnMetadata(1, "name", "Name", typeof(string), Constraints.Unique, null),
-                new ColumnMetadata(2, "salary", "Salary", typeof(double), Constraints.None, null),
+                new ColumnMetadata(0, "id", "Id", typeof(int), Constraints.PrimaryKey),
+                new ColumnMetadata(1, "name", "Name", typeof(string), Constraints.Unique),
+                new ColumnMetadata(2, "salary", "Salary", typeof(double), Constraints.None),
                 new ColumnMetadata(
                     3,
                     "address",
                     "Address",
                     typeof(AddressEntity),
-                    Constraints.AllowDbNull,
-                    typeof(AddressEntity)
-                ),
+                    Constraints.AllowDbNull
+                )
+                {
+                    Reference = typeof(AddressEntity),
+                },
             ]
         );
 

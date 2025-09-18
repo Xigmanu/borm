@@ -10,8 +10,8 @@ public sealed class ColumnMetadataCollectionTest
     {
         // Arrange
         string column0Name = "foo";
-        ColumnMetadata column0 = new(1, column0Name, "Foo", typeof(int), Constraints.None, null);
-        ColumnMetadata column1 = new(2, "bar", "Bar", typeof(string), Constraints.AllowDbNull, null);
+        ColumnMetadata column0 = new(1, column0Name, "Foo", typeof(int), Constraints.None);
+        ColumnMetadata column1 = new(2, "bar", "Bar", typeof(string), Constraints.AllowDbNull);
 
         ColumnMetadataCollection columns = new([column0, column1]);
 

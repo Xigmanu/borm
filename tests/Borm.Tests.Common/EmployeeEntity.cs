@@ -11,7 +11,13 @@ public sealed class EmployeeEntity
     [Column(2, "is_active")]
     public bool IsActive { get; set; }
 
-    [ForeignKey(1, "person_id", typeof(PersonEntity), IsUnique = true)]
+    [ForeignKey(
+        1,
+        "person_id",
+        typeof(PersonEntity),
+        IsUnique = true,
+        OnDelete = ReferentialAction.Cascade
+    )]
     public int Person { get; set; }
 
     public override bool Equals(object? obj)

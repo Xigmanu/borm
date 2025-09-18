@@ -10,11 +10,11 @@ public sealed class ConstructorSelectorTest
     public void Select_ReturnsConstructorInfo_WithEntityTypeWithValidCtor()
     {
         // Arrange
-        ColumnMetadata idCol = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        ColumnMetadata nameCol = new(1, "name", "Name", typeof(string), Constraints.None, null);
+        ColumnMetadata idCol = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
+        ColumnMetadata nameCol = new(1, "name", "Name", typeof(string), Constraints.None);
         ColumnMetadataCollection columns = new([idCol, nameCol]);
         Type entityType = typeof(ConstructorSelectorTestMocks.ValidCtorEntity);
-        EntityConstructorSelector selector = new(columns, entityType.GetConstructors());
+        ConstructorSelector selector = new(columns, entityType.GetConstructors());
 
         // Act
         ConstructorInfo? constructor = selector.Select();
@@ -29,7 +29,7 @@ public sealed class ConstructorSelectorTest
         // Arrange
         ColumnMetadataCollection columns = new([]);
         Type entityType = typeof(ConstructorSelectorTestMocks.DefaultCtorEntity);
-        EntityConstructorSelector selector = new(columns, entityType.GetConstructors());
+        ConstructorSelector selector = new(columns, entityType.GetConstructors());
 
         // Act
         ConstructorInfo? constructor = selector.Select();
@@ -42,11 +42,11 @@ public sealed class ConstructorSelectorTest
     public void Select_ThrowsMissingMethodException_WithEntityTypeWithInvalidCtor()
     {
         // Arrange
-        ColumnMetadata idCol = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        ColumnMetadata nameCol = new(1, "name", "Name", typeof(string), Constraints.None, null);
+        ColumnMetadata idCol = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
+        ColumnMetadata nameCol = new(1, "name", "Name", typeof(string), Constraints.None);
         ColumnMetadataCollection columns = new([idCol, nameCol]);
         Type entityType = typeof(ConstructorSelectorTestMocks.InvalidCtorEntity);
-        EntityConstructorSelector selector = new(columns, entityType.GetConstructors());
+        ConstructorSelector selector = new(columns, entityType.GetConstructors());
 
         // Act
         Exception exception = Record.Exception(() => _ = selector.Select());
@@ -59,11 +59,11 @@ public sealed class ConstructorSelectorTest
     public void Select_ThrowsMissingMethodException_WithEntityTypeWithUnEqualParameterCountCtor()
     {
         // Arrange
-        ColumnMetadata idCol = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey, null);
-        ColumnMetadata nameCol = new(1, "name", "Name", typeof(string), Constraints.None, null);
+        ColumnMetadata idCol = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
+        ColumnMetadata nameCol = new(1, "name", "Name", typeof(string), Constraints.None);
         ColumnMetadataCollection columns = new([idCol, nameCol]);
         Type entityType = typeof(ConstructorSelectorTestMocks.UnEqualParameterCountCtorEntity);
-        EntityConstructorSelector selector = new(columns, entityType.GetConstructors());
+        ConstructorSelector selector = new(columns, entityType.GetConstructors());
 
         // Act
         Exception exception = Record.Exception(() => _ = selector.Select());

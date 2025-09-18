@@ -12,7 +12,7 @@ namespace Borm;
 /// Represents a session with a database and can be used to create instances of <see cref="IEntityRepository{T}"/>
 /// to provide read/write access to an entity table.
 /// </summary>
-/// 
+///
 /// <remarks>
 ///     <para>
 ///         Entity classes are public classes that are marked with the <see cref="EntityAttribute"/>.
@@ -31,12 +31,12 @@ public sealed class DataContext
 {
     private readonly BormConfig _configuration;
     private readonly DataSynchronizer _dataSynchronizer;
-    private readonly TableGraph _tableGraph;
+    private TableGraph? _tableGraph;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataContext"/> class with the specified configuration.
     /// </summary>
-    /// 
+    ///
     /// <param name="configuration">Configuration for the context.</param>
     public DataContext(BormConfig configuration)
     {
@@ -54,10 +54,16 @@ public sealed class DataContext
     /// </summary>
     public event EventHandler? Initialized;
 
+    internal TableGraph TableGraph
+    {
+        get =>
+            _tableGraph ?? throw new InvalidOperationException(Strings.DataContextNotInitialized());
+    }
+
     /// <summary>
     /// Begins a new transaction scope for changes performed through this context.
     /// </summary>
-    /// 
+    ///
     /// <remarks>
     ///     Transactions are disposable. Commits and rollbacks occur when the <see cref="O:Dispose"/> method is called.
     /// </remarks>
@@ -70,7 +76,7 @@ public sealed class DataContext
     /// <summary>
     /// Creates a repository for the specified entity type.
     /// </summary>
-    /// 
+    ///
     /// <typeparam name="T">The entity type registered in this data context.</typeparam>
     /// <returns>An <see cref="IEntityRepository{T}"/> for the specified entity type.</returns>
     /// <exception cref="InvalidOperationException">The <see cref="Initialize"/> was not called prior to calling this method.</exception>
@@ -89,13 +95,13 @@ public sealed class DataContext
             ?? throw new ArgumentException(Strings.MissingTableForEntity(entityType.FullName!));
         Debug.Assert(table != null);
 
-        return new EntityRepository<T>(table);
+        return new EntityRepository<T>(table, _tableGraph);
     }
 
     /// <summary>
     /// Initializes this data context using the provided configuration.
     /// </summary>
-    /// 
+    ///
     /// <remarks>
     ///     This method must be invoked prior to calling <see cref="GetRepository{T}"/>, <see cref="SaveChanges"/> or <see cref="SaveChangesAsync"/>.
     /// </remarks>
@@ -120,7 +126,7 @@ public sealed class DataContext
             entityInfos.Add(entityMetadata);
         }
 
-        EntityInfoValidator validator = new(entityInfos);
+        EntityMetadataValidator validator = new(entityInfos);
         entityInfos.ForEach(info =>
         {
             if (!validator.IsValid(info, out Exception? exception))
@@ -129,8 +135,7 @@ public sealed class DataContext
             }
         });
 
-        IEnumerable<Table> tables = new TableGraphBuilder(entityInfos).BuildAll();
-        _tableGraph.AddTableRange(tables);
+        _tableGraph = new TableGraphBuilder(entityInfos).Build();
 
         _dataSynchronizer.SyncSchemaWithDataSource();
 

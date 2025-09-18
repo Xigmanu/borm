@@ -12,13 +12,11 @@ internal sealed class ColumnMetadata
         string columnName,
         string propertyName,
         Type propertyType,
-        Constraints constraints,
-        Type? reference
+        Constraints constraints
     )
     {
         Index = index;
         Name = columnName;
-        Reference = reference;
         DataType =
             propertyType.IsValueType && constraints.HasFlag(Constraints.AllowDbNull)
                 ? Nullable.GetUnderlyingType(propertyType)!
@@ -32,9 +30,11 @@ internal sealed class ColumnMetadata
     public Type DataType { get; }
     public int Index { get; }
     public string Name { get; }
+    public ReferentialAction OnDelete { get; internal set; }
+    public ReferentialAction OnUpdate { get; internal set; }
     public string PropertyName { get; }
     public Type PropertyType { get; }
-    public Type? Reference { get; }
+    public Type? Reference { get; internal set; }
 
     [ExcludeFromCodeCoverage(Justification = "Debug display proxy")]
     internal sealed class ColumnMetadataDebugView

@@ -5,11 +5,11 @@ using Borm.Util;
 
 namespace Borm.Model.Metadata;
 
-internal sealed class EntityInfoValidator
+internal sealed class EntityMetadataValidator
 {
     private readonly IEnumerable<EntityMetadata> _entityMetadata;
 
-    public EntityInfoValidator(IEnumerable<EntityMetadata> entityMetadata)
+    public EntityMetadataValidator(IEnumerable<EntityMetadata> entityMetadata)
     {
         _entityMetadata = entityMetadata;
     }

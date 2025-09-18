@@ -1,8 +1,8 @@
 ﻿using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using Borm.Data.Sql;
-using Borm.Model;
 using Borm.Model.Metadata;
 using Borm.Properties;
 using Borm.Util;
@@ -14,41 +14,27 @@ internal sealed class Table
 {
     private readonly ConstraintValidator _constraintValidator;
     private readonly EntityMetadata _entityMetadata;
-    private readonly Dictionary<ColumnMetadata, Table> _foreignKeyRelations;
-    private readonly EntityMaterializer _materializer;
     private readonly ChangeTracker _tracker = new();
 
-    public Table(
-        EntityMetadata entityMetadata,
-        Dictionary<ColumnMetadata, Table> foreignKeyRelations
-    )
+    public Table(EntityMetadata entityMetadata)
     {
         _entityMetadata = entityMetadata;
-        _foreignKeyRelations = foreignKeyRelations;
-        _materializer = new(this);
         _constraintValidator = new(this);
     }
 
     public string Name => _entityMetadata.Name;
-    internal EntityMaterializer Converter => _materializer;
     internal EntityMetadata EntityMetadata => _entityMetadata;
-    internal IReadOnlyDictionary<ColumnMetadata, Table> ForeignKeyRelations => _foreignKeyRelations;
     internal ChangeTracker Tracker => _tracker;
 
     public void AcceptPendingChanges(long txId)
     {
-        foreach (Table dependency in _foreignKeyRelations.Values.Cast<Table>())
-        {
-            dependency.AcceptPendingChanges(txId);
-        }
         _tracker.AcceptPendingChanges(txId);
     }
 
-    public void Delete(object entity, long txId)
+    public void Delete(ValueBuffer buffer, long txId)
     {
-        Debug.Assert(entity.GetType().Equals(_entityMetadata.DataType));
+        AssertBufferValuesAreSimple(buffer);
 
-        ValueBuffer buffer = _entityMetadata.Binding.ToValueBuffer(entity);
         object primaryKey = buffer.PrimaryKey;
 
         Change existing = GetChangeOrThrow(txId, primaryKey);
@@ -67,111 +53,32 @@ internal sealed class Table
         return _entityMetadata.GetHashCode();
     }
 
-    public TableInfo GetTableSchema()
+    public void Insert(ValueBuffer buffer, long txId)
     {
-        List<ColumnInfo> columns = [];
-        Dictionary<ColumnInfo, TableInfo> fkRelationMap = [];
+        AssertBufferValuesAreSimple(buffer);
 
-        ColumnInfo? primaryKey = null;
-        foreach (ColumnMetadata column in _entityMetadata.Columns)
-        {
-            string columnName = column.Name;
-            bool isUnique = column.Constraints.HasFlag(Constraints.Unique);
-            bool isNullable = column.Constraints.HasFlag(Constraints.AllowDbNull);
-
-            ColumnInfo columnInfo;
-            if (column.Reference == null)
-            {
-                columnInfo = new(columnName, column.DataType, isUnique, isNullable);
-                columns.Add(columnInfo);
-
-                if (column.Constraints.HasFlag(Constraints.PrimaryKey))
-                {
-                    primaryKey = columnInfo;
-                }
-                continue;
-            }
-
-            Table dependency = _foreignKeyRelations[column];
-            columnInfo = new(
-                columnName,
-                dependency._entityMetadata.PrimaryKey.DataType,
-                isUnique,
-                isNullable
-            );
-            TableInfo dependencySchema = dependency.GetTableSchema();
-
-            fkRelationMap[columnInfo] = dependencySchema;
-        }
-
-        Debug.Assert(primaryKey != null);
-        return new TableInfo(_entityMetadata.Name, columns, primaryKey, fkRelationMap);
-    }
-
-    public void Insert(object entity, long txId)
-    {
-        Debug.Assert(entity.GetType().Equals(_entityMetadata.DataType));
-
-        _entityMetadata.Validator?.Invoke(entity);
-
-        ValueBuffer incoming = _entityMetadata.Binding.ToValueBuffer(entity);
-        object primaryKey = incoming.PrimaryKey;
+        object primaryKey = buffer.PrimaryKey;
         if (_tracker.TryGetChange(primaryKey, txId, out _))
         {
             throw new ConstraintException(Strings.PrimaryKeyConstraintViolation(Name, primaryKey));
         }
-        _constraintValidator.ValidateBuffer(incoming, txId);
+        _constraintValidator.ValidateBuffer(buffer, txId);
 
-        IEnumerable<EntityMaterializer.ResolvedForeignKey> resolvedKeys =
-            _materializer.ResolveForeignKeys(incoming, txId);
-        foreach (EntityMaterializer.ResolvedForeignKey resolvedKey in resolvedKeys)
-        {
-            if (!resolvedKey.ChangeExists)
-            {
-                ForeignKeyRelations[resolvedKey.Column].Insert(resolvedKey.RawValue, txId);
-            }
-            incoming[resolvedKey.Column] = resolvedKey.ResolvedKey;
-        }
-
-        Change change = Change.NewChange(incoming, txId);
+        Change change = Change.NewChange(buffer, txId);
         _tracker.PendChange(change);
     }
 
-    public IEnumerable<object> SelectAll()
+    public void Update(ValueBuffer buffer, long txId)
     {
-        return _tracker.Changes.Select(change => _materializer.Materialize(change.Buffer));
-    }
+        AssertBufferValuesAreSimple(buffer);
 
-    public void Update(object entity, long txId)
-    {
-        Debug.Assert(entity.GetType().Equals(_entityMetadata.DataType));
+        object primaryKey = buffer.PrimaryKey;
 
-        _entityMetadata.Validator?.Invoke(entity);
-
-        ValueBuffer incoming = _entityMetadata.Binding.ToValueBuffer(entity);
-        object primaryKey = incoming.PrimaryKey;
-
-        _constraintValidator.ValidateBuffer(incoming, txId);
+        _constraintValidator.ValidateBuffer(buffer, txId);
 
         Change existing = GetChangeOrThrow(txId, primaryKey);
 
-        IEnumerable<EntityMaterializer.ResolvedForeignKey> resolvedKeys =
-            _materializer.ResolveForeignKeys(incoming, txId);
-        foreach (EntityMaterializer.ResolvedForeignKey resolvedKey in resolvedKeys)
-        {
-            if (!resolvedKey.ChangeExists)
-            {
-                Table parent = _foreignKeyRelations[resolvedKey.Column];
-                throw new RowNotFoundException(
-                    Strings.RowNotFound(parent.Name, resolvedKey.ResolvedKey),
-                    parent.Name,
-                    resolvedKey.ResolvedKey
-                );
-            }
-            incoming[resolvedKey.Column] = resolvedKey.ResolvedKey;
-        }
-
-        Change change = existing.Update(incoming, txId);
+        Change change = existing.Update(buffer, txId);
         _tracker.PendChange(change);
     }
 
@@ -209,6 +116,23 @@ internal sealed class Table
         }
     }
 
+    [Conditional("DEBUG")]
+    private void AssertBufferValuesAreSimple(
+        ValueBuffer buffer,
+        [CallerMemberName] string? callerName = null
+    )
+    {
+        const string messageFormat =
+            "Incoming buffer contains illegal values. Table: '{0}', Column: '{1}', Value: '{2}', Operation: '{3}'";
+        foreach ((ColumnMetadata column, object value) in buffer)
+        {
+            Debug.Assert(
+                ColumnDataTypeHelper.IsSupported(value.GetType()) || value == DBNull.Value,
+                string.Format(messageFormat, Name, column.Name, value, callerName)
+            );
+        }
+    }
+
     private Change GetChangeOrThrow(long txId, object primaryKey)
     {
         if (_tracker.TryGetChange(primaryKey, txId, out Change? change))
@@ -230,8 +154,6 @@ internal sealed class Table
         }
 
         public EntityMetadata EntityMetadata => _table.EntityMetadata;
-        public IReadOnlyDictionary<ColumnMetadata, Table> ForeignKeyRelations =>
-            _table.ForeignKeyRelations;
         public string Name => _table.Name;
         public ChangeTracker Tracker => _table.Tracker;
     }
