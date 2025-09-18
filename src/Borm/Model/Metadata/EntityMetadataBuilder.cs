@@ -37,7 +37,7 @@ internal static class EntityMetadataBuilder
         if (columnAttribute is ForeignKeyAttribute foreignKeyAttribute)
         {
             columnMetadata.Reference = foreignKeyAttribute.Reference;
-            columnMetadata.OnUpdate = foreignKeyAttribute.OnUpdate;
+            columnMetadata.OnUpdate = ReferentialAction.NoAction; // TODO
             columnMetadata.OnDelete = foreignKeyAttribute.OnDelete;
         }
 

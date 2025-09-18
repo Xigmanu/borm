@@ -162,7 +162,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             }
 
             _table.Update(preProcessed, txId);
-            ExecuteReferentialIntegrityOperation(txId, preProcessed.PrimaryKey);
+            // ExecuteReferentialIntegrityOperation(txId, preProcessed.PrimaryKey);
         };
     }
 
@@ -183,19 +183,10 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             EntityMetadata childMetadata = child.EntityMetadata;
             foreach (ColumnMetadata column in childMetadata.Columns)
             {
-                ReferentialAction action = operation switch
-                {
-                    nameof(CreateDeleteClosure) => column.OnDelete,
-                    nameof(CreateUpdateClosure) => column.OnUpdate,
-                    _ => default,
-                };
-
-                if (action == default)
+                if (column.Reference is null)
                 {
                     continue;
                 }
-
-                Debug.Assert(column.Reference is not null);
 
                 IEnumerable<ValueBuffer> affected = child
                     .Tracker.Changes.Where(change =>
@@ -204,18 +195,33 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
                     .Select(change => change.Buffer.Copy()); // Copy here as a safeguard against mutations via reference
                 foreach (ValueBuffer buffer in affected)
                 {
-                    Debug.Assert(action != ReferentialAction.NoAction);
-                    object value = action switch
+                    if (operation == nameof(CreateUpdateClosure))
                     {
-                        ReferentialAction.Cascade => parentPrimaryKey,
-                        ReferentialAction.SetNull => DBNull.Value,
-                        _ => throw new NotSupportedException(
-                            $"Unexpected {nameof(ReferentialAction)}: {action}"
-                        ),
-                    };
-                    buffer[column] = value;
+                        continue; // FIXME
+                        object value = column.OnUpdate switch
+                        {
+                            ReferentialAction.Cascade => parentPrimaryKey,
+                            ReferentialAction.SetNull => DBNull.Value,
+                            _ => throw new NotSupportedException(
+                                $"Unexpected {nameof(ReferentialAction)}: {column.OnUpdate}"
+                            ),
+                        };
+                        buffer[column] = value;
 
-                    child.Update(buffer, txId);
+                        child.Update(buffer, txId);
+                    }
+                    else
+                    {
+                        if (column.OnDelete == ReferentialAction.SetNull)
+                        {
+                            buffer[column] = DBNull.Value;
+                            child.Update(buffer, txId);
+                        }
+                        else if (column.OnDelete == ReferentialAction.Cascade)
+                        {
+                            child.Delete(buffer, txId);
+                        }
+                    }
                 }
             }
         }

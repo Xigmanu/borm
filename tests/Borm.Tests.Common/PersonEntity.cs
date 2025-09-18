@@ -5,13 +5,7 @@ namespace Borm.Tests.Common;
 [Entity("persons")]
 public sealed class PersonEntity(int id, string name, double salary, AddressEntity? address)
 {
-    [ForeignKey(
-        3,
-        "address",
-        typeof(AddressEntity),
-        OnDelete = ReferentialAction.Cascade,
-        OnUpdate = ReferentialAction.SetNull
-    )]
+    [ForeignKey(3, "address", typeof(AddressEntity), OnDelete = ReferentialAction.Cascade)]
     public AddressEntity? Address { get; } = address;
 
     [PrimaryKey(0)]
