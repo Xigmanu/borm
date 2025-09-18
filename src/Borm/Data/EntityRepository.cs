@@ -28,12 +28,12 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     public void Delete(T entity)
     {
         using InternalTransaction transaction = new(_graph);
-        transaction.Execute(_table, CreateDeleteClosure(entity));
+        transaction.Execute(CreateDeleteClosure(entity));
     }
 
     public void Delete(T entity, Transaction transaction)
     {
-        transaction.Execute(_table, CreateDeleteClosure(entity));
+        transaction.Execute(CreateDeleteClosure(entity));
     }
 
     public ValueTask DeleteAsync(T entity)
@@ -44,12 +44,12 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     public void Insert(T entity)
     {
         using InternalTransaction transaction = new(_graph);
-        transaction.Execute(_table, CreateInsertClosure(entity));
+        transaction.Execute(CreateInsertClosure(entity));
     }
 
     public void Insert(T entity, Transaction transaction)
     {
-        transaction.Execute(_table, CreateInsertClosure(entity));
+        transaction.Execute(CreateInsertClosure(entity));
     }
 
     public ValueTask InsertAsync(T entity)
@@ -82,12 +82,12 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     public void Update(T entity)
     {
         using InternalTransaction transaction = new(_graph);
-        transaction.Execute(_table, CreateUpdateClosure(entity));
+        transaction.Execute(CreateUpdateClosure(entity));
     }
 
     public void Update(T entity, Transaction transaction)
     {
-        transaction.Execute(_table, CreateUpdateClosure(entity));
+        transaction.Execute(CreateUpdateClosure(entity));
     }
 
     public ValueTask UpdateAsync(T entity)
@@ -95,9 +95,9 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         return InternalExecuteAsync(entity, Update);
     }
 
-    private Action<long> CreateDeleteClosure(object entity)
+    private Action<long, HashSet<Table>> CreateDeleteClosure(object entity)
     {
-        return (txId) =>
+        return (txId, affectedTables) =>
         {
             ArgumentNullException.ThrowIfNull(entity);
 
@@ -106,13 +106,15 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             _ = _preProcessor.ResolveForeignKeys(buffer, txId, out ValueBuffer preProcessed);
 
             _table.Delete(preProcessed, txId);
-            ExecuteReferentialIntegrityOperation(txId, preProcessed.PrimaryKey);
+            affectedTables.Add(_table);
+
+            ExecuteReferentialIntegrityOperation(txId, affectedTables, preProcessed.PrimaryKey);
         };
     }
 
-    private Action<long> CreateInsertClosure(object entity)
+    private Action<long, HashSet<Table>> CreateInsertClosure(object entity)
     {
-        return (txId) =>
+        return (txId, affectedTables) =>
         {
             ArgumentNullException.ThrowIfNull(entity);
 
@@ -120,13 +122,13 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             metadata.Validator?.Invoke(entity);
             ValueBuffer buffer = metadata.Binding.ToValueBuffer(entity);
 
-            InsertRecursively(_table, buffer, txId);
+            InsertRecursively(_table, buffer, txId, affectedTables);
         };
     }
 
-    private Action<long> CreateUpdateClosure(object entity)
+    private Action<long, HashSet<Table>> CreateUpdateClosure(object entity)
     {
-        return (txId) =>
+        return (txId, affectedTables) =>
         {
             ArgumentNullException.ThrowIfNull(entity);
 
@@ -162,12 +164,14 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             }
 
             _table.Update(preProcessed, txId);
+            affectedTables.Add(_table);
             // ExecuteReferentialIntegrityOperation(txId, preProcessed.PrimaryKey);
         };
     }
 
     private void ExecuteReferentialIntegrityOperation(
         long txId,
+        HashSet<Table> affectedTables,
         object parentPrimaryKey,
         [CallerMemberName] string? operation = null
     )
@@ -221,13 +225,20 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
                         {
                             child.Delete(buffer, txId);
                         }
+
+                        affectedTables.Add(child);
                     }
                 }
             }
         }
     }
 
-    private void InsertRecursively(Table table, ValueBuffer buffer, long txId)
+    private void InsertRecursively(
+        Table table,
+        ValueBuffer buffer,
+        long txId,
+        HashSet<Table> affectedTables
+    )
     {
         List<ResolvedForeignKey> resolvedKeys = _preProcessor.ResolveForeignKeys(
             buffer,
@@ -250,7 +261,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
                 metadata.Validator?.Invoke(rawValue);
 
                 ValueBuffer parentBuffer = metadata.Binding.ToValueBuffer(rawValue);
-                InsertRecursively(parent, parentBuffer, txId);
+                InsertRecursively(parent, parentBuffer, txId, affectedTables);
             }
             else
             {
@@ -261,6 +272,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         }
 
         table.Insert(preProcessed, txId);
+        affectedTables.Add(table);
     }
 
     private async ValueTask InternalExecuteAsync(T entity, Action<T> operation)

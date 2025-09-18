@@ -66,7 +66,13 @@ internal sealed class DataSynchronizer
             DbCommandDefinition selectAll = _commandFactory.SelectAll(tableSchema);
             ResultSet resultSet = _executor.Query(selectAll);
 
-            transaction.Execute(table, (txId) => table.Load(resultSet, txId));
+            transaction.Execute(
+                (txId, affectedTables) =>
+                {
+                    table.Load(resultSet, txId);
+                    affectedTables.Add(table);
+                }
+            );
         }
     }
 }

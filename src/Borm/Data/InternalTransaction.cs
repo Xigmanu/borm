@@ -17,8 +17,8 @@ public class InternalTransaction : IDisposable
 
     private const int MaxRetries = 3;
 
-    private readonly List<Table> _changedTables;
-    private readonly Queue<Action<long>> _operationQueue;
+    private readonly HashSet<Table> _changedTables;
+    private readonly Queue<Action<long, HashSet<Table>>> _operationQueue;
     private readonly TableGraph _graph;
     private int _attempt;
 
@@ -56,11 +56,21 @@ public class InternalTransaction : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    internal virtual void Execute(Table table, Action<long> tableOperation)
+    internal virtual void Execute(Action<long, HashSet<Table>> tableOperation)
     {
-        if (TryExecute(tableOperation))
+        if (exception != null)
         {
-            _changedTables.Add(table);
+            return;
+        }
+
+        try
+        {
+            _operationQueue.Enqueue(tableOperation);
+            tableOperation(id, _changedTables);
+        }
+        catch (Exception ex)
+        {
+            exception = ex;
         }
     }
 
@@ -115,29 +125,9 @@ public class InternalTransaction : IDisposable
     {
         for (int i = 0; i < _operationQueue.Count; i++)
         {
-            Action<long> operation = _operationQueue.Dequeue();
-            _ = TryExecute(operation);
+            Action<long, HashSet<Table>> operation = _operationQueue.Dequeue();
+            Execute(operation);
         }
-    }
-
-    private bool TryExecute(Action<long> tableOperation)
-    {
-        if (exception != null)
-        {
-            return false;
-        }
-
-        try
-        {
-            _operationQueue.Enqueue(tableOperation);
-            tableOperation(id);
-        }
-        catch (Exception ex)
-        {
-            exception = ex;
-        }
-
-        return true;
     }
 
     private static class IdProvider
