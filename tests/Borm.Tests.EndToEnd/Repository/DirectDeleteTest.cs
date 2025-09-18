@@ -137,4 +137,55 @@ public sealed class DirectDeleteTest
         Assert.Single(persons);
         Assert.Equal(person, persons.First());
     }
+
+    [Fact]
+    public void WithCascadeReferentialAction()
+    {
+        // Arrange
+        DataContext context = DataContextProvider.CreateDataContext();
+        context.Initialize();
+
+        AddressEntity address = new(1, "address", "address2", "city");
+        PersonEntity person = new(1, "name", 42.619, address);
+        IEntityRepository<AddressEntity> addressRepo = context.GetRepository<AddressEntity>();
+        IEntityRepository<PersonEntity> personRepo = context.GetRepository<PersonEntity>();
+
+        // Act
+        personRepo.Insert(person);
+        addressRepo.Delete(address);
+
+        // Assert
+        IEnumerable<AddressEntity> addresses = addressRepo.Select();
+        IEnumerable<PersonEntity> persons = personRepo.Select();
+
+        Assert.Empty(addresses);
+        Assert.Empty(persons);
+    }
+
+    [Fact]
+    public void WithSetNullReferentialAction()
+    {
+        // Arrange
+        DataContext context = DataContextProvider.CreateDataContext();
+        context.Initialize();
+
+        AddressEntity address = new(1, "address", "address2", "city");
+        AddressEntity addressUpdate = new(1, "foo", null, "city");
+        PersonEntity person = new(1, "name", 42.619, address);
+        IEntityRepository<AddressEntity> addressRepo = context.GetRepository<AddressEntity>();
+        IEntityRepository<PersonEntity> personRepo = context.GetRepository<PersonEntity>();
+
+        // Act
+        personRepo.Insert(person);
+        addressRepo.Update(addressUpdate);
+
+        // Assert
+        IEnumerable<AddressEntity> addresses = addressRepo.Select();
+        IEnumerable<PersonEntity> persons = personRepo.Select();
+
+        Assert.Single(persons);
+        Assert.Single(addresses);
+
+        Assert.Null(persons.First().Address);
+    }
 }

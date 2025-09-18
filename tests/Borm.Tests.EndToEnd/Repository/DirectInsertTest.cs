@@ -138,7 +138,7 @@ public sealed class DirectInsertTest
     }
 
     [Fact]
-    public void ValidComplexRelationalEntity_WithoutForeignKeyCollision_WithInvalidDependency()
+    public void ValidComplexRelationalEntity_WithoutForeignKeyCollision_WithInvalidParent()
     {
         // Arrange
         DataContext context = DataContextProvider.CreateDataContext();
@@ -296,7 +296,7 @@ public sealed class DirectInsertTest
     }
 
     [Fact]
-    public void ValidSimpleRelationalEntity_WithNoPrimaryKeyCollision()
+    public void ValidSimpleRelationalEntity_WithNonExistentParentRecord()
     {
         // Arrange
         DataContext context = DataContextProvider.CreateDataContext();
