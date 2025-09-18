@@ -35,7 +35,7 @@ internal sealed class ChangeTracker
         }
     }
 
-    public IImmutableList<Change> Changes
+    public ImmutableList<Change> Changes
     {
         get
         {

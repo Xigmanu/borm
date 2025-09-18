@@ -90,7 +90,7 @@ public class InternalTransaction : IDisposable
                 List<Table> tables = [.. _graph.GetParents(changedTable), changedTable];
                 foreach (Table table in tables.Where(processed.Add))
                 {
-                    table.AcceptPendingChanges(id);
+                    table.Tracker.AcceptPendingChanges(id);
                 }
             }
         }

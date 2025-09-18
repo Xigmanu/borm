@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using Borm.Model.Metadata;
-using Borm.Properties;
 
 namespace Borm.Data.Storage;
 
