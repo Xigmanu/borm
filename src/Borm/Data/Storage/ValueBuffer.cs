@@ -19,6 +19,7 @@ internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnMetadata, obj
     private ValueBuffer(ValueBuffer original)
     {
         _valueMap = original._valueMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+        _primaryKey = original._primaryKey;
     }
 
     public object PrimaryKey
