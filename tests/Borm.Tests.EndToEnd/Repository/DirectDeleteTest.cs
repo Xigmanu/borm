@@ -139,7 +139,7 @@ public sealed class DirectDeleteTest
     }
 
     [Fact]
-    public void WithCascadeReferentialAction()
+    public void WithSetNullReferentialAction()
     {
         // Arrange
         DataContext context = DataContextProvider.CreateDataContext();
@@ -159,33 +159,46 @@ public sealed class DirectDeleteTest
         IEnumerable<PersonEntity> persons = personRepo.Select();
 
         Assert.Empty(addresses);
-        Assert.Empty(persons);
+        Assert.Single(persons);
+
+        PersonEntity actual = persons.First();
+        Assert.Null(actual.Address);
     }
 
-    [Fact(Skip = "Will be fixed in B-7")]
-    public void WithSetNullReferentialAction()
+    [Fact]
+    public void WithCascadeReferentialAction()
     {
         // Arrange
         DataContext context = DataContextProvider.CreateDataContext();
         context.Initialize();
 
         AddressEntity address = new(1, "address", "address2", "city");
-        AddressEntity addressUpdate = new(1, "foo", null, "city");
         PersonEntity person = new(1, "name", 42.619, address);
+        EmployeeEntity employee = new()
+        {
+            Id = 1,
+            Person = person.Id,
+            IsActive = true
+        };
         IEntityRepository<AddressEntity> addressRepo = context.GetRepository<AddressEntity>();
         IEntityRepository<PersonEntity> personRepo = context.GetRepository<PersonEntity>();
+        IEntityRepository<EmployeeEntity> employeeRepo = context.GetRepository<EmployeeEntity>();
 
         // Act
         personRepo.Insert(person);
-        addressRepo.Update(addressUpdate);
+        employeeRepo.Insert(employee);
+
+        personRepo.Delete(person);
 
         // Assert
         IEnumerable<AddressEntity> addresses = addressRepo.Select();
         IEnumerable<PersonEntity> persons = personRepo.Select();
+        IEnumerable<EmployeeEntity> employees = employeeRepo.Select();
 
-        Assert.Single(persons);
+        Assert.Empty(persons);
         Assert.Single(addresses);
+        Assert.Empty(employees);
 
-        Assert.Null(persons.First().Address);
+        Assert.Equal(address, addresses.First());
     }
 }
