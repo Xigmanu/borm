@@ -131,7 +131,10 @@ internal sealed class Table
 
     private Change GetChangeOrThrow(long txId, object primaryKey)
     {
-        if (_tracker.TryGetChange(primaryKey, txId, out Change? change))
+        if (
+            _tracker.TryGetChange(primaryKey, txId, out Change? change)
+            && change.RowAction != RowAction.Delete
+        )
         {
             return change;
         }

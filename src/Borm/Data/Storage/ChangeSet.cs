@@ -8,15 +8,17 @@ namespace Borm.Data.Storage;
 internal sealed class ChangeSet : IEnumerable<Change>
 {
     private readonly Dictionary<object, Change> _changePKMap;
+    private readonly HashSet<object> _danglingKeyCache;
 
     public ChangeSet()
     {
-        _changePKMap = [];
+        (_changePKMap, _danglingKeyCache) = ([], []);
     }
 
-    private ChangeSet(Dictionary<object, Change> changePkMap)
+    private ChangeSet(Dictionary<object, Change> changePkMap, HashSet<object> danglingKeyCache)
     {
         _changePKMap = changePkMap;
+        _danglingKeyCache = danglingKeyCache;
     }
 
     public int Count => _changePKMap.Count;
@@ -26,7 +28,7 @@ internal sealed class ChangeSet : IEnumerable<Change>
         if (incoming.Count == 0)
         {
             // Assume that all changes have been deleted
-            return [];
+            return new ChangeSet(existing._changePKMap, incoming._danglingKeyCache);
         }
 
         Dictionary<object, Change> resultMap = new(existing._changePKMap);
@@ -34,7 +36,7 @@ internal sealed class ChangeSet : IEnumerable<Change>
         {
             if (existing._changePKMap.TryGetValue(incomingPk, out Change? existingChange))
             {
-                Change? merged = existingChange.Merge(incomingChange);
+                Change? merged = existingChange.CommitMerge(incomingChange);
                 resultMap.Remove(incomingPk);
                 if (merged != null)
                 {
@@ -44,8 +46,9 @@ internal sealed class ChangeSet : IEnumerable<Change>
             else
             {
                 if (
-                    incomingChange.RowAction != RowAction.Insert
-                    && incomingChange.WriteTxId != InternalTransaction.InitId
+                    existing._danglingKeyCache.Contains(incomingPk)
+                    || incomingChange.RowAction != RowAction.Insert
+                        && incomingChange.WriteTxId != InternalTransaction.InitId
                 )
                 {
                     throw new InvalidOperationException(Strings.ModificationOfNonExistingRow());
@@ -53,7 +56,8 @@ internal sealed class ChangeSet : IEnumerable<Change>
                 resultMap[incomingPk] = incomingChange;
             }
         }
-        return new ChangeSet(resultMap);
+
+        return new ChangeSet(resultMap, [.. incoming._danglingKeyCache]);
     }
 
     public void Add(Change incoming)
@@ -66,6 +70,10 @@ internal sealed class ChangeSet : IEnumerable<Change>
             if (merged != null)
             {
                 _changePKMap[primaryKey] = merged;
+            }
+            else
+            {
+                _danglingKeyCache.Add(primaryKey);
             }
             return;
         }
@@ -93,6 +101,7 @@ internal sealed class ChangeSet : IEnumerable<Change>
             }
             change.MarkAsWritten();
         }
+        _danglingKeyCache.Clear();
     }
 
     public void ReplaceRange(ChangeSet changes)
@@ -101,6 +110,10 @@ internal sealed class ChangeSet : IEnumerable<Change>
         foreach ((object primaryKey, Change change) in changes._changePKMap)
         {
             _changePKMap[primaryKey] = change;
+        }
+        foreach (object danglingKey in changes._danglingKeyCache)
+        {
+            _danglingKeyCache.Add(danglingKey);
         }
     }
 }
