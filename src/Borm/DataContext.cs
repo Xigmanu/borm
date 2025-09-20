@@ -31,7 +31,7 @@ public sealed class DataContext
 {
     private readonly BormConfig _configuration;
     private readonly DataSynchronizer _dataSynchronizer;
-    private TableGraph? _tableGraph;
+    private readonly TableGraph _tableGraph;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DataContext"/> class with the specified configuration.
@@ -135,7 +135,7 @@ public sealed class DataContext
             }
         });
 
-        _tableGraph = new TableGraphBuilder(entityInfos).Build();
+        new TableGraphBuilder(entityInfos).Build(_tableGraph);
 
         _dataSynchronizer.SyncSchemaWithDataSource();
 

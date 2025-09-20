@@ -20,7 +20,8 @@ public sealed class TableGraphBuilderTest
         TableGraphBuilder builder = new([addresses, persons, employees]);
 
         // Act
-        TableGraph actual = builder.Build();
+        TableGraph actual = new();
+        builder.Build(actual);
 
         // Assert
         Assert.Equal(_graph.TableCount, actual.TableCount);
@@ -32,9 +33,10 @@ public sealed class TableGraphBuilderTest
         // Arrange
         EntityMetadata persons = _graph[typeof(PersonEntity)]!.EntityMetadata;
         TableGraphBuilder builder = new([persons]);
+        TableGraph graph = new();
 
         // Act
-        Exception? exception = Record.Exception(() => _ = builder.Build());
+        Exception? exception = Record.Exception(() => builder.Build(graph));
 
         // Assert
         Assert.NotNull(exception);
