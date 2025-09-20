@@ -6,7 +6,7 @@ namespace Borm.Tests.EndToEnd.Repository;
 
 public sealed class TransactionTest
 {
-    [Fact(Skip = "Will be fixed in B-5")]
+    [Fact]
     public void ConcurrencyConflict_WithoutSavingChanges()
     {
         // Arrange
