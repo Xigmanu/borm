@@ -34,7 +34,7 @@ public sealed class ConstraintValidatorTest
         Table table = _graph[typeof(AddressEntity)]!;
         ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
         table.Tracker.PendChange(Change.NewChange(buffer, -1));
-        table.AcceptPendingChanges(-1);
+        table.Tracker.AcceptPendingChanges(-1);
 
         ConstraintValidator validator = new(table);
 

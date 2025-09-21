@@ -39,7 +39,7 @@ public sealed class BufferPreProcessorTest
 
         ValueBuffer addressBuffer = CreateBuffer(AddressesDummyData, addressTable);
         addressTable.Tracker.PendChange(Change.Initial(addressBuffer, initialTxId));
-        addressTable.AcceptPendingChanges(initialTxId);
+        addressTable.Tracker.AcceptPendingChanges(initialTxId);
 
         AddressEntity address = new(1, "address", null, "city");
         ValueBuffer buffer = CreateBuffer([1, "name", 42.619, address], personTable);
@@ -80,7 +80,7 @@ public sealed class BufferPreProcessorTest
         personTable.Tracker.PendChange(
             Change.Initial(personBuffer, initialTxId)
         );
-        personTable.AcceptPendingChanges(initialTxId);
+        personTable.Tracker.AcceptPendingChanges(initialTxId);
 
         ValueBuffer buffer = CreateBuffer(EmployeesDummyData, employeeTable);
 

@@ -1,4 +1,5 @@
-﻿using Borm.Model.Metadata;
+﻿using System.Diagnostics;
+using Borm.Model.Metadata;
 
 namespace Borm.Data.Storage;
 
@@ -11,14 +12,13 @@ internal sealed class TableGraphBuilder
         _entityInfoMap = entityInfos.ToDictionary(e => e.DataType);
     }
 
-    public TableGraph Build()
+    public void Build(TableGraph graph)
     {
-        TableGraph graph = new();
+        Debug.Assert(graph.TableCount == 0);
         foreach (EntityMetadata entityMetadata in _entityInfoMap.Values)
         {
             BuildTableRecursive(entityMetadata, graph);
         }
-        return graph;
     }
 
     private Table BuildTableRecursive(EntityMetadata entityMetadata, TableGraph graph)

@@ -14,6 +14,17 @@ internal sealed class ChangeTracker
     private readonly ChangeSet _changeSet = [];
     private readonly Dictionary<long, ChangeSet> _txChangeSets = [];
 
+    public ImmutableList<Change> Changes
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return [.. _changeSet];
+            }
+        }
+    }
+
     public void AcceptPendingChanges(long txId)
     {
         if (!_txChangeSets.TryGetValue(txId, out ChangeSet? pendingSet))
@@ -32,18 +43,13 @@ internal sealed class ChangeTracker
         finally
         {
             _ = _txChangeSets.Remove(txId);
+            _changeSet.RecordRemoved -= pendingSet.OnRecordRemoved;
         }
     }
 
-    public IImmutableList<Change> Changes
+    public bool IsColumnValueUnique(ColumnMetadata column, object columnValue, long txId)
     {
-        get
-        {
-            lock (_lock)
-            {
-                return _changeSet.ToImmutableList();
-            }
-        }
+        return FindChange(txId, (buffer) => buffer[column].Equals(columnValue)) == null;
     }
 
     public void MarkChangesAsWritten()
@@ -57,6 +63,7 @@ internal sealed class ChangeTracker
         if (!_txChangeSets.TryGetValue(writeTxId, out ChangeSet? pendingSet))
         {
             pendingSet = [.. _changeSet];
+            _changeSet.RecordRemoved += pendingSet.OnRecordRemoved;
             _txChangeSets[writeTxId] = pendingSet;
         }
 
@@ -67,11 +74,6 @@ internal sealed class ChangeTracker
     {
         change = FindChange(txId, (buffer) => buffer.PrimaryKey.Equals(primaryKey));
         return change != null;
-    }
-
-    public bool IsColumnValueUnique(ColumnMetadata column, object columnValue, long txId)
-    {
-        return FindChange(txId, (buffer) => buffer[column].Equals(columnValue)) == null;
     }
 
     private Change? FindChange(long txId, Func<ValueBuffer, bool> predicate)
