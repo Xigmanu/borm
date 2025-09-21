@@ -165,22 +165,15 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
 
             _table.Update(preProcessed, txId);
             affectedTables.Add(_table);
-            // ExecuteReferentialIntegrityOperation(txId, preProcessed.PrimaryKey);
         };
     }
 
     private void ExecuteReferentialIntegrityOperation(
         long txId,
         HashSet<Table> affectedTables,
-        object parentPrimaryKey,
-        [CallerMemberName] string? operation = null
+        object parentPrimaryKey
     )
     {
-        Debug.Assert(
-            operation == nameof(CreateDeleteClosure) || operation == nameof(CreateUpdateClosure),
-            $"{nameof(ExecuteReferentialIntegrityOperation)} should only be called during Update/Delete"
-        );
-
         IEnumerable<Table> children = _graph.GetChildren(_table);
         foreach (Table child in children)
         {
@@ -199,35 +192,17 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
                     .Select(change => change.Buffer.Copy()); // Copy here as a safeguard against mutations via reference
                 foreach (ValueBuffer buffer in affected)
                 {
-                    if (operation == nameof(CreateUpdateClosure))
+                    if (column.OnDelete == ReferentialAction.SetNull)
                     {
-                        continue; // FIXME
-                        object value = column.OnUpdate switch
-                        {
-                            ReferentialAction.Cascade => parentPrimaryKey,
-                            ReferentialAction.SetNull => DBNull.Value,
-                            _ => throw new NotSupportedException(
-                                $"Unexpected {nameof(ReferentialAction)}: {column.OnUpdate}"
-                            ),
-                        };
-                        buffer[column] = value;
-
+                        buffer[column] = DBNull.Value;
                         child.Update(buffer, txId);
                     }
-                    else
+                    else if (column.OnDelete == ReferentialAction.Cascade)
                     {
-                        if (column.OnDelete == ReferentialAction.SetNull)
-                        {
-                            buffer[column] = DBNull.Value;
-                            child.Update(buffer, txId);
-                        }
-                        else if (column.OnDelete == ReferentialAction.Cascade)
-                        {
-                            child.Delete(buffer, txId);
-                        }
-
-                        affectedTables.Add(child);
+                        child.Delete(buffer, txId);
                     }
+
+                    affectedTables.Add(child);
                 }
             }
         }
