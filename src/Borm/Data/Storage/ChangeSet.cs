@@ -21,6 +21,7 @@ internal sealed class ChangeSet : IEnumerable<Change>
         _danglingKeyCache = danglingKeyCache;
     }
 
+    internal event EventHandler<RecordRemovedEventArgs>? RecordRemoved;
     public int Count => _changePKMap.Count;
 
     public static ChangeSet Merge(ChangeSet existing, ChangeSet incoming)
@@ -42,11 +43,18 @@ internal sealed class ChangeSet : IEnumerable<Change>
                 {
                     resultMap[incomingPk] = merged;
                 }
+                else
+                {
+                    existing.RecordRemoved?.Invoke(
+                        existing,
+                        new RecordRemovedEventArgs(incomingPk)
+                    );
+                }
             }
             else
             {
                 if (
-                    existing._danglingKeyCache.Contains(incomingPk)
+                    incoming._danglingKeyCache.Contains(incomingPk)
                     || incomingChange.RowAction != RowAction.Insert
                         && incomingChange.WriteTxId != InternalTransaction.InitId
                 )
@@ -63,21 +71,19 @@ internal sealed class ChangeSet : IEnumerable<Change>
     public void Add(Change incoming)
     {
         object primaryKey = incoming.Buffer.PrimaryKey;
-        if (_changePKMap.TryGetValue(primaryKey, out Change? existing))
+        if (
+            _changePKMap.TryGetValue(primaryKey, out Change? existing)
+            && incoming.WriteTxId == existing.WriteTxId
+        )
         {
             Change? merged = existing.Merge(incoming);
             _changePKMap.Remove(primaryKey);
-            if (merged != null)
+            if (merged is not null)
             {
                 _changePKMap[primaryKey] = merged;
             }
-            else
-            {
-                _danglingKeyCache.Add(primaryKey);
-            }
             return;
         }
-
         _changePKMap[primaryKey] = incoming;
     }
 
@@ -115,5 +121,10 @@ internal sealed class ChangeSet : IEnumerable<Change>
         {
             _danglingKeyCache.Add(danglingKey);
         }
+    }
+
+    internal void OnRecordRemoved(object? sender, RecordRemovedEventArgs e)
+    {
+        _danglingKeyCache.Add(e.PrimaryKey);
     }
 }
