@@ -50,7 +50,7 @@ public sealed class TableTest
 
         // Assert
         Assert.NotNull(exception);
-        Assert.IsType<RowNotFoundException>(exception);
+        Assert.IsType<RecordNotFoundException>(exception);
     }
 
     [Fact]
@@ -248,6 +248,6 @@ public sealed class TableTest
 
         // Assert
         Assert.NotNull(exception);
-        Assert.IsType<RowNotFoundException>(exception);
+        Assert.IsType<RecordNotFoundException>(exception);
     }
 }

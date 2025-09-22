@@ -139,7 +139,7 @@ internal sealed class Table
             return change;
         }
 
-        throw new RowNotFoundException(Strings.RowNotFound(Name, primaryKey), Name, primaryKey);
+        throw new RecordNotFoundException(Strings.RowNotFound(Name, primaryKey), Name, primaryKey);
     }
 
     [ExcludeFromCodeCoverage(Justification = "Debug display proxy")]
