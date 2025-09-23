@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using Borm.Properties;
 
-namespace Borm.Data.Storage;
+namespace Borm.Data.Storage.Tracking;
 
 [DebuggerDisplay("Count = {_changePKMap.Count}")]
 internal sealed class ChangeSet : IEnumerable<Change>
