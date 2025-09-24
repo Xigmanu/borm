@@ -51,7 +51,7 @@ internal sealed class BufferPreProcessor
         Debug.Assert(parent is not null);
 
         bool changeExists;
-        EntityMetadata metadata = parent.EntityMetadata;
+        EntityMetadata metadata = parent.Metadata;
         if (column.DataType != metadata.DataType)
         {
             changeExists = parent.Tracker.TryGetChange(primaryKey: columnValue, txId, out _);

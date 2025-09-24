@@ -125,7 +125,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         {
             ArgumentNullException.ThrowIfNull(entity);
 
-            EntityMetadata metadata = _table.EntityMetadata;
+            EntityMetadata metadata = _table.Metadata;
             ValueBuffer buffer = metadata.Binding.ToValueBuffer(entity);
             _ = _preProcessor.ResolveForeignKeys(buffer, txId, out ValueBuffer preProcessed);
 
@@ -147,7 +147,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         {
             ArgumentNullException.ThrowIfNull(entity);
 
-            EntityMetadata metadata = _table.EntityMetadata;
+            EntityMetadata metadata = _table.Metadata;
             metadata.Validator?.Invoke(entity);
             ValueBuffer buffer = metadata.Binding.ToValueBuffer(entity);
 
@@ -161,7 +161,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         {
             ArgumentNullException.ThrowIfNull(entity);
 
-            EntityMetadata metadata = _table.EntityMetadata;
+            EntityMetadata metadata = _table.Metadata;
             metadata.Validator?.Invoke(entity);
 
             ValueBuffer buffer = metadata.Binding.ToValueBuffer(entity);
@@ -201,7 +201,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             }
 
             Table parent = resolvedKey.Parent;
-            EntityMetadata metadata = parent.EntityMetadata;
+            EntityMetadata metadata = parent.Metadata;
 
             if (resolvedKey.IsComplexRecord)
             {

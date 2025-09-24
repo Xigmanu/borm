@@ -29,7 +29,7 @@ internal sealed class EntityMaterializer
                 : MaterializeParent(_graph[column.Reference!]!, columnValue);
         }
 
-        return table.EntityMetadata.Binding.MaterializeEntity(tempBuffer);
+        return table.Metadata.Binding.MaterializeEntity(tempBuffer);
     }
 
     private object MaterializeParent(Table parent, object columnValue)

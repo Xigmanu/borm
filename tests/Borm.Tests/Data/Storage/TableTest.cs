@@ -72,7 +72,7 @@ public sealed class TableTest
     public void Equals_ReturnsTrue_WhenTablesAreEqual()
     {
         // Arrange
-        EntityMetadata metadata = _graph[typeof(AddressEntity)]!.EntityMetadata;
+        EntityMetadata metadata = _graph[typeof(AddressEntity)]!.Metadata;
         Table first = new(metadata);
         Table second = new(metadata);
 

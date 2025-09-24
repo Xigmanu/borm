@@ -4,92 +4,89 @@ using Borm.Properties;
 
 namespace Borm.Data.Storage.Tracking;
 
-[DebuggerDisplay("Count = {_changePKMap.Count}")]
+[DebuggerDisplay("Count = {Count}")]
 internal sealed class ChangeSet : IEnumerable<Change>
 {
-    private readonly Dictionary<object, Change> _changePKMap;
-    private readonly HashSet<object> _danglingKeyCache;
+    private readonly Dictionary<object, Change> _changes;
+    private readonly HashSet<object> _danglingKeys;
 
     public ChangeSet()
     {
-        (_changePKMap, _danglingKeyCache) = ([], []);
+        (_changes, _danglingKeys) = ([], []);
     }
 
     private ChangeSet(Dictionary<object, Change> changePkMap, HashSet<object> danglingKeyCache)
     {
-        _changePKMap = changePkMap;
-        _danglingKeyCache = danglingKeyCache;
+        _changes = changePkMap;
+        _danglingKeys = danglingKeyCache;
     }
 
     internal event EventHandler<RecordRemovedEventArgs>? RecordRemoved;
-    public int Count => _changePKMap.Count;
+    public int Count => _changes.Count;
 
     public static ChangeSet Merge(ChangeSet existing, ChangeSet incoming)
     {
         if (incoming.Count == 0)
         {
             // Assume that all changes have been deleted
-            return new ChangeSet(existing._changePKMap, incoming._danglingKeyCache);
+            return new ChangeSet(existing._changes, incoming._danglingKeys);
         }
 
-        Dictionary<object, Change> resultMap = new(existing._changePKMap);
-        foreach ((object incomingPk, Change incomingChange) in incoming._changePKMap)
+        Dictionary<object, Change> resultMap = new(existing._changes);
+        foreach ((object primaryKey, Change incomingChange) in incoming._changes)
         {
-            if (existing._changePKMap.TryGetValue(incomingPk, out Change? existingChange))
+            if (existing._changes.TryGetValue(primaryKey, out Change? existingChange))
             {
                 Change? merged = existingChange.CommitMerge(incomingChange);
-                resultMap.Remove(incomingPk);
+                resultMap.Remove(primaryKey);
                 if (merged != null)
                 {
-                    resultMap[incomingPk] = merged;
+                    resultMap[primaryKey] = merged;
                 }
                 else
                 {
-                    existing.RecordRemoved?.Invoke(
-                        existing,
-                        new RecordRemovedEventArgs(incomingPk)
-                    );
+                    existing.RaiseRecordRemoved(primaryKey);
                 }
             }
             else
             {
                 if (
-                    incoming._danglingKeyCache.Contains(incomingPk)
+                    incoming._danglingKeys.Contains(primaryKey)
                     || incomingChange.RowAction != RowAction.Insert
                         && incomingChange.WriteTxId != InternalTransaction.InitId
                 )
                 {
                     throw new InvalidOperationException(Strings.ModificationOfNonExistingRow());
                 }
-                resultMap[incomingPk] = incomingChange;
+                resultMap[primaryKey] = incomingChange;
             }
         }
 
-        return new ChangeSet(resultMap, [.. incoming._danglingKeyCache]);
+        return new ChangeSet(resultMap, [.. incoming._danglingKeys]);
     }
 
     public void Add(Change incoming)
     {
         object primaryKey = incoming.Buffer.PrimaryKey;
         if (
-            _changePKMap.TryGetValue(primaryKey, out Change? existing)
+            _changes.TryGetValue(primaryKey, out Change? existing)
             && incoming.WriteTxId == existing.WriteTxId
         )
         {
             Change? merged = existing.Merge(incoming);
-            _changePKMap.Remove(primaryKey);
+            _changes.Remove(primaryKey);
             if (merged is not null)
             {
-                _changePKMap[primaryKey] = merged;
+                _changes[primaryKey] = merged;
             }
             return;
         }
-        _changePKMap[primaryKey] = incoming;
+        _changes[primaryKey] = incoming;
     }
 
     public IEnumerator<Change> GetEnumerator()
     {
-        return _changePKMap.Values.GetEnumerator();
+        return _changes.Values.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -99,32 +96,35 @@ internal sealed class ChangeSet : IEnumerable<Change>
 
     public void MarkAsWritten()
     {
-        foreach ((object primaryKey, Change change) in _changePKMap)
+        foreach ((object primaryKey, Change change) in _changes)
         {
             if (change.RowAction == RowAction.Delete)
             {
-                _changePKMap.Remove(primaryKey);
+                _changes.Remove(primaryKey);
             }
             change.MarkAsWritten();
         }
-        _danglingKeyCache.Clear();
+        _danglingKeys.Clear();
     }
 
     public void ReplaceRange(ChangeSet changes)
     {
-        _changePKMap.Clear();
-        foreach ((object primaryKey, Change change) in changes._changePKMap)
+        _changes.Clear();
+        foreach ((object primaryKey, Change change) in changes._changes)
         {
-            _changePKMap[primaryKey] = change;
+            _changes[primaryKey] = change;
         }
-        foreach (object danglingKey in changes._danglingKeyCache)
-        {
-            _danglingKeyCache.Add(danglingKey);
-        }
+
+        _danglingKeys.UnionWith(changes._danglingKeys);
     }
 
     internal void OnRecordRemoved(object? sender, RecordRemovedEventArgs e)
     {
-        _danglingKeyCache.Add(e.PrimaryKey);
+        _danglingKeys.Add(e.PrimaryKey);
+    }
+
+    private void RaiseRecordRemoved(object primaryKey)
+    {
+        RecordRemoved?.Invoke(this, new RecordRemovedEventArgs(primaryKey));
     }
 }

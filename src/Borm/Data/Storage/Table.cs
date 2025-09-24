@@ -24,7 +24,7 @@ internal sealed class Table
     }
 
     public string Name => _entityMetadata.Name;
-    internal EntityMetadata EntityMetadata => _entityMetadata;
+    internal EntityMetadata Metadata => _entityMetadata;
     internal ChangeTracker Tracker => _tracker;
 
     public void Delete(ValueBuffer buffer, long txId)
@@ -153,7 +153,7 @@ internal sealed class Table
             _table = table;
         }
 
-        public EntityMetadata EntityMetadata => _table.EntityMetadata;
+        public EntityMetadata EntityMetadata => _table.Metadata;
         public string Name => _table.Name;
         public ChangeTracker Tracker => _table.Tracker;
     }

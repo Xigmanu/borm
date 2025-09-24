@@ -18,7 +18,7 @@ internal sealed class ReferentialIntegrityHelper
         IEnumerable<Table> children = _graph.GetChildren(table);
         foreach (Table child in children)
         {
-            IEnumerable<ColumnMetadata> foreignKeys = child.EntityMetadata.Columns.Where(c =>
+            IEnumerable<ColumnMetadata> foreignKeys = child.Metadata.Columns.Where(c =>
                 c.Reference is not null
             );
             foreach (ColumnMetadata foreignKey in foreignKeys)
