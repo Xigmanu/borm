@@ -70,7 +70,7 @@ public sealed class DataContext
     /// <returns>A transaction for given data context.</returns>
     public Transaction BeginTransaction()
     {
-        return new Transaction(this, _configuration.TransactionWriteOnCommit);
+        return new Transaction(_tableGraph);
     }
 
     /// <summary>

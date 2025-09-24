@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Borm.Model.Metadata;
 
-namespace Borm.Data.Storage;
+namespace Borm.Data.Storage.Tracking;
 
 [DebuggerDisplay("ChangeCount = {Changes.Count}")]
 internal sealed class ChangeTracker

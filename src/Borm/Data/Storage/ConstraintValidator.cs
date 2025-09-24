@@ -23,7 +23,7 @@ internal class ConstraintValidator
     {
         foreach ((ColumnMetadata column, object columnValue) in buffer)
         {
-            ValidateConstraints(column, columnValue, txId, method == "Update");
+            ValidateConstraints(column, columnValue, txId, method == nameof(_table.Update));
         }
     }
 
@@ -42,11 +42,12 @@ internal class ConstraintValidator
                 Strings.NullableConstraintViolation(column.Name, _table.Name)
             );
         }
-        if (
+
+        bool isUniqueViolated =
             constraints.HasFlag(Constraints.Unique)
             && !isUpdate
-            && !_table.Tracker.IsColumnValueUnique(column, columnValue, txId)
-        )
+            && !_table.Tracker.IsColumnValueUnique(column, columnValue, txId);
+        if (isUniqueViolated)
         {
             throw new ConstraintException(
                 Strings.UniqueConstraintViolation(_table.Name, column.Name, columnValue)

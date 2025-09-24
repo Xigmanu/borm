@@ -12,45 +12,30 @@ public sealed class TableGraphTest
     private readonly TableGraph _graph = TableGraphMock.Create();
 
     [Fact]
-    public void AddChild_AddsChildToTable()
+    public void AddEdge_AddsParentChildAndChildParentRelations()
     {
         // Arrange
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table parent = _graph[typeof(AddressEntity)]!;
         Table child = _graph[typeof(PersonEntity)]!;
         TableGraph graph = new();
-        graph.AddTable(table);
+
+        graph.AddTable(parent);
         graph.AddTable(child);
 
         // Act
-        graph.AddChild(table, child);
-        graph.AddChild(table, child);
+        graph.AddEdge(parent, child);
 
         // Assert
-        Assert.Equal(2, graph.TableCount);
-        IEnumerable<Table> children = graph.GetChildren(table);
-        Assert.Single(children);
-        Assert.Equal(child, children.First());
-    }
+        IEnumerable<Table> children0 = graph.GetChildren(parent);
+        IEnumerable<Table> children1 = graph.GetChildren(child);
+        IEnumerable<Table> parents0 = graph.GetParents(child);
+        IEnumerable<Table> parents1 = graph.GetParents(parent);
 
-    [Fact]
-    public void AddParent_AddsParentToTable()
-    {
-        // Arrange
-        Table table = _graph[typeof(PersonEntity)]!;
-        Table parent = _graph[typeof(AddressEntity)]!;
-        TableGraph graph = new();
-        graph.AddTable(table);
-        graph.AddTable(parent);
+        Assert.Empty(children1);
+        Assert.Empty(parents1);
 
-        // Act
-        graph.AddParent(table, parent);
-        graph.AddParent(table, parent);
-
-        // Assert
-        Assert.Equal(2, graph.TableCount);
-        IEnumerable<Table> children = graph.GetParents(table);
-        Assert.Single(children);
-        Assert.Equal(parent, children.First());
+        Assert.Equal(child, children0.First());
+        Assert.Equal(parent, parents0.First());
     }
 
     [Fact]
@@ -206,7 +191,7 @@ public sealed class TableGraphTest
         Table table = _graph[typeof(AddressEntity)]!;
 
         // Act
-        Table? actual = _graph[table.EntityMetadata.DataType];
+        Table? actual = _graph[table.Metadata.DataType];
 
         // Assert
         Assert.NotNull(actual);
@@ -231,7 +216,7 @@ public sealed class TableGraphTest
     private static List<ColumnInfo> CreateTestColumns(Table table)
     {
         List<ColumnInfo> columns = [];
-        foreach (ColumnMetadata columnMetadata in table.EntityMetadata.Columns)
+        foreach (ColumnMetadata columnMetadata in table.Metadata.Columns)
         {
             ColumnInfo columnSchema = new(
                 columnMetadata.Name,

@@ -1,64 +1,65 @@
 ﻿using System.Diagnostics;
-using System.Linq;
 using Borm.Data.Storage;
 using Borm.Properties;
 
 namespace Borm.Data;
 
 /// <summary>
-/// Represents an internal transactional scope for direct write operations through a <see cref="DataContext"/>.
+/// Represents a transactional scope for write operations performed through a <see cref="DataContext"/>.
 /// </summary>
-public class InternalTransaction : IDisposable
+///
+/// <remarks>
+///     <para>
+///         If any of the entries affected by this transaction have been changed by another transaction, the operations will be re-executed in the same order.
+///     </para>
+///     <para>
+///         Created by calling <see cref="DataContext.BeginTransaction"/>.
+///     </para>
+/// </remarks>
+public sealed class Transaction : IDisposable
 {
     internal const long InitId = -1;
-
-    protected readonly long id;
-    protected Exception? exception;
-
     private const int MaxRetries = 3;
 
     private readonly HashSet<Table> _changedTables;
-    private readonly Queue<Action<long, HashSet<Table>>> _operationQueue;
     private readonly TableGraph _graph;
+    private readonly long _id;
+    private readonly Queue<Action<long, HashSet<Table>>> _operationQueue;
+
     private int _attempt;
+    private Exception? _exception;
 
-    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private bool _isDisposed;
-
-    internal InternalTransaction(TableGraph graph)
+    internal Transaction(TableGraph graph)
         : this(IdProvider.Next(), graph) { }
 
-    internal InternalTransaction(long id, TableGraph graph)
+    internal Transaction(long id, TableGraph graph)
     {
-        this.id = id;
-        exception = null;
+        this._id = id;
+        _exception = null;
         _graph = graph;
         _operationQueue = [];
         _changedTables = [];
-        _isDisposed = false;
         _attempt = 0;
     }
 
-    protected InternalTransaction(InternalTransaction original)
+    private Transaction(Transaction original)
     {
-        id = IdProvider.Next();
-        exception = null;
+        _id = IdProvider.Next();
+        _exception = null;
         _graph = original._graph;
         _operationQueue = original._operationQueue;
         _changedTables = original._changedTables;
-        _isDisposed = false;
         _attempt = ++original._attempt;
     }
 
     public void Dispose()
     {
-        Dispose(true);
-        GC.SuppressFinalize(this);
+        CommitPendingChanges();
     }
 
-    internal virtual void Execute(Action<long, HashSet<Table>> tableOperation)
+    internal void Execute(Action<long, HashSet<Table>> tableOperation)
     {
-        if (exception != null)
+        if (_exception != null)
         {
             return;
         }
@@ -66,20 +67,20 @@ public class InternalTransaction : IDisposable
         try
         {
             _operationQueue.Enqueue(tableOperation);
-            tableOperation(id, _changedTables);
+            tableOperation(_id, _changedTables);
         }
         catch (Exception ex)
         {
-            exception = ex;
+            _exception = ex;
         }
     }
 
-    protected virtual void CommitPendingChanges()
+    private void CommitPendingChanges()
     {
-        if (exception != null)
+        if (_exception != null)
         {
-            Debug.Assert(exception is not ConcurrencyConflictException);
-            throw new InvalidOperationException(Strings.TransactionFailed(), exception);
+            Debug.Assert(_exception is not ConcurrencyConflictException);
+            throw new InvalidOperationException(Strings.TransactionFailed(), _exception);
         }
 
         try
@@ -90,7 +91,7 @@ public class InternalTransaction : IDisposable
                 List<Table> tables = [.. _graph.GetParents(changedTable), changedTable];
                 foreach (Table table in tables.Where(processed.Add))
                 {
-                    table.Tracker.AcceptPendingChanges(id);
+                    table.Tracker.AcceptPendingChanges(_id);
                 }
             }
         }
@@ -101,27 +102,12 @@ public class InternalTransaction : IDisposable
                 throw new InvalidOperationException(Strings.TransactionMaxRerunsExceeded(), ex);
             }
 
-            using InternalTransaction retryTx = new(this);
+            using Transaction retryTx = new(this);
             retryTx.RunQueuedOperations();
         }
     }
 
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_isDisposed)
-        {
-            return;
-        }
-
-        _isDisposed = true;
-
-        if (disposing)
-        {
-            CommitPendingChanges();
-        }
-    }
-
-    protected void RunQueuedOperations()
+    private void RunQueuedOperations()
     {
         for (int i = 0; i < _operationQueue.Count; i++)
         {

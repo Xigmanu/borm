@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Borm.Data.Sql;
+using Borm.Data.Storage.Tracking;
 using Borm.Model.Metadata;
 using Borm.Properties;
 using Borm.Util;
@@ -23,7 +24,7 @@ internal sealed class Table
     }
 
     public string Name => _entityMetadata.Name;
-    internal EntityMetadata EntityMetadata => _entityMetadata;
+    internal EntityMetadata Metadata => _entityMetadata;
     internal ChangeTracker Tracker => _tracker;
 
     public void Delete(ValueBuffer buffer, long txId)
@@ -79,7 +80,7 @@ internal sealed class Table
 
     internal void Load(ResultSet resultSet, long txId)
     {
-        Debug.Assert(txId == InternalTransaction.InitId);
+        Debug.Assert(txId == Transaction.InitId);
         if (resultSet.RowCount == 0)
         {
             return;
@@ -139,7 +140,7 @@ internal sealed class Table
             return change;
         }
 
-        throw new RowNotFoundException(Strings.RowNotFound(Name, primaryKey), Name, primaryKey);
+        throw new RecordNotFoundException(Strings.RowNotFound(Name, primaryKey), Name, primaryKey);
     }
 
     [ExcludeFromCodeCoverage(Justification = "Debug display proxy")]
@@ -152,7 +153,7 @@ internal sealed class Table
             _table = table;
         }
 
-        public EntityMetadata EntityMetadata => _table.EntityMetadata;
+        public EntityMetadata EntityMetadata => _table.Metadata;
         public string Name => _table.Name;
         public ChangeTracker Tracker => _table.Tracker;
     }

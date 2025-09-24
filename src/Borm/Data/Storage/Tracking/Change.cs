@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Borm.Data.Storage;
+﻿namespace Borm.Data.Storage.Tracking;
 
 internal sealed class Change
 {

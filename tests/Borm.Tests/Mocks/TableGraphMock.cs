@@ -16,11 +16,8 @@ internal static class TableGraphMock
         graph.AddTable(personsTable);
         graph.AddTable(employeesTable);
 
-        graph.AddChild(addressesTable, personsTable);
-        graph.AddParent(personsTable, addressesTable);
-
-        graph.AddChild(personsTable, employeesTable);
-        graph.AddParent(employeesTable, personsTable);
+        graph.AddEdge(addressesTable, personsTable);
+        graph.AddEdge(personsTable, employeesTable);
 
         return graph;
     }

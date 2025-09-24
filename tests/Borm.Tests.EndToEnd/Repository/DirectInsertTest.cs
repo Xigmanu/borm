@@ -320,7 +320,7 @@ public sealed class DirectInsertTest
 
         Exception? inner = exception.InnerException;
         Assert.NotNull(inner);
-        Assert.IsType<RowNotFoundException>(inner);
+        Assert.IsType<RecordNotFoundException>(inner);
         Assert.Equal(Strings.RowNotFound("persons", employee.Person), inner.Message);
 
         IEnumerable<EmployeeEntity> employees = employeeRepo.Select();

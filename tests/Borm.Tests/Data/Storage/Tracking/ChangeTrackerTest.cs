@@ -1,9 +1,10 @@
 ﻿using Borm.Data.Storage;
+using Borm.Data.Storage.Tracking;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
 using static Borm.Tests.Mocks.ValueBufferMockHelper;
 
-namespace Borm.Tests.Data.Storage;
+namespace Borm.Tests.Data.Storage.Tracking;
 
 public sealed class ChangeTrackerTest
 {

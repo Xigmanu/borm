@@ -13,7 +13,7 @@ internal static class ValueBufferMockHelper
     {
         ValueBuffer buffer = new();
 
-        ColumnMetadataCollection columns = table.EntityMetadata.Columns;
+        ColumnMetadataCollection columns = table.Metadata.Columns;
         for (int i = 0; i < columns.Count; i++)
         {
             buffer[columns[i]] = values[i];

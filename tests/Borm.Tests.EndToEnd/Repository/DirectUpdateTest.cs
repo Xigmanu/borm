@@ -128,7 +128,7 @@ public sealed class DirectUpdateTest
         Assert.Equal(Strings.TransactionFailed(), exception.Message);
 
         Exception? inner = exception.InnerException;
-        Assert.IsType<RowNotFoundException>(inner);
+        Assert.IsType<RecordNotFoundException>(inner);
         Assert.Equal(Strings.RowNotFound("addresses", 2), inner.Message);
     }
 
@@ -159,7 +159,7 @@ public sealed class DirectUpdateTest
 
         Exception? inner = exception.InnerException;
         Assert.NotNull(inner);
-        Assert.IsType<RowNotFoundException>(inner);
+        Assert.IsType<RecordNotFoundException>(inner);
         Assert.Equal(Strings.RowNotFound("addresses", newAddress.Id), inner.Message);
     }
 
@@ -281,7 +281,7 @@ public sealed class DirectUpdateTest
 
         Exception? inner = exception.InnerException;
         Assert.NotNull(inner);
-        Assert.IsType<RowNotFoundException>(inner);
+        Assert.IsType<RecordNotFoundException>(inner);
         Assert.Equal(Strings.RowNotFound("employees", newEmployee.Id), inner.Message);
 
         IEnumerable<EmployeeEntity> employees = employeeRepo.Select();
