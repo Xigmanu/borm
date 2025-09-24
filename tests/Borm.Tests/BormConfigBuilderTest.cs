@@ -108,7 +108,6 @@ public sealed class BormConfigBuilderTest
         Assert.IsType<InMemoryCommandExecutor>(config.CommandExecutor);
         Assert.IsType<InMemoryCommandDefinitionFactory>(config.CommandDefinitionFactory);
         Assert.Equal(model, config.Model);
-        Assert.False(config.TransactionWriteOnCommit);
     }
 
     [Fact]
@@ -123,22 +122,5 @@ public sealed class BormConfigBuilderTest
         // Assert
         Assert.NotNull(exception);
         Assert.IsType<ArgumentNullException>(exception);
-    }
-
-    [Fact]
-    public void TransactionWriteOnCommit_SetsAppropriateFlagToTrue()
-    {
-        // Arrange
-        BormConfig.Builder builder = new();
-        EntityModel model = new();
-
-        // Act
-        BormConfig config = builder.Model(model).InMemory().TransactionWriteOnCommit().Build();
-
-        // Assert
-        Assert.True(config.TransactionWriteOnCommit);
-        Assert.IsType<InMemoryCommandExecutor>(config.CommandExecutor);
-        Assert.IsType<InMemoryCommandDefinitionFactory>(config.CommandDefinitionFactory);
-        Assert.Equal(model, config.Model);
     }
 }

@@ -26,7 +26,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
 
     public void Delete(T entity)
     {
-        using InternalTransaction transaction = new(_graph);
+        using Transaction transaction = new(_graph);
         transaction.Execute(CreateDeleteClosure(entity));
     }
 
@@ -42,7 +42,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
 
     public void Insert(T entity)
     {
-        using InternalTransaction transaction = new(_graph);
+        using Transaction transaction = new(_graph);
         transaction.Execute(CreateInsertClosure(entity));
     }
 
@@ -80,7 +80,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
 
     public void Update(T entity)
     {
-        using InternalTransaction transaction = new(_graph);
+        using Transaction transaction = new(_graph);
         transaction.Execute(CreateUpdateClosure(entity));
     }
 

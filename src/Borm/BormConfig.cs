@@ -11,14 +11,12 @@ public sealed class BormConfig
     private BormConfig(
         IDbCommandExecutor commandExecutor,
         EntityModel model,
-        IDbCommandDefinitionFactory commandDefinitionFactory,
-        bool transactionWriteOnCommit
+        IDbCommandDefinitionFactory commandDefinitionFactory
     )
     {
         CommandExecutor = commandExecutor;
         Model = model;
         CommandDefinitionFactory = commandDefinitionFactory;
-        TransactionWriteOnCommit = transactionWriteOnCommit;
     }
 
     /// <summary>
@@ -38,11 +36,6 @@ public sealed class BormConfig
     public EntityModel Model { get; }
 
     /// <summary>
-    /// This flag indicates whether transactions are written automatically to the data source when they are committed.
-    /// </summary>
-    public bool TransactionWriteOnCommit { get; }
-
-    /// <summary>
     /// Builder for constructing <see cref="BormConfig"/> instances.
     /// </summary>
     public sealed class Builder
@@ -50,15 +43,6 @@ public sealed class BormConfig
         private IDbCommandDefinitionFactory? _commandDefinitionFactory;
         private IDbCommandExecutor? _commandExecutor;
         private EntityModel? _model;
-        private bool _txWriteOnCommit;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Builder"/> class.
-        /// </summary>
-        public Builder()
-        {
-            _txWriteOnCommit = false;
-        }
 
         /// <summary>
         /// Builds a new <see cref="BormConfig"/> instance using the values set on this builder.
@@ -79,12 +63,7 @@ public sealed class BormConfig
                 throw new InvalidOperationException("Command definition factory must be provided");
             }
 
-            return new BormConfig(
-                _commandExecutor,
-                _model,
-                _commandDefinitionFactory,
-                _txWriteOnCommit
-            );
+            return new BormConfig(_commandExecutor, _model, _commandDefinitionFactory);
         }
 
         public Builder CommandDefinitionFactory(
@@ -118,12 +97,6 @@ public sealed class BormConfig
         {
             ArgumentNullException.ThrowIfNull(model);
             _model = model;
-            return this;
-        }
-
-        public Builder TransactionWriteOnCommit()
-        {
-            _txWriteOnCommit = true;
             return this;
         }
     }

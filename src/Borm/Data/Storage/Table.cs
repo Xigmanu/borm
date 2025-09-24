@@ -80,7 +80,7 @@ internal sealed class Table
 
     internal void Load(ResultSet resultSet, long txId)
     {
-        Debug.Assert(txId == InternalTransaction.InitId);
+        Debug.Assert(txId == Transaction.InitId);
         if (resultSet.RowCount == 0)
         {
             return;

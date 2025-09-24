@@ -53,7 +53,7 @@ internal sealed class ChangeSet : IEnumerable<Change>
                 if (
                     incoming._danglingKeys.Contains(primaryKey)
                     || incomingChange.RowAction != RowAction.Insert
-                        && incomingChange.WriteTxId != InternalTransaction.InitId
+                        && incomingChange.WriteTxId != Transaction.InitId
                 )
                 {
                     throw new InvalidOperationException(Strings.ModificationOfNonExistingRow());

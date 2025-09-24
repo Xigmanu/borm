@@ -38,7 +38,7 @@ internal sealed class EntityMaterializer
         // The initial TX ID is used to ensure that I only read committed changes
         bool changeExists = parent.Tracker.TryGetChange(
             columnValue,
-            InternalTransaction.InitId,
+            Transaction.InitId,
             out Change? change
         );
         if (changeExists)
