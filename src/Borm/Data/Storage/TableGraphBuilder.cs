@@ -47,8 +47,8 @@ internal sealed class TableGraphBuilder
             }
 
             Table parent = BuildTableRecursive(dependency, graph);
-            graph.AddParent(table, parent);
-            graph.AddChild(parent, table);
+            graph.AddTable(parent);
+            graph.AddEdge(parent, table);
         }
 
         return table;

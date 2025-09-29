@@ -52,7 +52,7 @@ internal sealed class DataSynchronizer
 
     public void SyncSchemaWithDataSource()
     {
-        using InternalTransaction transaction = new(InternalTransaction.InitId, _graph);
+        using Transaction transaction = new(Transaction.InitId, _graph);
         foreach (Table table in _graph.TopSort())
         {
             TableInfo tableSchema = _graph.GetTableSchema(table);

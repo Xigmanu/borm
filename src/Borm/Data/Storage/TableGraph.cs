@@ -8,9 +8,9 @@ namespace Borm.Data.Storage;
 [DebuggerDisplay("TableCount = {TableCount}")]
 internal sealed class TableGraph
 {
-    private readonly Dictionary<Type, HashSet<Type>> _children;
-    private readonly Dictionary<Type, HashSet<Type>> _parents;
-    private readonly Dictionary<Type, Table> _tables;
+    private readonly Dictionary<Table, HashSet<Table>> _children;
+    private readonly Dictionary<Table, HashSet<Table>> _parents;
+    private readonly HashSet<Table> _tables;
 
     public TableGraph()
     {
@@ -19,33 +19,20 @@ internal sealed class TableGraph
 
     public int TableCount => _tables.Count;
 
-    public Table? this[Type entityType]
-    {
-        get
-        {
-            _ = _tables.TryGetValue(entityType, out Table? table);
-            return table;
-        }
-    }
+    public Table? this[Type entityType] =>
+        _tables.FirstOrDefault(t => t.Metadata.DataType.Equals(entityType));
 
-    public void AddChild(Table table, Table child)
+    public void AddEdge(Table parent, Table child)
     {
-        InternalAddRelation(table, child, _tables, _children);
-    }
+        Debug.Assert(_tables.Contains(parent) && _tables.Contains(child) && !parent.Equals(child));
 
-    public void AddParent(Table table, Table parent)
-    {
-        InternalAddRelation(table, parent, _tables, _parents);
+        InternalAddRelation(parent, child, _children);
+        InternalAddRelation(child, parent, _parents);
     }
 
     public void AddTable(Table table)
     {
-        Type dataType = table.EntityMetadata.DataType;
-        if (!_tables.ContainsKey(dataType))
-        {
-            _tables[dataType] = table;
-            Debug.Assert(!_children.ContainsKey(dataType) && !_parents.ContainsKey(dataType));
-        }
+        _ = _tables.Add(table);
     }
 
     public IEnumerable<Table> GetChildren(Table table)
@@ -64,7 +51,7 @@ internal sealed class TableGraph
         Dictionary<ColumnInfo, TableInfo> fkRelationMap = [];
 
         ColumnInfo? primaryKey = null;
-        foreach (ColumnMetadata column in table.EntityMetadata.Columns)
+        foreach (ColumnMetadata column in table.Metadata.Columns)
         {
             string columnName = column.Name;
             bool isUnique = column.Constraints.HasFlag(Constraints.Unique);
@@ -86,12 +73,7 @@ internal sealed class TableGraph
             Table? parent = this[column.Reference!];
             Debug.Assert(parent is not null);
 
-            columnInfo = new(
-                columnName,
-                parent.EntityMetadata.PrimaryKey.DataType,
-                isUnique,
-                isNullable
-            );
+            columnInfo = new(columnName, parent.Metadata.PrimaryKey.DataType, isUnique, isNullable);
             TableInfo parentSchema = GetTableSchema(parent);
 
             columns.Add(columnInfo);
@@ -100,7 +82,7 @@ internal sealed class TableGraph
 
         Debug.Assert(primaryKey != null);
         return new TableInfo(
-            table.EntityMetadata.Name,
+            table.Metadata.Name,
             new ReadOnlyCollection<ColumnInfo>(columns),
             primaryKey,
             fkRelationMap.AsReadOnly()
@@ -119,19 +101,18 @@ internal sealed class TableGraph
                 return;
             }
 
-            Type entityType = table.EntityMetadata.DataType;
-            if (_parents.TryGetValue(entityType, out HashSet<Type>? parentDataTypes))
+            if (_parents.TryGetValue(table, out HashSet<Table>? parents))
             {
-                foreach (Type parentDataType in parentDataTypes)
+                foreach (Table parent in parents)
                 {
-                    Visit(_tables[parentDataType]);
+                    Visit(parent);
                 }
             }
 
             result.Add(table);
         }
 
-        foreach (Table table in _tables.Values)
+        foreach (Table table in _tables)
         {
             Visit(table);
         }
@@ -139,39 +120,29 @@ internal sealed class TableGraph
         return result;
     }
 
-    private static void InternalAddRelation(
-        Table source,
-        Table target,
-        Dictionary<Type, Table> tables,
-        Dictionary<Type, HashSet<Type>> targetMap
-    )
+    private static HashSet<Table> GetEdges(Table table, Dictionary<Table, HashSet<Table>> edgeMap)
     {
-        Debug.Assert(tables.ContainsValue(source) && !source.Equals(target));
-        Type key = source.EntityMetadata.DataType;
-        Type value = target.EntityMetadata.DataType;
-
-        if (targetMap.TryGetValue(key, out HashSet<Type>? values))
+        if (edgeMap.TryGetValue(table, out HashSet<Table>? successors))
         {
-            _ = values.Add(value);
-            return;
-        }
-
-        values = [value];
-        targetMap[key] = values;
-    }
-
-    private IEnumerable<Table> GetEdges(Table table, Dictionary<Type, HashSet<Type>> edgeMap)
-    {
-        if (edgeMap.TryGetValue(table.EntityMetadata.DataType, out HashSet<Type>? edges))
-        {
-            return edges.Select(type =>
-            {
-                Table? child = this[type];
-                Debug.Assert(child is not null);
-                return child;
-            });
+            return successors;
         }
 
         return [];
+    }
+
+    private static void InternalAddRelation(
+        Table from,
+        Table to,
+        Dictionary<Table, HashSet<Table>> edgeMap
+    )
+    {
+        if (edgeMap.TryGetValue(from, out HashSet<Table>? successors))
+        {
+            _ = successors.Add(to);
+            return;
+        }
+
+        successors = [to];
+        edgeMap[from] = successors;
     }
 }

@@ -2,6 +2,7 @@
 using System.Data;
 using Borm.Data.Sql;
 using Borm.Data.Storage;
+using Borm.Data.Storage.Tracking;
 using Borm.Model.Metadata;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
@@ -50,7 +51,7 @@ public sealed class TableTest
 
         // Assert
         Assert.NotNull(exception);
-        Assert.IsType<RowNotFoundException>(exception);
+        Assert.IsType<RecordNotFoundException>(exception);
     }
 
     [Fact]
@@ -71,7 +72,7 @@ public sealed class TableTest
     public void Equals_ReturnsTrue_WhenTablesAreEqual()
     {
         // Arrange
-        EntityMetadata metadata = _graph[typeof(AddressEntity)]!.EntityMetadata;
+        EntityMetadata metadata = _graph[typeof(AddressEntity)]!.Metadata;
         Table first = new(metadata);
         Table second = new(metadata);
 
@@ -248,6 +249,6 @@ public sealed class TableTest
 
         // Assert
         Assert.NotNull(exception);
-        Assert.IsType<RowNotFoundException>(exception);
+        Assert.IsType<RecordNotFoundException>(exception);
     }
 }

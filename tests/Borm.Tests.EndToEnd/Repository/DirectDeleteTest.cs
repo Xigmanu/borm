@@ -76,7 +76,7 @@ public sealed class DirectDeleteTest
 
         Exception? inner = exception.InnerException;
         Assert.NotNull(inner);
-        Assert.IsType<RowNotFoundException>(inner);
+        Assert.IsType<RecordNotFoundException>(inner);
         Assert.Equal(Strings.RowNotFound("persons", invalidPerson.Id), inner.Message);
 
         IEnumerable<PersonEntity> persons = personRepo.Select();

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Borm.Data.Storage.Tracking;
 using Borm.Model.Metadata;
 
 namespace Borm.Data.Storage;
@@ -28,7 +29,7 @@ internal sealed class EntityMaterializer
                 : MaterializeParent(_graph[column.Reference!]!, columnValue);
         }
 
-        return table.EntityMetadata.Binding.MaterializeEntity(tempBuffer);
+        return table.Metadata.Binding.MaterializeEntity(tempBuffer);
     }
 
     private object MaterializeParent(Table parent, object columnValue)
@@ -37,7 +38,7 @@ internal sealed class EntityMaterializer
         // The initial TX ID is used to ensure that I only read committed changes
         bool changeExists = parent.Tracker.TryGetChange(
             columnValue,
-            InternalTransaction.InitId,
+            Transaction.InitId,
             out Change? change
         );
         if (changeExists)
