@@ -4,7 +4,7 @@ internal sealed class InMemoryCommandExecutor : IDbCommandExecutor
 {
     public void ExecuteBatch(DbCommandDefinition command) { }
 
-    public Task ExecuteBatchAsync(DbCommandDefinition command)
+    public Task ExecuteBatchAsync(DbCommandDefinition command, CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
     }

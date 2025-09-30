@@ -11,14 +11,12 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     private readonly ReferentialIntegrityHelper _integrityHelper;
     private readonly EntityMaterializer _materializer;
     private readonly BufferPreProcessor _preProcessor;
-    private readonly SemaphoreSlim _semaphore;
     private readonly Table _table;
 
     public EntityRepository(Table table, TableGraph graph)
     {
         _preProcessor = new(graph);
         _graph = graph;
-        _semaphore = new(1, 1);
         _table = table;
         _materializer = new(graph);
         _integrityHelper = new(graph);
@@ -35,11 +33,6 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         transaction.Execute(CreateDeleteClosure(entity));
     }
 
-    public ValueTask DeleteAsync(T entity)
-    {
-        return InternalExecuteAsync(entity, Delete);
-    }
-
     public void Insert(T entity)
     {
         using Transaction transaction = new(_graph);
@@ -49,11 +42,6 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     public void Insert(T entity, Transaction transaction)
     {
         transaction.Execute(CreateInsertClosure(entity));
-    }
-
-    public ValueTask InsertAsync(T entity)
-    {
-        return InternalExecuteAsync(entity, Insert);
     }
 
     public IEnumerable<T> Select()
@@ -68,16 +56,6 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         return Select().Select(selector);
     }
 
-    public Task<IEnumerable<T>> SelectAsync()
-    {
-        return Task.FromResult(Select());
-    }
-
-    public Task<IEnumerable<R>> SelectAsync<R>(Func<T, R> selector)
-    {
-        return Task.FromResult(Select(selector));
-    }
-
     public void Update(T entity)
     {
         using Transaction transaction = new(_graph);
@@ -87,11 +65,6 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     public void Update(T entity, Transaction transaction)
     {
         transaction.Execute(CreateUpdateClosure(entity));
-    }
-
-    public ValueTask UpdateAsync(T entity)
-    {
-        return InternalExecuteAsync(entity, Update);
     }
 
     private static RecordNotFoundException NewRecordNotFoundException(
@@ -221,18 +194,5 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
 
         table.Insert(preProcessed, txId);
         affectedTables.Add(table);
-    }
-
-    private async ValueTask InternalExecuteAsync(T entity, Action<T> operation)
-    {
-        await _semaphore.WaitAsync().ConfigureAwait(continueOnCapturedContext: false);
-        try
-        {
-            operation(entity);
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
     }
 }

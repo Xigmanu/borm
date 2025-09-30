@@ -11,6 +11,7 @@ public sealed class SqliteCommandExecutor : IDbCommandExecutor
 
     public SqliteCommandExecutor(string connectionString)
     {
+        ArgumentException.ThrowIfNullOrEmpty(connectionString);
         _connectionString = connectionString;
     }
 
@@ -52,13 +53,18 @@ public sealed class SqliteCommandExecutor : IDbCommandExecutor
         connection.Close();
     }
 
-    public async Task ExecuteBatchAsync(DbCommandDefinition command)
+    public async Task ExecuteBatchAsync(
+        DbCommandDefinition command,
+        CancellationToken cancellationToken
+    )
     {
         await using SqliteConnection connection = new(_connectionString);
         await using DbCommand dbCommand = connection.CreateCommand();
 
-        await connection.OpenAsync();
-        await using DbTransaction transaction = await connection.BeginTransactionAsync();
+        await connection.OpenAsync(cancellationToken);
+        await using DbTransaction transaction = await connection.BeginTransactionAsync(
+            cancellationToken
+        );
         dbCommand.Transaction = transaction;
 
         try
@@ -71,24 +77,25 @@ public sealed class SqliteCommandExecutor : IDbCommandExecutor
                 while (batchQueue.HasNext())
                 {
                     batchQueue.SetParameterValues(dbCommand);
-                    await dbCommand.ExecuteNonQueryAsync();
+                    await dbCommand.ExecuteNonQueryAsync(cancellationToken);
                 }
             }
             else
             {
-                await dbCommand.ExecuteNonQueryAsync();
+                await dbCommand.ExecuteNonQueryAsync(cancellationToken);
             }
 
-            await transaction.CommitAsync();
+            await transaction.CommitAsync(cancellationToken);
         }
         catch
         {
-            await transaction.RollbackAsync();
-            await connection.CloseAsync();
+            await transaction.RollbackAsync(cancellationToken);
             throw;
         }
-
-        await connection.CloseAsync();
+        finally
+        {
+            await connection.CloseAsync();
+        }
     }
 
     public ResultSet Query(DbCommandDefinition command)

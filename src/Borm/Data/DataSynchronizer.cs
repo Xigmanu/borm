@@ -36,7 +36,7 @@ internal sealed class DataSynchronizer
         }
     }
 
-    public async Task SaveChangesAsync()
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         IEnumerable<Table> sorted = _graph.TopSort();
         foreach (Table table in sorted)
@@ -44,7 +44,7 @@ internal sealed class DataSynchronizer
             IEnumerable<DbCommandDefinition> commands = _commandBuilder.BuildUpdateCommands(table);
             foreach (DbCommandDefinition command in commands)
             {
-                await _executor.ExecuteBatchAsync(command);
+                await _executor.ExecuteBatchAsync(command, cancellationToken);
             }
             table.Tracker.MarkChangesAsWritten();
         }
