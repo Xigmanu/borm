@@ -1,6 +1,5 @@
 ﻿using System.Data.Common;
 using System.Diagnostics;
-using Borm.Extensions;
 using Microsoft.Data.Sqlite;
 
 namespace Borm.Data.Sql.Sqlite;
