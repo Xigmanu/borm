@@ -1,6 +1,5 @@
 ﻿using System.Data.Common;
 using System.Diagnostics;
-using Borm.Extensions;
 using Microsoft.Data.Sqlite;
 
 namespace Borm.Data.Sql.Sqlite;
@@ -11,16 +10,17 @@ public sealed class SqliteCommandExecutor : IDbCommandExecutor
 
     public SqliteCommandExecutor(string connectionString)
     {
+        ArgumentException.ThrowIfNullOrEmpty(connectionString);
         _connectionString = connectionString;
     }
 
     public void ExecuteBatch(DbCommandDefinition command)
     {
         using SqliteConnection connection = new(_connectionString);
-        using SqliteCommand sqliteCommand = connection.CreateCommand();
-
         connection.Open();
+
         using SqliteTransaction transaction = connection.BeginTransaction();
+        using SqliteCommand sqliteCommand = connection.CreateCommand();
         sqliteCommand.Transaction = transaction;
 
         try
@@ -46,19 +46,22 @@ public sealed class SqliteCommandExecutor : IDbCommandExecutor
         catch
         {
             transaction.Rollback();
-            connection.Close();
             throw;
         }
-        connection.Close();
     }
 
-    public async Task ExecuteBatchAsync(DbCommandDefinition command)
+    public async Task ExecuteBatchAsync(
+        DbCommandDefinition command,
+        CancellationToken cancellationToken
+    )
     {
         await using SqliteConnection connection = new(_connectionString);
-        await using DbCommand dbCommand = connection.CreateCommand();
+        await connection.OpenAsync(cancellationToken);
 
-        await connection.OpenAsync();
-        await using DbTransaction transaction = await connection.BeginTransactionAsync();
+        await using DbTransaction transaction = await connection.BeginTransactionAsync(
+            cancellationToken
+        );
+        await using DbCommand dbCommand = connection.CreateCommand();
         dbCommand.Transaction = transaction;
 
         try
@@ -71,42 +74,33 @@ public sealed class SqliteCommandExecutor : IDbCommandExecutor
                 while (batchQueue.HasNext())
                 {
                     batchQueue.SetParameterValues(dbCommand);
-                    await dbCommand.ExecuteNonQueryAsync();
+                    await dbCommand.ExecuteNonQueryAsync(cancellationToken);
                 }
             }
             else
             {
-                await dbCommand.ExecuteNonQueryAsync();
+                await dbCommand.ExecuteNonQueryAsync(cancellationToken);
             }
 
-            await transaction.CommitAsync();
+            await transaction.CommitAsync(cancellationToken);
         }
         catch
         {
-            await transaction.RollbackAsync();
-            await connection.CloseAsync();
+            await transaction.RollbackAsync(cancellationToken);
             throw;
         }
-
-        await connection.CloseAsync();
     }
 
     public ResultSet Query(DbCommandDefinition command)
     {
         using SqliteConnection connection = new(_connectionString);
-        using SqliteCommand sqliteCommand = connection.CreateCommand();
-
         connection.Open();
-        try
-        {
-            command.Prepare(sqliteCommand);
-            using DbDataReader reader = sqliteCommand.ExecuteReader();
-            return reader.ToResultSet();
-        }
-        finally
-        {
-            connection.Close();
-        }
+
+        using SqliteCommand sqliteCommand = connection.CreateCommand();
+        command.Prepare(sqliteCommand);
+
+        using DbDataReader reader = sqliteCommand.ExecuteReader();
+        return ResultSet.FromReader(reader);
     }
 
     public bool TableExists(string tableName)
@@ -120,7 +114,7 @@ public sealed class SqliteCommandExecutor : IDbCommandExecutor
         try
         {
             using DbDataReader reader = sqliteCommand.ExecuteReader();
-            ResultSet resultSet = reader.ToResultSet();
+            ResultSet resultSet = ResultSet.FromReader(reader);
             Debug.Assert(resultSet.RowCount < 2);
 
             if (resultSet.MoveNext())
