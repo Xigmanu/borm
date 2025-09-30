@@ -18,10 +18,10 @@ public sealed class SqliteCommandExecutor : IDbCommandExecutor
     public void ExecuteBatch(DbCommandDefinition command)
     {
         using SqliteConnection connection = new(_connectionString);
-        using SqliteCommand sqliteCommand = connection.CreateCommand();
-
         connection.Open();
+
         using SqliteTransaction transaction = connection.BeginTransaction();
+        using SqliteCommand sqliteCommand = connection.CreateCommand();
         sqliteCommand.Transaction = transaction;
 
         try
@@ -47,10 +47,8 @@ public sealed class SqliteCommandExecutor : IDbCommandExecutor
         catch
         {
             transaction.Rollback();
-            connection.Close();
             throw;
         }
-        connection.Close();
     }
 
     public async Task ExecuteBatchAsync(
@@ -59,12 +57,12 @@ public sealed class SqliteCommandExecutor : IDbCommandExecutor
     )
     {
         await using SqliteConnection connection = new(_connectionString);
-        await using DbCommand dbCommand = connection.CreateCommand();
-
         await connection.OpenAsync(cancellationToken);
+
         await using DbTransaction transaction = await connection.BeginTransactionAsync(
             cancellationToken
         );
+        await using DbCommand dbCommand = connection.CreateCommand();
         dbCommand.Transaction = transaction;
 
         try
@@ -92,28 +90,18 @@ public sealed class SqliteCommandExecutor : IDbCommandExecutor
             await transaction.RollbackAsync(cancellationToken);
             throw;
         }
-        finally
-        {
-            await connection.CloseAsync();
-        }
     }
 
     public ResultSet Query(DbCommandDefinition command)
     {
         using SqliteConnection connection = new(_connectionString);
-        using SqliteCommand sqliteCommand = connection.CreateCommand();
-
         connection.Open();
-        try
-        {
-            command.Prepare(sqliteCommand);
-            using DbDataReader reader = sqliteCommand.ExecuteReader();
-            return reader.ToResultSet();
-        }
-        finally
-        {
-            connection.Close();
-        }
+
+        using SqliteCommand sqliteCommand = connection.CreateCommand();
+        command.Prepare(sqliteCommand);
+
+        using DbDataReader reader = sqliteCommand.ExecuteReader();
+        return ResultSet.FromReader(reader);
     }
 
     public bool TableExists(string tableName)
@@ -127,7 +115,7 @@ public sealed class SqliteCommandExecutor : IDbCommandExecutor
         try
         {
             using DbDataReader reader = sqliteCommand.ExecuteReader();
-            ResultSet resultSet = reader.ToResultSet();
+            ResultSet resultSet = ResultSet.FromReader(reader);
             Debug.Assert(resultSet.RowCount < 2);
 
             if (resultSet.MoveNext())
