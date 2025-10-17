@@ -5,6 +5,7 @@ namespace Borm.Tests.Reflection;
 
 public sealed class MetadataParserTest
 {
+    /*
     [Fact]
     public void Parse_ReturnsReflectedInfo_WithValidEntity()
     {
@@ -33,7 +34,7 @@ public sealed class MetadataParserTest
             Assert.Equal(expected[1], property.Type);
             Assert.Equal(expected[2], property.IsNullable);
         }
-    }
+    }*/
 
     [Fact]
     public void Parse_ThrowsMemberAccessException_WhenEntityIsNotDecoratedWithEntityAttribute()

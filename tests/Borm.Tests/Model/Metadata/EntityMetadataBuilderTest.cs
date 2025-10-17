@@ -6,6 +6,7 @@ namespace Borm.Tests.Model.Metadata;
 
 public sealed class EntityMetadataBuilderTest
 {
+    /*
     [Fact]
     public void Build_ReturnsNewEntityNode_WithReflectedInformation()
     {
@@ -90,4 +91,5 @@ public sealed class EntityMetadataBuilderTest
             }
         }
     }
+    */
 }

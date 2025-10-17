@@ -28,6 +28,11 @@ public static class Strings
     public static string EntityTypeCannotBeAbstract(string entityTypeName) => GetString([entityTypeName]);
 
     /// <summary>
+    /// Entity type '{typeName}' was not decorated with '{attributeName}'.
+    /// </summary>
+    public static string EntityTypeNotDecorated(string typeName, string attributeName) => GetString([typeName, attributeName]);
+
+    /// <summary>
     /// Validation failed for entity type '{entityType}'.
     /// </summary>
     public static string EntityValidationFailed(Type entityType) => GetString([entityType]);

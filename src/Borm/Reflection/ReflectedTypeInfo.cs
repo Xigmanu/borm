@@ -1,21 +1,10 @@
-﻿using Borm.Model;
+﻿using System.Collections.ObjectModel;
 
 namespace Borm.Reflection;
 
-internal sealed class ReflectedTypeInfo
-{
-    public ReflectedTypeInfo(
-        Type type,
-        EntityAttribute attribute,
-        IEnumerable<Property> properties
-    )
-    {
-        Type = type;
-        Attribute = attribute;
-        Properties = properties;
-    }
-
-    public EntityAttribute Attribute { get; }
-    public IEnumerable<Property> Properties { get; }
-    public Type Type { get; }
-}
+internal sealed record ReflectedTypeInfo(
+    string? Name,
+    Type Type,
+    ReadOnlyCollection<MappingMember> Properties,
+    ReadOnlyCollection<Constructor> Constructors
+);

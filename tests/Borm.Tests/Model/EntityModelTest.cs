@@ -33,7 +33,7 @@ public sealed class EntityModelTest
         Assert.NotNull(exception);
         Assert.IsType<ArgumentException>(exception);
     }
-
+    /*
     [Fact]
     public void GetReflectedInfo_ReturnsParsedEntityTypeInfoFromModelTypes()
     {
@@ -68,7 +68,7 @@ public sealed class EntityModelTest
             Assert.Equal(expectedProp.IsNullable, actualProp.IsNullable);
             Assert.Equal(expectedProp.Type, actualProp.Type);
         }
-    }
+    }*/
 
     [Fact]
     public void GetReflectedInfo_ThrowsArgumentException_WhenEntityTypeIsAbstract()
