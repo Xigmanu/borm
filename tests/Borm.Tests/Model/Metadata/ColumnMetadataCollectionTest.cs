@@ -13,7 +13,7 @@ public sealed class ColumnMetadataCollectionTest
         ColumnMetadata column0 = new(1, column0Name, "Foo", typeof(int), Constraints.None);
         ColumnMetadata column1 = new(2, "bar", "Bar", typeof(string), Constraints.AllowDbNull);
 
-        ColumnMetadataCollection columns = new([column0, column1]);
+        ColumnMetadataList columns = new([column0, column1]);
 
         // Act
         ColumnMetadata actual0 = columns[column0Name];

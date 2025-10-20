@@ -52,9 +52,9 @@ public sealed class EntityModel
         _entityValidators[typeof(TEntity)] = WrapValidator(validator);
     }
 
-    internal IEnumerable<ReflectedTypeInfo> GetReflectedInfo()
+    internal IEnumerable<EntityType> GetReflectedInfo()
     {
-        List<ReflectedTypeInfo> reflectedInfos = new(_entities.Count);
+        List<EntityType> reflectedInfos = new(_entities.Count);
         MetadataParser parser = new();
         foreach (Type entityType in _entities)
         {
@@ -65,7 +65,7 @@ public sealed class EntityModel
                 );
             }
 
-            ReflectedTypeInfo reflectedInfo = parser.Parse(entityType);
+            EntityType reflectedInfo = parser.Parse(entityType);
             reflectedInfos.Add(reflectedInfo);
         }
 

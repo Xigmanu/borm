@@ -12,7 +12,7 @@ public sealed class EntityMetadataValidatorTest
     public void IsValid_ReturnsFalseAndInvalidOperationException_WithInvalidColumnIndex(int index)
     {
         // Arrange
-        ColumnMetadataCollection columns = new(
+        ColumnMetadataList columns = new(
             [
                 new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey),
                 new ColumnMetadata(index, "bar", "Bar", typeof(string), Constraints.AllowDbNull),
@@ -34,7 +34,7 @@ public sealed class EntityMetadataValidatorTest
     public void IsValid_ReturnsFalseAndInvalidOperationException_WithInvalidForeignKeyDataType()
     {
         // Arrange
-        ColumnMetadataCollection columns0 = new(
+        ColumnMetadataList columns0 = new(
             [
                 new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey),
                 new ColumnMetadata(1, "bar", "Bar", typeof(object), Constraints.AllowDbNull)
@@ -43,7 +43,7 @@ public sealed class EntityMetadataValidatorTest
                 },
             ]
         );
-        ColumnMetadataCollection columns1 = new(
+        ColumnMetadataList columns1 = new(
             [new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey)]
         );
 
@@ -64,7 +64,7 @@ public sealed class EntityMetadataValidatorTest
     public void IsValid_ReturnsFalseAndInvalidOperationException_WithMultiplePrimaryKeys()
     {
         // Arrange
-        ColumnMetadataCollection columns = new(
+        ColumnMetadataList columns = new(
             [
                 new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey),
                 new ColumnMetadata(1, "bar", "Bar", typeof(int), Constraints.PrimaryKey),
@@ -86,7 +86,7 @@ public sealed class EntityMetadataValidatorTest
     public void IsValid_ReturnsFalseAndInvalidOperationException_WithNullablePrimaryKey()
     {
         // Arrange
-        ColumnMetadataCollection columns = new(
+        ColumnMetadataList columns = new(
             [
                 new ColumnMetadata(
                     0,
@@ -113,7 +113,7 @@ public sealed class EntityMetadataValidatorTest
     public void IsValid_ReturnsFalseAndMissingPrimaryKeyException_WithNoPrimaryKey()
     {
         // Arrange
-        ColumnMetadataCollection columns = new(
+        ColumnMetadataList columns = new(
             [new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.None)]
         );
         EntityMetadata info = new("foo", typeof(EntityA), columns);
@@ -132,7 +132,7 @@ public sealed class EntityMetadataValidatorTest
     public void IsValid_ReturnsFalseAndNodeNotFoundException_WithMissingForeignKeyNode()
     {
         // Arrange
-        ColumnMetadataCollection columns0 = new(
+        ColumnMetadataList columns0 = new(
             [
                 new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey),
                 new ColumnMetadata(1, "bar", "Bar", typeof(float?), Constraints.AllowDbNull)
@@ -159,7 +159,7 @@ public sealed class EntityMetadataValidatorTest
     public void IsValid_ReturnsTrue_WithValidEntityNode(Type references)
     {
         // Arrange
-        ColumnMetadataCollection columns0 = new(
+        ColumnMetadataList columns0 = new(
             [
                 new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey),
                 new ColumnMetadata(1, "bar", "Bar", references, Constraints.None)
@@ -168,7 +168,7 @@ public sealed class EntityMetadataValidatorTest
                 },
             ]
         );
-        ColumnMetadataCollection columns1 = new(
+        ColumnMetadataList columns1 = new(
             [new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey)]
         );
 

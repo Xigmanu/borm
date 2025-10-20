@@ -108,14 +108,14 @@ public sealed class DataContext
     public void Initialize()
     {
         EntityModel model = _configuration.Model;
-        IEnumerable<ReflectedTypeInfo> typeInfos = model.GetReflectedInfo();
+        IEnumerable<EntityType> typeInfos = model.GetReflectedInfo();
         if (!typeInfos.Any())
         {
             return;
         }
 
         List<EntityMetadata> entityInfos = new(typeInfos.Count());
-        foreach (ReflectedTypeInfo typeInfo in typeInfos)
+        foreach (EntityType typeInfo in typeInfos)
         {
             EntityMetadata entityMetadata = EntityMetadataBuilder.Build(typeInfo);
 

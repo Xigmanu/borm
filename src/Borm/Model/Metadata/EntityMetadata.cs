@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Borm.Properties;
 
@@ -8,10 +9,10 @@ namespace Borm.Model.Metadata;
 [DebuggerDisplay("Name = {Name}, DataType = {DataType.FullName}")]
 internal sealed class EntityMetadata
 {
-    private readonly ColumnMetadataCollection _columns;
+    private readonly ColumnMetadataList _columns;
     private readonly string _name;
 
-    public EntityMetadata(string name, Type dataType, ColumnMetadataCollection columns)
+    public EntityMetadata(string name, Type dataType, ColumnMetadataList columns)
     {
         if (columns.Count == 0)
         {
@@ -38,7 +39,7 @@ internal sealed class EntityMetadata
     }
 
     internal EntityConversionBinding Binding { get; set; }
-    internal ColumnMetadataCollection Columns => _columns;
+    internal IReadOnlyList<ColumnMetadata> Columns => _columns;
     internal Action<object>? Validator { get; set; }
 
     public override bool Equals(object? obj)

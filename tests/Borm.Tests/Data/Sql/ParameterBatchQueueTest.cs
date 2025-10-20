@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System.Collections.ObjectModel;
+using System.Data;
 using Borm.Data.Sql;
 using Borm.Data.Storage;
 using Borm.Model.Metadata;
@@ -31,7 +32,7 @@ public sealed class ParameterBatchQueueTest
     {
         // Arrange
         EntityMetadata metadata = EntityMetadataMocks.AddressesMetadata;
-        ColumnMetadataCollection columns = metadata.Columns;
+        IReadOnlyList<ColumnMetadata> columns = metadata.Columns;
         object[] values = [1, "address", DBNull.Value, "city"];
 
         ValueBuffer buffer = CreateTestBuffer(columns, values);
@@ -57,7 +58,7 @@ public sealed class ParameterBatchQueueTest
         }
     }
 
-    private static ValueBuffer CreateTestBuffer(ColumnMetadataCollection columns, object[] values)
+    private static ValueBuffer CreateTestBuffer(IReadOnlyList<ColumnMetadata> columns, object[] values)
     {
         ValueBuffer buffer = new();
         for (int i = 0; i < columns.Count; i++)
@@ -69,7 +70,7 @@ public sealed class ParameterBatchQueueTest
     }
 
     private static List<Mock<IDbDataParameter>> SetupMockParameterList(
-        ColumnMetadataCollection columns
+        IEnumerable<ColumnMetadata> columns
     )
     {
         List<Mock<IDbDataParameter>> parameters = [];

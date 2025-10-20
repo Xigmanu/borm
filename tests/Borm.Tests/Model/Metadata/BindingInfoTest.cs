@@ -16,7 +16,7 @@ public sealed class BindingInfoTest
         ColumnMetadata idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
         ColumnMetadata nameColumn = new(1, "name", "Name", typeof(string), Constraints.None);
 
-        ColumnMetadataCollection columns = new([idColumn, nameColumn]);
+        ColumnMetadataList columns = new([idColumn, nameColumn]);
 
         EntityMaterializationBinding binding = new(typeof(PersonB), columns);
         EntityConversionBinding conversionBinding = binding.CreateBinding();
@@ -43,7 +43,7 @@ public sealed class BindingInfoTest
         ColumnMetadata idColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
         ColumnMetadata nameColumn = new(1, "name", "Name", typeof(string), Constraints.None);
 
-        ColumnMetadataCollection columns = new([idColumn, nameColumn]);
+        ColumnMetadataList columns = new([idColumn, nameColumn]);
 
         EntityMaterializationBinding binding = new(typeof(PersonA), columns);
         EntityConversionBinding conversionBinding = binding.CreateBinding();
@@ -75,7 +75,7 @@ public sealed class BindingInfoTest
             Constraints.AllowDbNull
         );
 
-        ColumnMetadataCollection columns = new([idColumn, nameColumn]);
+        ColumnMetadataList columns = new([idColumn, nameColumn]);
 
         EntityMaterializationBinding binding = new(typeof(PersonA), columns);
         EntityConversionBinding conversionBinding = binding.CreateBinding();

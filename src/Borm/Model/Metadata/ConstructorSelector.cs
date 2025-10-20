@@ -6,11 +6,11 @@ namespace Borm.Model.Metadata;
 
 internal sealed class ConstructorSelector
 {
-    private readonly ColumnMetadataCollection _columns;
+    private readonly IReadOnlyCollection<ColumnMetadata> _columns;
     private readonly ConstructorInfo[] _entityConstructors;
 
     public ConstructorSelector(
-        ColumnMetadataCollection columns,
+        IReadOnlyCollection<ColumnMetadata> columns,
         ConstructorInfo[] entityConstructors
     )
     {

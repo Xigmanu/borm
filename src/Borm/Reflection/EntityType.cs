@@ -2,7 +2,7 @@
 
 namespace Borm.Reflection;
 
-internal sealed record ReflectedTypeInfo(
+internal sealed record EntityType(
     string? Name,
     Type Type,
     ReadOnlyCollection<MappingMember> Properties,

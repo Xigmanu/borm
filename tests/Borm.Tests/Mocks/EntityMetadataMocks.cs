@@ -15,7 +15,7 @@ internal static class EntityMetadataMocks
     {
         string name = "addresses";
         Type dataType = typeof(AddressEntity);
-        ColumnMetadataCollection columns = new(
+        ColumnMetadataList columns = new(
             [
                 new ColumnMetadata(0, "id", "Id", typeof(int), Constraints.PrimaryKey),
                 new ColumnMetadata(1, "address", "Address", typeof(string), Constraints.None),
@@ -69,7 +69,7 @@ internal static class EntityMetadataMocks
     {
         string name = "employees";
         Type dataType = typeof(EmployeeEntity);
-        ColumnMetadataCollection columns = new(
+        ColumnMetadataList columns = new(
             [
                 new ColumnMetadata(0, "id", "Id", typeof(int), Constraints.PrimaryKey),
                 new ColumnMetadata(1, "person_id", "Person", typeof(int), Constraints.Unique)
@@ -110,7 +110,7 @@ internal static class EntityMetadataMocks
     {
         string name = "persons";
         Type dataType = typeof(PersonEntity);
-        ColumnMetadataCollection columns = new(
+        ColumnMetadataList columns = new(
             [
                 new ColumnMetadata(0, "id", "Id", typeof(int), Constraints.PrimaryKey),
                 new ColumnMetadata(1, "name", "Name", typeof(string), Constraints.Unique),

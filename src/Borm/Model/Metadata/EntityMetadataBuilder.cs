@@ -6,16 +6,18 @@ namespace Borm.Model.Metadata;
 
 internal static class EntityMetadataBuilder
 {
-    public static EntityMetadata Build(ReflectedTypeInfo entityMetadata)
+    public static EntityMetadata Build(EntityType entityType)
     {
-        string name = entityMetadata.Name ?? CreateDefaultName(entityMetadata.Type.Name);
+        string name = !string.IsNullOrWhiteSpace(entityType.Name)
+            ? entityType.Name
+            : CreateDefaultName(entityType.Type.Name);
 
-        IEnumerable<ColumnMetadata> columns = entityMetadata
+        IOrderedEnumerable<ColumnMetadata> columns = entityType
             .Properties.Select(CreateColumnInfo)
             .OrderBy(column => column.Index);
-        ColumnMetadataCollection columnCollection = new(columns);
+        ColumnMetadataList columnCollection = new(columns);
 
-        return new EntityMetadata(name, entityMetadata.Type, columnCollection);
+        return new EntityMetadata(name, entityType.Type, columnCollection);
     }
 
     private static ColumnMetadata CreateColumnInfo(MappingMember property)

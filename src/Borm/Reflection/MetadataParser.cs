@@ -14,7 +14,7 @@ internal sealed class MetadataParser
         _nullabilityCtx = new();
     }
 
-    public ReflectedTypeInfo Parse(Type entityType)
+    public EntityType Parse(Type entityType)
     {
         EntityAttribute entityAttribute =
             entityType.GetCustomAttribute<EntityAttribute>()
@@ -44,7 +44,7 @@ internal sealed class MetadataParser
         [
             .. entityType.GetConstructors().Select(ParseConstructorInfo),
         ];
-        return new ReflectedTypeInfo(
+        return new EntityType(
             entityAttribute.Name,
             entityType,
             properties.AsReadOnly(),

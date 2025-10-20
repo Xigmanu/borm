@@ -9,7 +9,7 @@ public sealed class EntityMetadataTest
     public void Constructor_ThrowsArgumentException_WhenColumnCollectionIsEmpty()
     {
         // Arrange
-        ColumnMetadataCollection columns = new([]);
+        ColumnMetadataList columns = new([]);
 
         // Act
         Exception exception = Record.Exception(
@@ -25,7 +25,7 @@ public sealed class EntityMetadataTest
     {
         // Arrange
         ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
-        ColumnMetadataCollection columns = new([pkColumn]);
+        ColumnMetadataList columns = new([pkColumn]);
         EntityMetadata metadata = new("foo", typeof(object), columns);
         EntityMetadata other = new("bar", typeof(object), columns);
 
@@ -43,7 +43,7 @@ public sealed class EntityMetadataTest
     {
         // Arrange
         ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
-        ColumnMetadataCollection columns = new([pkColumn]);
+        ColumnMetadataList columns = new([pkColumn]);
         EntityMetadata metadata = new("foo", typeof(object), columns);
 
         // Act
@@ -58,7 +58,7 @@ public sealed class EntityMetadataTest
     {
         // Arrange
         ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
-        ColumnMetadataCollection columns = new([pkColumn]);
+        ColumnMetadataList columns = new([pkColumn]);
         EntityMetadata metadata = new("foo", typeof(object), columns);
         EntityMetadata other = new("foo", typeof(object), columns);
 
@@ -74,7 +74,7 @@ public sealed class EntityMetadataTest
     {
         // Arrange
         ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
-        ColumnMetadataCollection columns = new([pkColumn]);
+        ColumnMetadataList columns = new([pkColumn]);
         EntityMetadata info = new("foo", typeof(object), columns);
 
         // Act
@@ -89,7 +89,7 @@ public sealed class EntityMetadataTest
     {
         // Arrange
         ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.None);
-        ColumnMetadataCollection columns = new([pkColumn]);
+        ColumnMetadataList columns = new([pkColumn]);
         EntityMetadata info = new("foo", typeof(object), columns);
 
         // Act

@@ -10,11 +10,14 @@ namespace Borm.Model.Metadata;
 [DebuggerTypeProxy(typeof(BindingInfoDebugView))]
 internal sealed class EntityMaterializationBinding
 {
-    private readonly ColumnMetadataCollection _columns;
+    private readonly IReadOnlyCollection<ColumnMetadata> _columns;
     private readonly ConstructorInfo _constructor;
     private readonly Type _entityType;
 
-    public EntityMaterializationBinding(Type entityType, ColumnMetadataCollection columns)
+    public EntityMaterializationBinding(
+        Type entityType,
+        IReadOnlyCollection<ColumnMetadata> columns
+    )
     {
         _entityType = entityType;
         _columns = columns;
@@ -171,7 +174,8 @@ internal sealed class EntityMaterializationBinding
         ParameterInfo[] ctorParams = _constructor.GetParameters();
         for (int i = 0; i < ctorParams.Length; i++)
         {
-            ordered[i] = _columns[ctorParams[i].Name!];
+            string paramName = ctorParams[i].Name!;
+            ordered[i] = _columns.First(col => col.Name == paramName);
         }
         return ordered;
     }
@@ -186,7 +190,7 @@ internal sealed class EntityMaterializationBinding
             _instance = instance;
         }
 
-        public ColumnMetadataCollection Columns => _instance._columns;
+        public IReadOnlyCollection<ColumnMetadata> Columns => _instance._columns;
         public Type EntityType => _instance._entityType;
     }
 }

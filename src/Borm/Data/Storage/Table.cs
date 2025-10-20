@@ -86,14 +86,14 @@ internal sealed class Table
             return;
         }
 
-        ColumnMetadataCollection schemaColumns = _entityMetadata.Columns;
+        IReadOnlyCollection<ColumnMetadata> schemaColumns = _entityMetadata.Columns;
 
         while (resultSet.MoveNext())
         {
             ValueBuffer rowBuffer = new();
             foreach ((string columnName, object columnValue) in resultSet.Current)
             {
-                ColumnMetadata schemaColumn = schemaColumns[columnName]; // This might throw an exception when migrating
+                ColumnMetadata schemaColumn = schemaColumns.First(col => col.Name == columnName); // This might throw an exception when migrating
                 if (columnValue is string columnValueStr)
                 {
                     rowBuffer[schemaColumn] = ColumnDataTypeHelper.Parse(
