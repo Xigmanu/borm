@@ -37,7 +37,7 @@ internal sealed class ChangeSet : IEnumerable<Change>
         {
             if (existing._changes.TryGetValue(primaryKey, out Change? existingChange))
             {
-                Change? merged = existingChange.CommitMerge(incomingChange);
+                Change? merged = ChangeMerger.CommitMerge(existingChange, incomingChange);
                 resultMap.Remove(primaryKey);
                 if (merged != null)
                 {
@@ -73,7 +73,7 @@ internal sealed class ChangeSet : IEnumerable<Change>
             && incoming.WriteTxId == existing.WriteTxId
         )
         {
-            Change? merged = existing.Merge(incoming);
+            Change? merged = ChangeMerger.Merge(existing, incoming);
             _changes.Remove(primaryKey);
             if (merged is not null)
             {
