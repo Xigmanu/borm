@@ -1,40 +1,35 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
-using System.Reflection;
 using Borm.Data.Storage;
-using Borm.Extensions;
+using Borm.Properties;
+using Borm.Reflection;
 
 namespace Borm.Model.Metadata;
 
 [DebuggerTypeProxy(typeof(BindingInfoDebugView))]
 internal sealed class EntityMaterializationBinding
 {
-    private readonly IReadOnlyCollection<ColumnMetadata> _columns;
-    private readonly ConstructorInfo _constructor;
-    private readonly Type _entityType;
+    private readonly IReadOnlyList<ColumnMetadata> _columns;
+    private readonly EntityTypeInfo _entityTypeInfo;
 
     public EntityMaterializationBinding(
-        Type entityType,
-        IReadOnlyCollection<ColumnMetadata> columns
+        EntityTypeInfo entityTypeInfo,
+        IReadOnlyList<ColumnMetadata> columns
     )
     {
-        _entityType = entityType;
+        _entityTypeInfo = entityTypeInfo;
         _columns = columns;
-
-        ConstructorInfo[] constructors = entityType.GetConstructors();
-        Debug.Assert(constructors.Length > 0);
-
-        ConstructorSelector selector = new(_columns, constructors);
-        _constructor = selector.Select() ?? constructors[0];
     }
 
     public EntityConversionBinding CreateBinding()
     {
         Func<object, ValueBuffer> converter = CreateEntityValueBufferConverter();
-        Func<ValueBuffer, object> materializer = _constructor.IsNoArgs()
+
+        Constructor constructor = GetMaterializationCtor();
+        Func<ValueBuffer, object> materializer = constructor.IsDefault
             ? CreatePropertyMaterializer()
-            : CreateConstructorMaterializer();
+            : CreateConstructorMaterializer(constructor);
         return new EntityConversionBinding(materializer, converter);
     }
 
@@ -63,13 +58,13 @@ internal sealed class EntityMaterializationBinding
         return Expression.Condition(isDbNull, nullValue, convertValue);
     }
 
-    private Func<ValueBuffer, object> CreateConstructorMaterializer()
+    private Func<ValueBuffer, object> CreateConstructorMaterializer(Constructor constructor)
     {
         ParameterExpression bufferParam = Expression.Parameter(typeof(ValueBuffer), "buffer");
 
-        IEnumerable<Expression> args = GetOrderedColumns()
+        IEnumerable<Expression> args = GetOrderedColumns(constructor.Parameters)
             .Select(column => CreateBufferPropertyBinding(bufferParam, column));
-        NewExpression ctorCall = Expression.New(_constructor, args);
+        Expression ctorCall = constructor.CreateNewInstanceExpression(args);
 
         return Expression
             .Lambda<Func<ValueBuffer, object>>(
@@ -82,12 +77,13 @@ internal sealed class EntityMaterializationBinding
     private Func<object, ValueBuffer> CreateEntityValueBufferConverter()
     {
         Type valueBufferType = typeof(ValueBuffer);
+        Type entityType = _entityTypeInfo.Type;
 
         ParameterExpression boxedEntityParam = Expression.Parameter(typeof(object), "entity");
-        ParameterExpression unboxedEntityVar = Expression.Variable(_entityType, "typedEntity");
+        ParameterExpression unboxedEntityVar = Expression.Variable(entityType, "typedEntity");
         BinaryExpression unboxEntity = Expression.Assign(
             unboxedEntityVar,
-            Expression.Convert(boxedEntityParam, _entityType)
+            Expression.Convert(boxedEntityParam, entityType)
         );
 
         ParameterExpression valueBufferVar = Expression.Variable(valueBufferType, "buffer");
@@ -139,14 +135,14 @@ internal sealed class EntityMaterializationBinding
     private Func<ValueBuffer, object> CreatePropertyMaterializer()
     {
         ParameterExpression bufferParam = Expression.Parameter(typeof(ValueBuffer), "buffer");
-        ParameterExpression instanceVar = Expression.Variable(_entityType, "instance");
+        ParameterExpression instanceVar = Expression.Variable(_entityTypeInfo.Type, "instance");
 
         List<Expression> blockExpressions =
         [
-            Expression.Assign(instanceVar, Expression.New(_constructor)),
+            Expression.Assign(instanceVar, Expression.New(_entityTypeInfo.Type)),
         ];
 
-        foreach (ColumnMetadata column in GetOrderedColumns())
+        foreach (ColumnMetadata column in _columns)
         {
             Expression valueExpr = CreateBufferPropertyBinding(bufferParam, column);
             MemberExpression propertyExpr = Expression.Property(instanceVar, column.PropertyName);
@@ -163,18 +159,25 @@ internal sealed class EntityMaterializationBinding
             .Compile();
     }
 
-    private ColumnMetadata[] GetOrderedColumns()
+    private Constructor GetMaterializationCtor()
     {
-        if (_constructor.IsNoArgs())
-        {
-            return [.. _columns];
-        }
+        IReadOnlyList<Constructor> constructors = _entityTypeInfo.Constructors;
 
+        Constructor? constructor =
+            ConstructorSelector.FindMappingCtor(constructors, [.. _columns.Select(col => col.Name)])
+            ?? throw new MissingMethodException(
+                Strings.InvalidEntityTypeConstructor(_entityTypeInfo.Type.FullName!)
+            );
+
+        return constructor;
+    }
+
+    private ColumnMetadata[] GetOrderedColumns(IReadOnlyList<MappingMember> ctorParameters)
+    {
         ColumnMetadata[] ordered = new ColumnMetadata[_columns.Count];
-        ParameterInfo[] ctorParams = _constructor.GetParameters();
-        for (int i = 0; i < ctorParams.Length; i++)
+        for (int i = 0; i < ctorParameters.Count; i++)
         {
-            string paramName = ctorParams[i].Name!;
+            string paramName = ctorParameters[i].MemberName!;
             ordered[i] = _columns.First(col => col.Name == paramName);
         }
         return ordered;
@@ -191,6 +194,6 @@ internal sealed class EntityMaterializationBinding
         }
 
         public IReadOnlyCollection<ColumnMetadata> Columns => _instance._columns;
-        public Type EntityType => _instance._entityType;
+        public Type EntityType => _instance._entityTypeInfo.Type;
     }
 }

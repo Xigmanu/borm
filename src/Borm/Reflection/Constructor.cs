@@ -8,7 +8,7 @@ internal sealed class Constructor
 
     public Constructor(
         bool isDefault,
-        MappingMember[] parameters,
+        IReadOnlyList<MappingMember> parameters,
         Func<IEnumerable<Expression>, Expression> instanceInitializer
     )
     {
@@ -18,7 +18,8 @@ internal sealed class Constructor
     }
 
     public bool IsDefault { get; }
-    public MappingMember[] Parameters { get; }
+    public IReadOnlyList<MappingMember> Parameters { get; }
 
-    public Expression CreateNewInstanceExpression(IEnumerable<Expression> args) => _instanceInitializer(args);
+    public Expression CreateNewInstanceExpression(IEnumerable<Expression> args) =>
+        _instanceInitializer(args);
 }

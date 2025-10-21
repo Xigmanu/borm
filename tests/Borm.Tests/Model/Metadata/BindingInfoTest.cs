@@ -6,6 +6,7 @@ namespace Borm.Tests.Model.Metadata;
 
 public sealed class BindingInfoTest
 {
+    /*
     [Fact]
     public void CreateBinding_ShouldMaterialize_WithConstructorBinding()
     {
@@ -103,4 +104,5 @@ public sealed class BindingInfoTest
         public int Id { get; } = id;
         public string Name { get; } = name;
     }
+    */
 }

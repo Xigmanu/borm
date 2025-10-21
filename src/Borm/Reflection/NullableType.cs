@@ -2,26 +2,28 @@
 
 namespace Borm.Reflection;
 
-internal sealed class TypeInfo
+internal sealed class NullableType
 {
-    public TypeInfo(Type type, bool isNullable)
+    private readonly Type _type;
+
+    public NullableType(Type type, bool isNullable)
     {
-        Type = type;
+        _type = type;
         IsNullable = isNullable;
     }
 
     public bool IsNullable { get; }
-    public Type Type { get; }
+    public Type Type => _type;
     public Type UnderlyingType
     {
         get
         {
-            if (!Type.IsValueType)
+            if (!_type.IsValueType)
             {
-                return Type;
+                return _type;
             }
 
-            Type? underyling = Nullable.GetUnderlyingType(Type);
+            Type? underyling = Nullable.GetUnderlyingType(_type);
             Debug.Assert(underyling != null);
             return underyling;
         }

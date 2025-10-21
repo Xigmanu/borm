@@ -14,7 +14,7 @@ internal sealed class MetadataParser
         _nullabilityCtx = new();
     }
 
-    public EntityType Parse(Type entityType)
+    public EntityTypeInfo Parse(Type entityType)
     {
         EntityAttribute entityAttribute =
             entityType.GetCustomAttribute<EntityAttribute>()
@@ -30,7 +30,7 @@ internal sealed class MetadataParser
             ColumnAttribute? attribute = propertyInfo.GetCustomAttribute<ColumnAttribute>();
             if (attribute != null)
             {
-                TypeInfo type = ParseMemberType(propertyInfo);
+                NullableType type = ParseMemberType(propertyInfo);
                 MappingMember property = new(
                     propertyInfo.Name,
                     type,
@@ -40,15 +40,17 @@ internal sealed class MetadataParser
             }
         }
 
-        Constructor[] parsedConstructors =
-        [
-            .. entityType.GetConstructors().Select(ParseConstructorInfo),
-        ];
-        return new EntityType(
+        IReadOnlyList<Constructor> constructors = entityType
+            .GetConstructors()
+            .Select(ParseConstructorInfo)
+            .ToList()
+            .AsReadOnly();
+
+        return new EntityTypeInfo(
             entityAttribute.Name,
             entityType,
             properties.AsReadOnly(),
-            parsedConstructors.AsReadOnly()
+            constructors
         );
     }
 
@@ -59,28 +61,28 @@ internal sealed class MetadataParser
         for (int i = 0; i < parameters.Length; i++)
         {
             ParameterInfo param = parameters[i];
-            TypeInfo type = ParseMemberType(param);
+            NullableType type = ParseMemberType(param);
             MappingMember parsedParam = new(param.Name!, type, Mapping: null);
             parsedParams.Add(parsedParam);
         }
 
         return new Constructor(
             parameters.Length == 0,
-            [.. parsedParams],
+            parsedParams.AsReadOnly(),
             (args) => Expression.New(ctor, args)
         );
     }
 
-    private TypeInfo ParseMemberType(ICustomAttributeProvider member)
+    private NullableType ParseMemberType(ICustomAttributeProvider member)
     {
         static bool isNull(NullabilityInfo info) => info.ReadState == NullabilityState.Nullable;
         return member switch
         {
-            PropertyInfo prop => new TypeInfo(
+            PropertyInfo prop => new NullableType(
                 prop.PropertyType,
                 isNull(_nullabilityCtx.Create(prop))
             ),
-            ParameterInfo param => new TypeInfo(
+            ParameterInfo param => new NullableType(
                 param.ParameterType,
                 isNull(_nullabilityCtx.Create(param))
             ),

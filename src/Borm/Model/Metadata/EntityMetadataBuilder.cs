@@ -6,7 +6,7 @@ namespace Borm.Model.Metadata;
 
 internal static class EntityMetadataBuilder
 {
-    public static EntityMetadata Build(EntityType entityType)
+    public static EntityMetadata Build(EntityTypeInfo entityType)
     {
         string name = !string.IsNullOrWhiteSpace(entityType.Name)
             ? entityType.Name
