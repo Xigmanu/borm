@@ -99,8 +99,8 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             ArgumentNullException.ThrowIfNull(entity);
 
             EntityMetadata metadata = _table.Metadata;
-            ValueBuffer buffer = metadata.Binding.ToValueBuffer(entity);
-            _ = _preProcessor.ResolveForeignKeys(buffer, txId, out ValueBuffer preProcessed);
+            IValueBuffer buffer = metadata.Conversion.ToValueBuffer(entity);
+            _ = _preProcessor.ResolveForeignKeys(buffer, txId, out IValueBuffer preProcessed);
 
             _table.Delete(preProcessed, txId);
             affectedTables.Add(_table);
@@ -122,7 +122,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
 
             EntityMetadata metadata = _table.Metadata;
             metadata.Validator?.Invoke(entity);
-            ValueBuffer buffer = metadata.Binding.ToValueBuffer(entity);
+            IValueBuffer buffer = metadata.Conversion.ToValueBuffer(entity);
 
             InsertRecursively(_table, buffer, txId, affectedTables);
         };
@@ -137,12 +137,12 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             EntityMetadata metadata = _table.Metadata;
             metadata.Validator?.Invoke(entity);
 
-            ValueBuffer buffer = metadata.Binding.ToValueBuffer(entity);
+            IValueBuffer buffer = metadata.Conversion.ToValueBuffer(entity);
 
             List<ResolvedForeignKey> resolvedKeys = _preProcessor.ResolveForeignKeys(
                 buffer,
                 txId,
-                out ValueBuffer preProcessed
+                out IValueBuffer preProcessed
             );
             foreach (ResolvedForeignKey resolvedKey in resolvedKeys)
             {
@@ -156,7 +156,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
 
     private void InsertRecursively(
         Table table,
-        ValueBuffer buffer,
+        IValueBuffer buffer,
         long txId,
         HashSet<Table> affectedTables
     )
@@ -164,7 +164,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         List<ResolvedForeignKey> resolvedKeys = _preProcessor.ResolveForeignKeys(
             buffer,
             txId,
-            out ValueBuffer preProcessed
+            out IValueBuffer preProcessed
         );
         foreach (ResolvedForeignKey resolvedKey in resolvedKeys)
         {
@@ -181,7 +181,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
                 object rawValue = resolvedKey.RawValue;
                 metadata.Validator?.Invoke(rawValue);
 
-                ValueBuffer parentBuffer = metadata.Binding.ToValueBuffer(rawValue);
+                IValueBuffer parentBuffer = metadata.Conversion.ToValueBuffer(rawValue);
                 InsertRecursively(parent, parentBuffer, txId, affectedTables);
             }
             else

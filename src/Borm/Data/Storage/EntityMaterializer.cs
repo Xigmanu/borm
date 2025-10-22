@@ -13,7 +13,7 @@ internal sealed class EntityMaterializer
         _graph = graph;
     }
 
-    public object Materialize(ValueBuffer buffer, Table table)
+    public object Materialize(IValueBuffer buffer, Table table)
     {
         ValueBuffer tempBuffer = new();
 
@@ -29,7 +29,7 @@ internal sealed class EntityMaterializer
                 : MaterializeParent(_graph[column.Reference!]!, columnValue);
         }
 
-        return table.Metadata.Binding.MaterializeEntity(tempBuffer);
+        return table.Metadata.Conversion.MaterializeEntity(tempBuffer);
     }
 
     private object MaterializeParent(Table parent, object columnValue)

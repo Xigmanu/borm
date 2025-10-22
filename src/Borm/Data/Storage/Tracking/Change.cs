@@ -3,7 +3,7 @@
 internal sealed class Change
 {
     public Change(
-        ValueBuffer buffer,
+        IValueBuffer buffer,
         long readTxId,
         long writeTxId,
         bool isWrittenToDb,
@@ -21,19 +21,19 @@ internal sealed class Change
     public long ReadTxId { get; }
     public RowAction RowAction { get; private set; }
     public long WriteTxId { get; }
-    internal ValueBuffer Buffer { get; }
+    internal IValueBuffer Buffer { get; }
 
-    public static Change Initial(ValueBuffer buffer, long txId)
+    public static Change Initial(IValueBuffer buffer, long txId)
     {
         return new Change(buffer, txId, txId, isWrittenToDb: true, RowAction.None);
     }
 
-    public static Change NewChange(ValueBuffer buffer, long txId)
+    public static Change NewChange(IValueBuffer buffer, long txId)
     {
         return new Change(buffer, txId, txId, isWrittenToDb: false, RowAction.Insert);
     }
 
-    public Change Delete(ValueBuffer buffer, long writeTxId)
+    public Change Delete(IValueBuffer buffer, long writeTxId)
     {
         return new Change(buffer, ReadTxId, writeTxId, IsWrittenToDb, RowAction.Delete);
     }
@@ -54,7 +54,7 @@ internal sealed class Change
         RowAction = RowAction.None;
     }
 
-    public Change Update(ValueBuffer buffer, long writeTxId)
+    public Change Update(IValueBuffer buffer, long writeTxId)
     {
         return new Change(buffer, ReadTxId, writeTxId, IsWrittenToDb, RowAction.Update);
     }

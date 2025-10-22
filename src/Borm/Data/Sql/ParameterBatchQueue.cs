@@ -9,7 +9,7 @@ namespace Borm.Data.Sql;
 /// </summary>
 public sealed class ParameterBatchQueue
 {
-    private readonly Queue<ValueBuffer> _values;
+    private readonly Queue<IValueBuffer> _values;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ParameterBatchQueue"/> class.
@@ -40,7 +40,7 @@ public sealed class ParameterBatchQueue
     /// <param name="dbCommand">The database command whose parameters will be updated.</param>
     public void SetParameterValues(IDbCommand dbCommand)
     {
-        ValueBuffer buffer = _values.Dequeue();
+        IValueBuffer buffer = _values.Dequeue();
         IDataParameterCollection parameters = dbCommand.Parameters;
         for (int i = 0; i < parameters.Count; i++)
         {
@@ -51,7 +51,7 @@ public sealed class ParameterBatchQueue
         }
     }
 
-    internal void Enqueue(ValueBuffer buffer)
+    internal void Enqueue(IValueBuffer buffer)
     {
         _values.Enqueue(buffer);
     }

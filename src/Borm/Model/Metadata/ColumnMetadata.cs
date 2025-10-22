@@ -35,6 +35,16 @@ internal sealed class ColumnMetadata
     public Type PropertyType { get; }
     public Type? Reference { get; internal set; }
 
+    public override bool Equals(object? obj)
+    {
+        return obj is ColumnMetadata other && Name == other.Name && Index == other.Index;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Name, Index);
+    }
+
     [ExcludeFromCodeCoverage(Justification = "Debug display proxy")]
     internal sealed class ColumnMetadataDebugView
     {

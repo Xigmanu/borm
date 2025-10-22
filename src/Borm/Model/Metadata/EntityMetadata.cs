@@ -1,6 +1,6 @@
-﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Borm.Model.Metadata.Conversion;
 using Borm.Properties;
 
 namespace Borm.Model.Metadata;
@@ -13,6 +13,14 @@ internal sealed class EntityMetadata
     private readonly string _name;
 
     public EntityMetadata(string name, Type dataType, ColumnMetadataList columns)
+        : this(name, dataType, columns, EntityBufferConversion.Empty) { }
+
+    public EntityMetadata(
+        string name,
+        Type dataType,
+        ColumnMetadataList columns,
+        IEntityBufferConversion conversion
+    )
     {
         if (columns.Count == 0)
         {
@@ -22,7 +30,7 @@ internal sealed class EntityMetadata
         _columns = columns;
         DataType = dataType;
         _name = name;
-        Binding = EntityConversionBinding.Empty;
+        Conversion = conversion;
     }
 
     public Type DataType { get; }
@@ -38,8 +46,8 @@ internal sealed class EntityMetadata
         }
     }
 
-    internal EntityConversionBinding Binding { get; set; }
     internal IReadOnlyList<ColumnMetadata> Columns => _columns;
+    internal IEntityBufferConversion Conversion { get; }
     internal Action<object>? Validator { get; set; }
 
     public override bool Equals(object? obj)

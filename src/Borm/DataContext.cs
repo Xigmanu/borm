@@ -118,11 +118,7 @@ public sealed class DataContext
         foreach (EntityTypeInfo typeInfo in typeInfos)
         {
             EntityMetadata entityMetadata = EntityMetadataBuilder.Build(typeInfo);
-
-            EntityMaterializationBinding binding = new(typeInfo, entityMetadata.Columns);
-            entityMetadata.Binding = binding.CreateBinding();
             entityMetadata.Validator = model.GetValidatorFunc(typeInfo.Type);
-
             entityInfos.Add(entityMetadata);
         }
 

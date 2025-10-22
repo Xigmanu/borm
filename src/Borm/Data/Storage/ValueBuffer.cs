@@ -6,7 +6,7 @@ using Borm.Model.Metadata;
 namespace Borm.Data.Storage;
 
 [DebuggerDisplay("PrimaryKey = {PrimaryKey}")]
-internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnMetadata, object>>
+internal sealed class ValueBuffer : IValueBuffer
 {
     private readonly Dictionary<ColumnMetadata, object> _valueMap;
     private ColumnMetadata? _primaryKey;
@@ -48,7 +48,7 @@ internal sealed class ValueBuffer : IEnumerable<KeyValuePair<ColumnMetadata, obj
     public object this[string columnName] =>
         _valueMap.First(kvp => kvp.Key.Name == columnName).Value;
 
-    public ValueBuffer Copy()
+    public IValueBuffer Copy()
     {
         return new ValueBuffer(this);
     }

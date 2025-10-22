@@ -22,7 +22,7 @@ public sealed class BufferPreProcessorTest
         List<ResolvedForeignKey> resolved = preProcessor.ResolveForeignKeys(
             buffer,
             txId,
-            out ValueBuffer processed
+            out IValueBuffer processed
         );
 
         // Assert
@@ -60,7 +60,7 @@ public sealed class BufferPreProcessorTest
         List<ResolvedForeignKey> resolved = preProcessor.ResolveForeignKeys(
             buffer,
             initialTxId,
-            out ValueBuffer processed
+            out IValueBuffer processed
         );
 
         // Assert
@@ -99,7 +99,7 @@ public sealed class BufferPreProcessorTest
         List<ResolvedForeignKey> resolved = preProcessor.ResolveForeignKeys(
             buffer,
             initialTxId,
-            out ValueBuffer processed
+            out IValueBuffer processed
         );
 
         // Assert

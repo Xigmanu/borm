@@ -14,12 +14,12 @@ internal sealed class BufferPreProcessor
     }
 
     public List<ResolvedForeignKey> ResolveForeignKeys(
-        ValueBuffer buffer,
+        IValueBuffer buffer,
         long txId,
-        out ValueBuffer processed
+        out IValueBuffer processed
     )
     {
-        processed = new();
+        processed = new ValueBuffer();
         List<ResolvedForeignKey> resolvedKeys = [];
         foreach ((ColumnMetadata column, object columnValue) in buffer)
         {
@@ -64,7 +64,7 @@ internal sealed class BufferPreProcessor
             );
         }
 
-        ValueBuffer parentBuffer = metadata.Binding.ToValueBuffer(columnValue);
+        IValueBuffer parentBuffer = metadata.Conversion.ToValueBuffer(columnValue);
         object primaryKey = parentBuffer.PrimaryKey;
 
         changeExists = parent.Tracker.TryGetChange(primaryKey, txId, out _);

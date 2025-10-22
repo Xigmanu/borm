@@ -16,7 +16,7 @@ internal class ConstraintValidator
     }
 
     public void ValidateBuffer(
-        ValueBuffer buffer,
+        IEnumerable<KeyValuePair<ColumnMetadata, object>> buffer,
         long txId,
         [CallerMemberName] string? method = null
     )

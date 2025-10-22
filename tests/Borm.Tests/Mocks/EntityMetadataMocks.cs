@@ -1,6 +1,7 @@
 ﻿using Borm.Data.Storage;
 using Borm.Model;
 using Borm.Model.Metadata;
+using Borm.Model.Metadata.Conversion;
 using Borm.Tests.Common;
 
 namespace Borm.Tests.Mocks;
@@ -30,8 +31,7 @@ internal static class EntityMetadataMocks
             ]
         );
 
-        EntityMetadata metadata = new(name, dataType, columns);
-        EntityConversionBinding binding = new(
+        EntityBufferConversion conversion = new(
             (buffer) =>
             {
                 return new AddressEntity(
@@ -53,7 +53,8 @@ internal static class EntityMetadataMocks
                 return buffer;
             }
         );
-        metadata.Binding = binding;
+        EntityMetadata metadata = new(name, dataType, columns, conversion);
+
         metadata.Validator = (entity) =>
         {
             if (string.IsNullOrWhiteSpace(((AddressEntity)entity).Address))
@@ -80,8 +81,7 @@ internal static class EntityMetadataMocks
             ]
         );
 
-        EntityMetadata metadata = new(name, dataType, columns);
-        EntityConversionBinding binding = new(
+        EntityBufferConversion conversion = new(
             (buffer) =>
             {
                 return new EmployeeEntity()
@@ -101,9 +101,8 @@ internal static class EntityMetadataMocks
                 return buffer;
             }
         );
-        metadata.Binding = binding;
 
-        return metadata;
+        return new EntityMetadata(name, dataType, columns, conversion);
     }
 
     private static EntityMetadata CreatePersonsEntity()
@@ -128,8 +127,7 @@ internal static class EntityMetadataMocks
             ]
         );
 
-        EntityMetadata metadata = new(name, dataType, columns);
-        EntityConversionBinding binding = new(
+        EntityBufferConversion conversion = new(
             (buffer) =>
             {
                 return new PersonEntity(
@@ -150,7 +148,7 @@ internal static class EntityMetadataMocks
                 return buffer;
             }
         );
-        metadata.Binding = binding;
-        return metadata;
+
+        return new EntityMetadata(name, dataType, columns, conversion);
     }
 }

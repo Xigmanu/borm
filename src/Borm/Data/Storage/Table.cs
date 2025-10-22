@@ -27,7 +27,7 @@ internal sealed class Table
     internal EntityMetadata Metadata => _entityMetadata;
     internal ChangeTracker Tracker => _tracker;
 
-    public void Delete(ValueBuffer buffer, long txId)
+    public void Delete(IValueBuffer buffer, long txId)
     {
         AssertBufferValuesAreSimple(buffer);
 
@@ -49,7 +49,7 @@ internal sealed class Table
         return _entityMetadata.GetHashCode();
     }
 
-    public void Insert(ValueBuffer buffer, long txId)
+    public void Insert(IValueBuffer buffer, long txId)
     {
         AssertBufferValuesAreSimple(buffer);
 
@@ -64,7 +64,7 @@ internal sealed class Table
         _tracker.PendChange(change);
     }
 
-    public void Update(ValueBuffer buffer, long txId)
+    public void Update(IValueBuffer buffer, long txId)
     {
         AssertBufferValuesAreSimple(buffer);
 
@@ -115,7 +115,7 @@ internal sealed class Table
     [Conditional("DEBUG")]
     [ExcludeFromCodeCoverage]
     private void AssertBufferValuesAreSimple(
-        ValueBuffer buffer,
+        IValueBuffer buffer,
         [CallerMemberName] string? callerName = null
     )
     {

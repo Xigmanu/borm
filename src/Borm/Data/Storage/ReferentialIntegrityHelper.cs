@@ -23,12 +23,12 @@ internal sealed class ReferentialIntegrityHelper
             );
             foreach (ColumnMetadata foreignKey in foreignKeys)
             {
-                IEnumerable<ValueBuffer> affectedRecords = FindChildBuffers(
+                IEnumerable<IValueBuffer> affectedRecords = FindChildBuffers(
                     child,
                     foreignKey,
                     parentPrimaryKey
                 );
-                foreach (ValueBuffer affectedBuffer in affectedRecords)
+                foreach (IValueBuffer affectedBuffer in affectedRecords)
                 {
                     ExecuteOnDeleteAction(child, foreignKey, affectedBuffer, txId);
                     affectedTables.Add(child);
@@ -42,7 +42,7 @@ internal sealed class ReferentialIntegrityHelper
     private static void ExecuteOnDeleteAction(
         Table child,
         ColumnMetadata foreignKey,
-        ValueBuffer childBuffer,
+        IValueBuffer childBuffer,
         long txId
     )
     {
@@ -62,7 +62,7 @@ internal sealed class ReferentialIntegrityHelper
         }
     }
 
-    private static IEnumerable<ValueBuffer> FindChildBuffers(
+    private static IEnumerable<IValueBuffer> FindChildBuffers(
         Table child,
         ColumnMetadata foreignKey,
         object parentPrimaryKey

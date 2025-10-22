@@ -76,7 +76,7 @@ internal sealed class ChangeTracker
         return change != null;
     }
 
-    private Change? FindChange(long txId, Func<ValueBuffer, bool> predicate)
+    private Change? FindChange(long txId, Func<IValueBuffer, bool> predicate)
     {
         if (_txChangeSets.TryGetValue(txId, out ChangeSet? pendingSet))
         {
