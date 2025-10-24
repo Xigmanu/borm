@@ -3,40 +3,40 @@ using System.Collections.ObjectModel;
 
 namespace Borm.Model.Metadata;
 
-internal sealed class ColumnMetadataList : IReadOnlyList<ColumnMetadata>
+internal sealed class ColumnMetadataList : IReadOnlyList<IColumnMetadata>
 {
-    private readonly Dictionary<string, ColumnMetadata> _byNameMap;
-    private readonly ReadOnlyCollection<ColumnMetadata> _columns;
+    private readonly Dictionary<string, IColumnMetadata> _byNameMap;
+    private readonly ReadOnlyCollection<IColumnMetadata> _columns;
 
-    public ColumnMetadataList(IEnumerable<ColumnMetadata> columns)
+    public ColumnMetadataList(IEnumerable<IColumnMetadata> columns)
     {
         ArgumentNullException.ThrowIfNull(columns);
 
-        _columns = new ReadOnlyCollection<ColumnMetadata>([.. columns]);
+        _columns = new ReadOnlyCollection<IColumnMetadata>([.. columns]);
         _byNameMap = columns.ToDictionary(c => c.Name);
     }
 
     public int Count => _columns.Count;
 
-    public ColumnMetadata this[string columnName]
+    public IColumnMetadata this[string columnName]
     {
         get =>
-            _byNameMap.TryGetValue(columnName, out ColumnMetadata? column)
+            _byNameMap.TryGetValue(columnName, out IColumnMetadata? column)
                 ? column
                 : throw new KeyNotFoundException($"Column {columnName} not found");
     }
 
-    public ColumnMetadata this[int idx]
+    public IColumnMetadata this[int idx]
     {
         get => _columns[idx];
     }
 
-    public bool Contains(ColumnMetadata item)
+    public bool Contains(IColumnMetadata item)
     {
         return _columns.Contains(item);
     }
 
-    public IEnumerator<ColumnMetadata> GetEnumerator()
+    public IEnumerator<IColumnMetadata> GetEnumerator()
     {
         return _columns.GetEnumerator();
     }

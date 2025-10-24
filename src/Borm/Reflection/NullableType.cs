@@ -12,6 +12,7 @@ internal sealed class NullableType
         IsNullable = isNullable;
     }
 
+    public string FullName => UnderlyingType.FullName!;
     public bool IsNullable { get; }
     public Type Type => _type;
     public Type UnderlyingType

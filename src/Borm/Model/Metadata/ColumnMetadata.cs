@@ -1,38 +1,34 @@
-﻿using System.Diagnostics;
+﻿using Borm.Reflection;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Borm.Model.Metadata;
 
 [DebuggerTypeProxy(typeof(ColumnMetadataDebugView))]
-[DebuggerDisplay("Name = {Name}, DataType = {DataType.FullName}")]
-internal sealed class ColumnMetadata
+[DebuggerDisplay("Name = {Name}, DataType = {DataType}")]
+internal sealed class ColumnMetadata : IColumnMetadata
 {
     public ColumnMetadata(
         int index,
         string columnName,
         string propertyName,
-        Type propertyType,
+        NullableType dataType,
         Constraints constraints
     )
     {
         Index = index;
         Name = columnName;
-        DataType =
-            propertyType.IsValueType && constraints.HasFlag(Constraints.AllowDbNull)
-                ? Nullable.GetUnderlyingType(propertyType)!
-                : propertyType;
+        DataType = dataType;
         Constraints = constraints;
         PropertyName = propertyName;
-        PropertyType = propertyType;
     }
 
     public Constraints Constraints { get; }
-    public Type DataType { get; }
+    public NullableType DataType { get; }
     public int Index { get; }
     public string Name { get; }
     public ReferentialAction OnDelete { get; internal set; }
     public string PropertyName { get; }
-    public Type PropertyType { get; }
     public Type? Reference { get; internal set; }
 
     public override bool Equals(object? obj)
@@ -56,7 +52,7 @@ internal sealed class ColumnMetadata
         }
 
         public Constraints Constraints => _metadata.Constraints;
-        public Type DataType => _metadata.DataType;
+        public NullableType DataType => _metadata.DataType;
         public int Index => _metadata.Index;
         public string Name => _metadata.Name;
         public Type? Reference => _metadata.Reference;

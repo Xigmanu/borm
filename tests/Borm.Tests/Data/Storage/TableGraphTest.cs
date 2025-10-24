@@ -191,7 +191,7 @@ public sealed class TableGraphTest
         Table table = _graph[typeof(AddressEntity)]!;
 
         // Act
-        Table? actual = _graph[table.Metadata.DataType];
+        Table? actual = _graph[table.Metadata.Type];
 
         // Assert
         Assert.NotNull(actual);

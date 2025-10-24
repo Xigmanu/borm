@@ -8,8 +8,8 @@ namespace Borm.Data.Storage;
 [DebuggerDisplay("PrimaryKey = {PrimaryKey}")]
 internal sealed class ValueBuffer : IValueBuffer
 {
-    private readonly Dictionary<ColumnMetadata, object> _valueMap;
-    private ColumnMetadata? _primaryKey;
+    private readonly Dictionary<IColumnMetadata, object> _valueMap;
+    private IColumnMetadata? _primaryKey;
 
     public ValueBuffer()
     {
@@ -30,7 +30,7 @@ internal sealed class ValueBuffer : IValueBuffer
             return _valueMap[_primaryKey];
         }
     }
-    public object this[ColumnMetadata column]
+    public object this[IColumnMetadata column]
     {
         get => _valueMap[column];
         set
@@ -58,7 +58,7 @@ internal sealed class ValueBuffer : IValueBuffer
         return obj is ValueBuffer other && other._valueMap.Equals(_valueMap);
     }
 
-    public IEnumerator<KeyValuePair<ColumnMetadata, object>> GetEnumerator()
+    public IEnumerator<KeyValuePair<IColumnMetadata, object>> GetEnumerator()
     {
         return _valueMap.GetEnumerator();
     }

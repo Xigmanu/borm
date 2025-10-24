@@ -8,7 +8,7 @@ internal sealed class ConstructorConverterFactory : ConverterFactory<Func<IValue
 {
     private readonly Constructor _constructor;
 
-    public ConstructorConverterFactory(Constructor constructor, IEnumerable<ColumnMetadata> columns)
+    public ConstructorConverterFactory(Constructor constructor, IEnumerable<IColumnMetadata> columns)
         : base(columns)
     {
         if (constructor.IsDefault)
@@ -33,9 +33,9 @@ internal sealed class ConstructorConverterFactory : ConverterFactory<Func<IValue
             .Compile();
     }
 
-    private IEnumerable<ColumnMetadata> GetOrderedColumns(IReadOnlyList<MappingMember> ctorParams)
+    private IEnumerable<IColumnMetadata> GetOrderedColumns(IReadOnlyList<MappingMember> ctorParams)
     {
-        Dictionary<string, ColumnMetadata> colNames = columns.ToDictionary(col => col.Name);
+        Dictionary<string, IColumnMetadata> colNames = columns.ToDictionary(col => col.Name);
         return ctorParams.Select(param => colNames[param.MemberName]);
     }
 }

@@ -34,8 +34,8 @@ public sealed class TableTest
 
         Assert.Single(changes);
         Assert.Equal(RowAction.Delete, changes[0].RowAction);
-        Assert.Equal(txId, changes[0].WriteTxId);
-        Assert.Equal(buffer, changes[0].Buffer);
+        Assert.Equal(txId, changes[0].WriteId);
+        Assert.Equal(buffer, changes[0].Record);
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public sealed class TableTest
 
         Assert.Single(changes);
         Assert.Equal(RowAction.Insert, changes[0].RowAction);
-        Assert.Equal(buffer, changes[0].Buffer);
+        Assert.Equal(buffer, changes[0].Record);
     }
 
     [Fact]
@@ -184,8 +184,8 @@ public sealed class TableTest
 
         Change change = table.Tracker.Changes[0];
         Assert.Equal(RowAction.None, change.RowAction);
-        Assert.True(change.IsWrittenToDb);
-        Assert.Equal(buffer, change.Buffer);
+        Assert.True(change.IsWrittenToDataSource);
+        Assert.Equal(buffer, change.Record);
     }
 
     [Fact]
@@ -208,7 +208,7 @@ public sealed class TableTest
         ImmutableList<Change> changes = table.Tracker.Changes;
         Assert.Single(changes);
         Assert.Equal(RowAction.Update, changes[0].RowAction);
-        Assert.Equal(bufferUpdate, changes[0].Buffer);
+        Assert.Equal(bufferUpdate, changes[0].Record);
     }
 
     [Fact]
@@ -233,7 +233,7 @@ public sealed class TableTest
         ImmutableList<Change> changes = table.Tracker.Changes;
         Assert.Single(changes);
         Assert.Equal(RowAction.None, changes[0].RowAction);
-        Assert.Equal(buffer, changes[0].Buffer);
+        Assert.Equal(buffer, changes[0].Record);
     }
 
     [Fact]

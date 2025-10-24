@@ -18,12 +18,12 @@ internal sealed class ReferentialIntegrityHelper
         IEnumerable<Table> children = _graph.GetChildren(table);
         foreach (Table child in children)
         {
-            IEnumerable<ColumnMetadata> foreignKeys = child.Metadata.Columns.Where(c =>
+            IEnumerable<IColumnMetadata> foreignKeys = child.Metadata.Columns.Where(c =>
                 c.Reference is not null
             );
-            foreach (ColumnMetadata foreignKey in foreignKeys)
+            foreach (IColumnMetadata foreignKey in foreignKeys)
             {
-                IEnumerable<IValueBuffer> affectedRecords = FindChildBuffers(
+                IEnumerable<IValueBuffer> affectedRecords = FindChildrenBuffers(
                     child,
                     foreignKey,
                     parentPrimaryKey
@@ -41,7 +41,7 @@ internal sealed class ReferentialIntegrityHelper
 
     private static void ExecuteOnDeleteAction(
         Table child,
-        ColumnMetadata foreignKey,
+        IColumnMetadata foreignKey,
         IValueBuffer childBuffer,
         long txId
     )
@@ -62,14 +62,14 @@ internal sealed class ReferentialIntegrityHelper
         }
     }
 
-    private static IEnumerable<IValueBuffer> FindChildBuffers(
+    private static IEnumerable<IValueBuffer> FindChildrenBuffers(
         Table child,
-        ColumnMetadata foreignKey,
+        IColumnMetadata foreignKey,
         object parentPrimaryKey
     )
     {
         return child
-            .Tracker.Changes.Where(change => Equals(change.Buffer[foreignKey], parentPrimaryKey))
-            .Select(change => change.Buffer.Copy());
+            .Tracker.Changes.Where(change => Equals(change.Record[foreignKey], parentPrimaryKey))
+            .Select(change => change.Record.Copy());
     }
 }

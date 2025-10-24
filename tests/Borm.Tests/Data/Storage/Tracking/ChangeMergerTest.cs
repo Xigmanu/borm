@@ -24,13 +24,13 @@ public sealed class ChangeMergerTest
         Change incoming = initChange.Update(buffer, txId);
 
         // Act
-        Change? merged = ChangeMerger.CommitMerge(initChange, incoming);
+        Change? merged = Merger.CommitMerge(initChange, incoming);
 
         // Assert
         Assert.NotNull(merged);
-        Assert.Equal(incoming.Buffer, merged.Buffer);
-        Assert.Equal(incoming.WriteTxId, merged.ReadTxId);
-        Assert.Equal(incoming.WriteTxId, merged.WriteTxId);
+        Assert.Equal(incoming.Record, merged.Record);
+        Assert.Equal(incoming.WriteId, merged.ReadId);
+        Assert.Equal(incoming.WriteId, merged.WriteId);
         Assert.Equal(initChange.RowAction, merged.RowAction);
     }
 
@@ -47,7 +47,7 @@ public sealed class ChangeMergerTest
         Change incoming = initChange.Update(buffer, initTxId);
 
         // Act
-        Change? merged = ChangeMerger.Merge(initChange, incoming);
+        Change? merged = Merger.Merge(initChange, incoming);
 
         // Assert
         Assert.NotNull(merged);
@@ -68,13 +68,13 @@ public sealed class ChangeMergerTest
         Change incoming = initChange.Update(buffer, txId);
 
         // Act
-        Change? merged = ChangeMerger.Merge(initChange, incoming);
+        Change? merged = Merger.Merge(initChange, incoming);
 
         // Assert
         Assert.NotNull(merged);
-        Assert.Equal(incoming.Buffer, merged.Buffer);
-        Assert.Equal(initChange.ReadTxId, merged.ReadTxId);
-        Assert.Equal(incoming.WriteTxId, merged.WriteTxId);
+        Assert.Equal(incoming.Record, merged.Record);
+        Assert.Equal(initChange.ReadId, merged.ReadId);
+        Assert.Equal(incoming.WriteId, merged.WriteId);
         Assert.Equal(initChange.RowAction, merged.RowAction);
     }
 
@@ -92,13 +92,13 @@ public sealed class ChangeMergerTest
         Change incoming = initChange.Update(buffer, txId);
 
         // Act
-        Change? merged = ChangeMerger.Merge(initChange, incoming);
+        Change? merged = Merger.Merge(initChange, incoming);
 
         // Assert
         Assert.NotNull(merged);
-        Assert.Equal(incoming.Buffer, merged.Buffer);
-        Assert.Equal(initChange.ReadTxId, merged.ReadTxId);
-        Assert.Equal(incoming.WriteTxId, merged.WriteTxId);
+        Assert.Equal(incoming.Record, merged.Record);
+        Assert.Equal(initChange.ReadId, merged.ReadId);
+        Assert.Equal(incoming.WriteId, merged.WriteId);
         Assert.Equal(incoming.RowAction, merged.RowAction);
     }
 
@@ -115,7 +115,7 @@ public sealed class ChangeMergerTest
         Change incoming = initChange.Delete(initBuffer, txId);
 
         // Act
-        Change? merged = ChangeMerger.Merge(initChange, incoming);
+        Change? merged = Merger.Merge(initChange, incoming);
 
         // Assert
         Assert.Null(merged);
@@ -135,7 +135,7 @@ public sealed class ChangeMergerTest
         Change incoming = Change.Initial(buffer, txId);
 
         // Act
-        Exception? exception = Record.Exception(() => _ = ChangeMerger.Merge(initChange, incoming));
+        Exception? exception = Record.Exception(() => _ = Merger.Merge(initChange, incoming));
 
         // Assert
         Assert.NotNull(exception);

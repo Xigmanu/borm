@@ -65,17 +65,11 @@ public sealed class EntityModel
                 );
             }
 
-            EntityTypeInfo reflectedInfo = parser.Parse(entityType);
+            EntityTypeInfo reflectedInfo = parser.Parse(entityType, _entityValidators[entityType]);
             reflectedInfos.Add(reflectedInfo);
         }
 
         return reflectedInfos;
-    }
-
-    internal Action<object>? GetValidatorFunc(Type entityType)
-    {
-        _ = _entityValidators.TryGetValue(entityType, out Action<object>? validator);
-        return validator;
     }
 
     // TODO Implement a better validation logic

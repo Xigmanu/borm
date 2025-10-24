@@ -114,11 +114,10 @@ public sealed class DataContext
             return;
         }
 
-        List<EntityMetadata> entityInfos = new(typeInfos.Count());
+        List<IEntityMetadata> entityInfos = new(typeInfos.Count());
         foreach (EntityTypeInfo typeInfo in typeInfos)
         {
-            EntityMetadata entityMetadata = EntityMetadataBuilder.Build(typeInfo);
-            entityMetadata.Validator = model.GetValidatorFunc(typeInfo.Type);
+            IEntityMetadata entityMetadata = EntityMetadataBuilder.Build(typeInfo);
             entityInfos.Add(entityMetadata);
         }
 

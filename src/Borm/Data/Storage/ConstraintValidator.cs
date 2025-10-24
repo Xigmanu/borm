@@ -16,19 +16,19 @@ internal class ConstraintValidator
     }
 
     public void ValidateBuffer(
-        IEnumerable<KeyValuePair<ColumnMetadata, object>> buffer,
+        IEnumerable<KeyValuePair<IColumnMetadata, object>> buffer,
         long txId,
         [CallerMemberName] string? method = null
     )
     {
-        foreach ((ColumnMetadata column, object columnValue) in buffer)
+        foreach ((IColumnMetadata column, object columnValue) in buffer)
         {
             ValidateConstraints(column, columnValue, txId, method == nameof(_table.Update));
         }
     }
 
     private void ValidateConstraints(
-        ColumnMetadata column,
+        IColumnMetadata column,
         object columnValue,
         long txId,
         bool isUpdate

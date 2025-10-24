@@ -5,23 +5,22 @@ using Borm.Properties;
 namespace Borm.Data.Storage.Tracking;
 
 [DebuggerDisplay("Count = {Count}")]
-internal sealed class ChangeSet : IEnumerable<Change>
+internal sealed class ChangeSet : IEnumerable<IChange>
 {
-    private readonly Dictionary<object, Change> _changes;
+    private readonly Dictionary<object, IChange> _changes;
     private readonly HashSet<object> _danglingKeys;
 
     public ChangeSet()
-    {
-        (_changes, _danglingKeys) = ([], []);
-    }
+        : this([], []) { }
 
-    private ChangeSet(Dictionary<object, Change> changePkMap, HashSet<object> danglingKeyCache)
+    public ChangeSet(Dictionary<object, IChange> changePkMap, HashSet<object> danglingKeyCache)
     {
         _changes = changePkMap;
         _danglingKeys = danglingKeyCache;
     }
 
     internal event EventHandler<RecordRemovedEventArgs>? RecordRemoved;
+
     public int Count => _changes.Count;
 
     public static ChangeSet Merge(ChangeSet existing, ChangeSet incoming)
@@ -32,12 +31,12 @@ internal sealed class ChangeSet : IEnumerable<Change>
             return new ChangeSet(existing._changes, incoming._danglingKeys);
         }
 
-        Dictionary<object, Change> resultMap = new(existing._changes);
-        foreach ((object primaryKey, Change incomingChange) in incoming._changes)
+        Dictionary<object, IChange> resultMap = new(existing._changes);
+        foreach ((object primaryKey, IChange incomingChange) in incoming._changes)
         {
-            if (existing._changes.TryGetValue(primaryKey, out Change? existingChange))
+            if (existing._changes.TryGetValue(primaryKey, out IChange? existingChange))
             {
-                Change? merged = ChangeMerger.CommitMerge(existingChange, incomingChange);
+                IChange? merged = Merger.CommitMerge(existingChange, incomingChange);
                 resultMap.Remove(primaryKey);
                 if (merged != null)
                 {
@@ -53,7 +52,7 @@ internal sealed class ChangeSet : IEnumerable<Change>
                 if (
                     incoming._danglingKeys.Contains(primaryKey)
                     || incomingChange.RowAction != RowAction.Insert
-                        && incomingChange.WriteTxId != Transaction.InitId
+                        && incomingChange.WriteId != Transaction.InitId
                 )
                 {
                     throw new InvalidOperationException(Strings.ModificationOfNonExistingRow());
@@ -65,15 +64,15 @@ internal sealed class ChangeSet : IEnumerable<Change>
         return new ChangeSet(resultMap, [.. incoming._danglingKeys]);
     }
 
-    public void Add(Change incoming)
+    public void Add(IChange incoming)
     {
-        object primaryKey = incoming.Buffer.PrimaryKey;
+        object primaryKey = incoming.Record.PrimaryKey;
         if (
-            _changes.TryGetValue(primaryKey, out Change? existing)
-            && incoming.WriteTxId == existing.WriteTxId
+            _changes.TryGetValue(primaryKey, out IChange? existing)
+            && incoming.WriteId == existing.WriteId
         )
         {
-            Change? merged = ChangeMerger.Merge(existing, incoming);
+            IChange? merged = Merger.Merge(existing, incoming);
             _changes.Remove(primaryKey);
             if (merged is not null)
             {
@@ -84,7 +83,7 @@ internal sealed class ChangeSet : IEnumerable<Change>
         _changes[primaryKey] = incoming;
     }
 
-    public IEnumerator<Change> GetEnumerator()
+    public IEnumerator<IChange> GetEnumerator()
     {
         return _changes.Values.GetEnumerator();
     }
@@ -96,7 +95,7 @@ internal sealed class ChangeSet : IEnumerable<Change>
 
     public void MarkAsWritten()
     {
-        foreach ((object primaryKey, Change change) in _changes)
+        foreach ((object primaryKey, IChange change) in _changes)
         {
             if (change.RowAction == RowAction.Delete)
             {
@@ -110,12 +109,17 @@ internal sealed class ChangeSet : IEnumerable<Change>
     public void ReplaceRange(ChangeSet changes)
     {
         _changes.Clear();
-        foreach ((object primaryKey, Change change) in changes._changes)
+        foreach ((object primaryKey, IChange change) in changes._changes)
         {
             _changes[primaryKey] = change;
         }
 
         _danglingKeys.UnionWith(changes._danglingKeys);
+    }
+
+    public ChangeSet Copy()
+    {
+        return new ChangeSet(new Dictionary<object, IChange>(_changes), [.. _danglingKeys]);
     }
 
     internal void OnRecordRemoved(object? sender, RecordRemovedEventArgs e)

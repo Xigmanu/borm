@@ -14,7 +14,7 @@ internal sealed class MetadataParser
         _nullabilityCtx = new();
     }
 
-    public EntityTypeInfo Parse(Type entityType)
+    public EntityTypeInfo Parse(Type entityType, Action<object>? validate)
     {
         EntityAttribute entityAttribute =
             entityType.GetCustomAttribute<EntityAttribute>()
@@ -50,7 +50,8 @@ internal sealed class MetadataParser
             entityAttribute.Name,
             entityType,
             properties.AsReadOnly(),
-            constructors
+            constructors,
+            validate
         );
     }
 

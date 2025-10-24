@@ -14,7 +14,7 @@ internal sealed class ChangeTracker
     private readonly ChangeSet _changeSet = [];
     private readonly Dictionary<long, ChangeSet> _txChangeSets = [];
 
-    public ImmutableList<Change> Changes
+    public ImmutableList<IChange> Changes
     {
         get
         {
@@ -47,7 +47,7 @@ internal sealed class ChangeTracker
         }
     }
 
-    public bool IsColumnValueUnique(ColumnMetadata column, object columnValue, long txId)
+    public bool IsColumnValueUnique(IColumnMetadata column, object columnValue, long txId)
     {
         return FindChange(txId, (buffer) => buffer[column].Equals(columnValue)) == null;
     }
@@ -57,12 +57,12 @@ internal sealed class ChangeTracker
         _changeSet.MarkAsWritten();
     }
 
-    public void PendChange(Change change)
+    public void PendChange(IChange change)
     {
-        long writeTxId = change.WriteTxId;
+        long writeTxId = change.WriteId;
         if (!_txChangeSets.TryGetValue(writeTxId, out ChangeSet? pendingSet))
         {
-            pendingSet = [.. _changeSet];
+            pendingSet = _changeSet.Copy();
             _changeSet.RecordRemoved += pendingSet.OnRecordRemoved;
             _txChangeSets[writeTxId] = pendingSet;
         }
@@ -70,19 +70,19 @@ internal sealed class ChangeTracker
         pendingSet.Add(change);
     }
 
-    public bool TryGetChange(object primaryKey, long txId, [NotNullWhen(true)] out Change? change)
+    public bool TryGetChange(object primaryKey, long txId, [NotNullWhen(true)] out IChange? change)
     {
         change = FindChange(txId, (buffer) => buffer.PrimaryKey.Equals(primaryKey));
         return change != null;
     }
 
-    private Change? FindChange(long txId, Func<IValueBuffer, bool> predicate)
+    private IChange? FindChange(long txId, Func<IValueBuffer, bool> predicate)
     {
         if (_txChangeSets.TryGetValue(txId, out ChangeSet? pendingSet))
         {
-            return pendingSet.FirstOrDefault(change => predicate(change.Buffer));
+            return pendingSet.FirstOrDefault(change => predicate(change.Record));
         }
 
-        return _changeSet.FirstOrDefault(change => predicate(change.Buffer));
+        return _changeSet.FirstOrDefault(change => predicate(change.Record));
     }
 }

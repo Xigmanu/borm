@@ -2,9 +2,9 @@
 
 namespace Borm.Util;
 
-[DebuggerStepThrough]
 internal static class ColumnDataTypeHelper
 {
+    [DebuggerStepThrough]
     public static bool IsSupported(Type dataType)
     {
         switch (dataType)

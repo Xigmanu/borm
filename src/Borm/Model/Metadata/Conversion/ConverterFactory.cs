@@ -5,9 +5,9 @@ namespace Borm.Model.Metadata.Conversion;
 internal abstract class ConverterFactory<T>
     where T : Delegate
 {
-    private protected readonly IEnumerable<ColumnMetadata> columns;
+    private protected readonly IEnumerable<IColumnMetadata> columns;
 
-    protected ConverterFactory(IEnumerable<ColumnMetadata> columns)
+    protected ConverterFactory(IEnumerable<IColumnMetadata> columns)
     {
         this.columns = columns;
     }
@@ -16,7 +16,7 @@ internal abstract class ConverterFactory<T>
 
     protected static Expression CreateBufferPropertyBinding(
         ParameterExpression bufferParam,
-        ColumnMetadata column
+        IColumnMetadata column
     )
     {
         IndexExpression bufValue = Expression.Property(
@@ -25,14 +25,14 @@ internal abstract class ConverterFactory<T>
             Expression.Constant(column)
         );
 
-        UnaryExpression castValue = Expression.Convert(bufValue, column.PropertyType);
+        UnaryExpression castValue = Expression.Convert(bufValue, column.DataType.Type);
         if (!column.Constraints.HasFlag(Constraints.AllowDbNull))
         {
             return castValue;
         }
 
         BinaryExpression isDbNull = Expression.Equal(bufValue, Expression.Constant(DBNull.Value));
-        ConstantExpression nullValue = Expression.Constant(null, column.PropertyType);
+        ConstantExpression nullValue = Expression.Constant(null, column.DataType.Type);
 
         return Expression.Condition(isDbNull, nullValue, castValue);
     }

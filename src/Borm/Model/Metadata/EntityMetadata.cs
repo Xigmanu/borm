@@ -6,20 +6,22 @@ using Borm.Properties;
 namespace Borm.Model.Metadata;
 
 [DebuggerTypeProxy(typeof(EntityInfoDebugView))]
-[DebuggerDisplay("Name = {Name}, DataType = {DataType.FullName}")]
-internal sealed class EntityMetadata
+[DebuggerDisplay("Name = {Name}, Type = {Type.FullName}")]
+internal sealed class EntityMetadata : IEntityMetadata
 {
-    private readonly ColumnMetadataList _columns;
+    private readonly IReadOnlyList<IColumnMetadata> _columns;
     private readonly string _name;
+    private readonly Action<object>? _validate;
 
-    public EntityMetadata(string name, Type dataType, ColumnMetadataList columns)
-        : this(name, dataType, columns, EntityBufferConversion.Empty) { }
+    public EntityMetadata(string name, Type dataType, IReadOnlyList<IColumnMetadata> columns)
+        : this(name, dataType, columns, EntityBufferConversion.Empty, null) { }
 
     public EntityMetadata(
         string name,
         Type dataType,
-        ColumnMetadataList columns,
-        IEntityBufferConversion conversion
+        IReadOnlyList<IColumnMetadata> columns,
+        IEntityBufferConversion conversion,
+        Action<object>? validate
     )
     {
         if (columns.Count == 0)
@@ -28,16 +30,16 @@ internal sealed class EntityMetadata
         }
 
         _columns = columns;
-        DataType = dataType;
         _name = name;
+        _validate = validate;
+        Type = dataType;
         Conversion = conversion;
     }
 
-    public Type DataType { get; }
-
+    public IReadOnlyList<IColumnMetadata> Columns => _columns;
+    public IEntityBufferConversion Conversion { get; }
     public string Name => _name;
-
-    public ColumnMetadata PrimaryKey
+    public IColumnMetadata PrimaryKey
     {
         get
         {
@@ -46,9 +48,7 @@ internal sealed class EntityMetadata
         }
     }
 
-    internal IReadOnlyList<ColumnMetadata> Columns => _columns;
-    internal IEntityBufferConversion Conversion { get; }
-    internal Action<object>? Validator { get; set; }
+    public Type Type { get; }
 
     public override bool Equals(object? obj)
     {
@@ -60,6 +60,8 @@ internal sealed class EntityMetadata
         return _name.GetHashCode();
     }
 
+    public void Validate(object entity) => _validate?.Invoke(entity);
+
     [ExcludeFromCodeCoverage(Justification = "Debugger display proxy")]
     internal sealed class EntityInfoDebugView
     {
@@ -70,9 +72,9 @@ internal sealed class EntityMetadata
             _entityMetadata = entityMetadata;
         }
 
-        public ColumnMetadata[] Columns => [.. _entityMetadata.Columns];
-        public Type DataType => _entityMetadata.DataType;
+        public IColumnMetadata[] Columns => [.. _entityMetadata.Columns];
+        public Type DataType => _entityMetadata.Type;
         public string Name => _entityMetadata.Name;
-        public ColumnMetadata PrimaryKey => _entityMetadata.PrimaryKey;
+        public IColumnMetadata PrimaryKey => _entityMetadata.PrimaryKey;
     }
 }

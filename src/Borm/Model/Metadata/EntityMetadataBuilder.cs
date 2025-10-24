@@ -9,20 +9,29 @@ namespace Borm.Model.Metadata;
 
 internal static class EntityMetadataBuilder
 {
-    public static EntityMetadata Build(EntityTypeInfo entityType)
+    public static IEntityMetadata Build(EntityTypeInfo typeInfo)
     {
-        string name = !string.IsNullOrWhiteSpace(entityType.Name)
-            ? entityType.Name
-            : CreateDefaultName(entityType.Type.Name);
+        string name = !string.IsNullOrWhiteSpace(typeInfo.Name)
+            ? typeInfo.Name
+            : CreateDefaultName(typeInfo.Type.Name);
 
-        IEnumerable<ColumnMetadata> columns = entityType
+        IEnumerable<IColumnMetadata> columns = typeInfo
             .Properties.Select(CreateColumnInfo)
             .OrderBy(column => column.Index);
         ColumnMetadataList columnCollection = new(columns);
 
-        IEntityBufferConversion conversion = CreateConversion(entityType, columns);
+        IEntityBufferConversion conversion = EntityBufferConversionFactory.Create(
+            typeInfo,
+            columns
+        );
 
-        return new EntityMetadata(name, entityType.Type, columnCollection, conversion);
+        return new EntityMetadata(
+            name,
+            typeInfo.Type,
+            columnCollection,
+            conversion,
+            typeInfo.Validate
+        );
     }
 
     private static ColumnMetadata CreateColumnInfo(MappingMember property)
@@ -37,7 +46,7 @@ internal static class EntityMetadataBuilder
             mapping.ColumnIndex,
             columnName,
             property.MemberName,
-            property.TypeInfo.Type,
+            property.TypeInfo,
             constraints
         );
 
@@ -48,30 +57,6 @@ internal static class EntityMetadataBuilder
         }
 
         return columnMetadata;
-    }
-
-    private static IEntityBufferConversion CreateConversion(
-        EntityTypeInfo entityType,
-        IEnumerable<ColumnMetadata> columns
-    )
-    {
-        ConverterFactory<Func<object, IValueBuffer>> bufferConverter =
-            new ValueBufferConverterFactory(entityType.Type, columns);
-
-        Constructor? conversionCtor =
-            ConstructorSelector.FindMappingCtor(
-                entityType.Constructors,
-                [.. columns.Select(col => col.Name)]
-            )
-            ?? throw new MissingMethodException(
-                Strings.InvalidEntityTypeConstructor(entityType.Type.FullName!)
-            );
-
-        ConverterFactory<Func<IValueBuffer, object>> materializer = conversionCtor.IsDefault
-            ? new PropertyConverterFactory(entityType.Type, columns)
-            : new ConstructorConverterFactory(conversionCtor, columns);
-
-        return new EntityBufferConversion(materializer.Create(), bufferConverter.Create());
     }
 
     private static string CreateDefaultName(string memberName)

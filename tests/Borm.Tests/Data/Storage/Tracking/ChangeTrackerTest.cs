@@ -29,9 +29,9 @@ public sealed class ChangeTrackerTest
         Assert.Single(changes);
         Change actual = changes.First();
 
-        Assert.Equal(incoming.Buffer, actual.Buffer);
-        Assert.Equal(incoming.WriteTxId, actual.WriteTxId);
-        Assert.Equal(actual.WriteTxId, actual.ReadTxId);
+        Assert.Equal(incoming.Record, actual.Record);
+        Assert.Equal(incoming.WriteId, actual.WriteId);
+        Assert.Equal(actual.WriteId, actual.ReadId);
     }
 
     [Fact]
@@ -86,6 +86,6 @@ public sealed class ChangeTrackerTest
         bool exists = tracker.TryGetChange(buffer.PrimaryKey, txId, out Change? actual);
         Assert.True(exists);
         Assert.NotNull(actual);
-        Assert.Equal(incoming1.Buffer, actual.Buffer);
+        Assert.Equal(incoming1.Record, actual.Record);
     }
 }

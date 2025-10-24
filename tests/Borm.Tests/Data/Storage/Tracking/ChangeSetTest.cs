@@ -30,7 +30,7 @@ public sealed class ChangeSetTest
         // Assert
         Assert.Single(changes);
         Change actual = changes.First();
-        Assert.Equal(incoming.WriteTxId, actual.WriteTxId);
+        Assert.Equal(incoming.WriteId, actual.WriteId);
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public sealed class ChangeSetTest
         // Assert
         Assert.Single(changes);
         Change actual = changes.First();
-        Assert.True(actual.IsWrittenToDb);
+        Assert.True(actual.IsWrittenToDataSource);
     }
 
     [Fact]
@@ -138,8 +138,8 @@ public sealed class ChangeSetTest
         // Assert
         Assert.Single(merged);
         Change actual = merged.First();
-        Assert.Equal(updateChange.Buffer, actual.Buffer);
-        Assert.Equal(updateChange.WriteTxId, actual.WriteTxId);
+        Assert.Equal(updateChange.Record, actual.Record);
+        Assert.Equal(updateChange.WriteId, actual.WriteId);
     }
 
     [Fact]

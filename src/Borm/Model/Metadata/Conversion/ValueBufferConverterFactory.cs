@@ -7,7 +7,7 @@ internal class ValueBufferConverterFactory : ConverterFactory<Func<object, IValu
 {
     private readonly Type _entityType;
 
-    public ValueBufferConverterFactory(Type entityType, IEnumerable<ColumnMetadata> columns)
+    public ValueBufferConverterFactory(Type entityType, IEnumerable<IColumnMetadata> columns)
         : base(columns)
     {
         _entityType = entityType;
@@ -32,7 +32,7 @@ internal class ValueBufferConverterFactory : ConverterFactory<Func<object, IValu
             Expression.Assign(valueBufferVar, Expression.New(valueBufferType)),
         ];
 
-        foreach (ColumnMetadata column in columns)
+        foreach (IColumnMetadata column in columns)
         {
             BinaryExpression conditionalAssign = CreateBlockExpression(
                 unboxedEntityVar,
@@ -55,7 +55,7 @@ internal class ValueBufferConverterFactory : ConverterFactory<Func<object, IValu
     private static BinaryExpression CreateBlockExpression(
         ParameterExpression unboxedEntityVar,
         ParameterExpression valueBufferVar,
-        ColumnMetadata column
+        IColumnMetadata column
     )
     {
         ConstantExpression key = Expression.Constant(column);

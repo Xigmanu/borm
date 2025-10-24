@@ -47,7 +47,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     public IEnumerable<T> Select()
     {
         return _table
-            .Tracker.Changes.Select(change => _materializer.Materialize(change.Buffer, _table))
+            .Tracker.Changes.Select(change => _materializer.Materialize(change.Record, _table))
             .Cast<T>();
     }
 
@@ -98,7 +98,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         {
             ArgumentNullException.ThrowIfNull(entity);
 
-            EntityMetadata metadata = _table.Metadata;
+            IEntityMetadata metadata = _table.Metadata;
             IValueBuffer buffer = metadata.Conversion.ToValueBuffer(entity);
             _ = _preProcessor.ResolveForeignKeys(buffer, txId, out IValueBuffer preProcessed);
 
@@ -120,8 +120,8 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         {
             ArgumentNullException.ThrowIfNull(entity);
 
-            EntityMetadata metadata = _table.Metadata;
-            metadata.Validator?.Invoke(entity);
+            IEntityMetadata metadata = _table.Metadata;
+            metadata.Validate(entity);
             IValueBuffer buffer = metadata.Conversion.ToValueBuffer(entity);
 
             InsertRecursively(_table, buffer, txId, affectedTables);
@@ -134,8 +134,8 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         {
             ArgumentNullException.ThrowIfNull(entity);
 
-            EntityMetadata metadata = _table.Metadata;
-            metadata.Validator?.Invoke(entity);
+            IEntityMetadata metadata = _table.Metadata;
+            metadata.Validate(entity);
 
             IValueBuffer buffer = metadata.Conversion.ToValueBuffer(entity);
 
@@ -174,12 +174,12 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             }
 
             Table parent = resolvedKey.Parent;
-            EntityMetadata metadata = parent.Metadata;
+            IEntityMetadata metadata = parent.Metadata;
 
             if (resolvedKey.IsComplexRecord)
             {
                 object rawValue = resolvedKey.RawValue;
-                metadata.Validator?.Invoke(rawValue);
+                metadata.Validate(rawValue);
 
                 IValueBuffer parentBuffer = metadata.Conversion.ToValueBuffer(rawValue);
                 InsertRecursively(parent, parentBuffer, txId, affectedTables);

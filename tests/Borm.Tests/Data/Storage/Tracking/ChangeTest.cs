@@ -26,11 +26,11 @@ public sealed class ChangeTest
         Change actual = change.Delete(buffer, txId);
 
         // Assert
-        Assert.Equal(txId, actual.WriteTxId);
-        Assert.Equal(initTxId, actual.ReadTxId);
+        Assert.Equal(txId, actual.WriteId);
+        Assert.Equal(initTxId, actual.ReadId);
         Assert.Equal(RowAction.Delete, actual.RowAction);
-        Assert.True(actual.IsWrittenToDb);
-        Assert.Equal(buffer, actual.Buffer);
+        Assert.True(actual.IsWrittenToDataSource);
+        Assert.Equal(buffer, actual.Record);
     }
 
     [Fact]
@@ -45,11 +45,11 @@ public sealed class ChangeTest
         Change change = Change.Initial(buffer, txId);
 
         // Assert
-        Assert.Equal(txId, change.WriteTxId);
-        Assert.Equal(change.ReadTxId, change.WriteTxId);
+        Assert.Equal(txId, change.WriteId);
+        Assert.Equal(change.ReadId, change.WriteId);
         Assert.Equal(RowAction.None, change.RowAction);
-        Assert.True(change.IsWrittenToDb);
-        Assert.Equal(buffer, change.Buffer);
+        Assert.True(change.IsWrittenToDataSource);
+        Assert.Equal(buffer, change.Record);
     }
 
     [Fact]
@@ -65,10 +65,10 @@ public sealed class ChangeTest
         change.MarkAsWritten();
 
         // Assert
-        Assert.Equal(txId, change.WriteTxId);
-        Assert.Equal(change.WriteTxId, change.ReadTxId);
+        Assert.Equal(txId, change.WriteId);
+        Assert.Equal(change.WriteId, change.ReadId);
         Assert.Equal(RowAction.None, change.RowAction);
-        Assert.True(change.IsWrittenToDb);
+        Assert.True(change.IsWrittenToDataSource);
     }
 
     [Fact]
@@ -83,11 +83,11 @@ public sealed class ChangeTest
         Change change = Change.NewChange(buffer, txId);
 
         // Assert
-        Assert.Equal(txId, change.WriteTxId);
-        Assert.Equal(change.ReadTxId, change.WriteTxId);
+        Assert.Equal(txId, change.WriteId);
+        Assert.Equal(change.ReadId, change.WriteId);
         Assert.Equal(RowAction.Insert, change.RowAction);
-        Assert.False(change.IsWrittenToDb);
-        Assert.Equal(buffer, change.Buffer);
+        Assert.False(change.IsWrittenToDataSource);
+        Assert.Equal(buffer, change.Record);
     }
 
     [Fact]
@@ -106,10 +106,10 @@ public sealed class ChangeTest
         Change actual = change.Update(buffer, txId);
 
         // Assert
-        Assert.Equal(txId, actual.WriteTxId);
-        Assert.Equal(initTxId, actual.ReadTxId);
+        Assert.Equal(txId, actual.WriteId);
+        Assert.Equal(initTxId, actual.ReadId);
         Assert.Equal(RowAction.Update, actual.RowAction);
-        Assert.False(actual.IsWrittenToDb);
-        Assert.Equal(buffer, actual.Buffer);
+        Assert.False(actual.IsWrittenToDataSource);
+        Assert.Equal(buffer, actual.Record);
     }
 }

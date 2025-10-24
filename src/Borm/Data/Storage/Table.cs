@@ -14,17 +14,17 @@ namespace Borm.Data.Storage;
 internal sealed class Table
 {
     private readonly ConstraintValidator _constraintValidator;
-    private readonly EntityMetadata _entityMetadata;
+    private readonly IEntityMetadata _entityMetadata;
     private readonly ChangeTracker _tracker = new();
 
-    public Table(EntityMetadata entityMetadata)
+    public Table(IEntityMetadata entityMetadata)
     {
         _entityMetadata = entityMetadata;
         _constraintValidator = new(this);
     }
 
     public string Name => _entityMetadata.Name;
-    internal EntityMetadata Metadata => _entityMetadata;
+    internal IEntityMetadata Metadata => _entityMetadata;
     internal ChangeTracker Tracker => _tracker;
 
     public void Delete(IValueBuffer buffer, long txId)
@@ -33,9 +33,9 @@ internal sealed class Table
 
         object primaryKey = buffer.PrimaryKey;
 
-        Change existing = GetChangeOrThrow(txId, primaryKey);
+        IChange existing = GetChangeOrThrow(txId, primaryKey);
 
-        Change change = existing.Delete(buffer, txId);
+        IChange change = ChangeFactory.Delete(existing, buffer, txId);
         _tracker.PendChange(change);
     }
 
@@ -60,7 +60,7 @@ internal sealed class Table
         }
         _constraintValidator.ValidateBuffer(buffer, txId);
 
-        Change change = Change.NewChange(buffer, txId);
+        IChange change = ChangeFactory.NewChange(buffer, txId);
         _tracker.PendChange(change);
     }
 
@@ -72,9 +72,9 @@ internal sealed class Table
 
         _constraintValidator.ValidateBuffer(buffer, txId);
 
-        Change existing = GetChangeOrThrow(txId, primaryKey);
+        IChange existing = GetChangeOrThrow(txId, primaryKey);
 
-        Change change = existing.Update(buffer, txId);
+        IChange change = ChangeFactory.Update(existing, buffer, txId);
         _tracker.PendChange(change);
     }
 
@@ -86,19 +86,19 @@ internal sealed class Table
             return;
         }
 
-        IReadOnlyCollection<ColumnMetadata> schemaColumns = _entityMetadata.Columns;
+        IReadOnlyCollection<IColumnMetadata> schemaColumns = _entityMetadata.Columns;
 
         while (resultSet.MoveNext())
         {
             ValueBuffer rowBuffer = new();
             foreach ((string columnName, object columnValue) in resultSet.Current)
             {
-                ColumnMetadata schemaColumn = schemaColumns.First(col => col.Name == columnName); // This might throw an exception when migrating
+                IColumnMetadata schemaColumn = schemaColumns.First(col => col.Name == columnName); // This might throw an exception when migrating
                 if (columnValue is string columnValueStr)
                 {
                     rowBuffer[schemaColumn] = ColumnDataTypeHelper.Parse(
                         columnValueStr,
-                        schemaColumn.DataType
+                        schemaColumn.DataType.UnderlyingType
                     );
                 }
                 else
@@ -107,7 +107,7 @@ internal sealed class Table
                 }
             }
 
-            Change initChange = Change.Initial(rowBuffer, txId);
+            IChange initChange = ChangeFactory.Initial(rowBuffer, txId);
             _tracker.PendChange(initChange);
         }
     }
@@ -121,7 +121,7 @@ internal sealed class Table
     {
         const string messageFormat =
             "Incoming buffer contains illegal values. Table: '{0}', Column: '{1}', Value: '{2}', Operation: '{3}'";
-        foreach ((ColumnMetadata column, object value) in buffer)
+        foreach ((IColumnMetadata column, object value) in buffer)
         {
             Debug.Assert(
                 ColumnDataTypeHelper.IsSupported(value.GetType()) || value == DBNull.Value,
@@ -130,10 +130,10 @@ internal sealed class Table
         }
     }
 
-    private Change GetChangeOrThrow(long txId, object primaryKey)
+    private IChange GetChangeOrThrow(long txId, object primaryKey)
     {
         if (
-            _tracker.TryGetChange(primaryKey, txId, out Change? change)
+            _tracker.TryGetChange(primaryKey, txId, out IChange? change)
             && change.RowAction != RowAction.Delete
         )
         {
@@ -153,7 +153,7 @@ internal sealed class Table
             _table = table;
         }
 
-        public EntityMetadata EntityMetadata => _table.Metadata;
+        public IEntityMetadata EntityMetadata => _table.Metadata;
         public string Name => _table.Name;
         public ChangeTracker Tracker => _table.Tracker;
     }
