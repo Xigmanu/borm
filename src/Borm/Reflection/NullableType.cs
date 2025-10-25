@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Borm.Reflection;
 
@@ -24,9 +25,13 @@ internal sealed class NullableType
                 return _type;
             }
 
-            Type? underyling = Nullable.GetUnderlyingType(_type);
-            Debug.Assert(underyling != null);
-            return underyling;
+            if (IsNullable)
+            {
+                Type? underyling = Nullable.GetUnderlyingType(_type);
+                Debug.Assert(underyling != null);
+                return underyling;
+            }
+            return _type;
         }
     }
 }

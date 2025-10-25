@@ -109,7 +109,8 @@ internal sealed class EntityMetadataValidator
         }
 
         bool isFKValid =
-            dataType.Equals(column.Reference) || dataType.Equals(successor.PrimaryKey.DataType);
+            dataType.Equals(column.Reference)
+            || dataType.Equals(successor.PrimaryKey.DataType.UnderlyingType);
 
         return isFKValid
             ? null

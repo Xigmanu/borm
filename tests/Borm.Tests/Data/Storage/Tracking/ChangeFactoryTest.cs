@@ -2,11 +2,11 @@
 using Borm.Data.Storage.Tracking;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
-using static Borm.Tests.Mocks.ValueBufferMockHelper;
+using static Borm.Tests.Mocks.ValueBufferMockFactory;
 
 namespace Borm.Tests.Data.Storage.Tracking;
 
-public sealed class ChangeTest
+public sealed class ChangeFactoryTest
 {
     private readonly TableGraph _graph = TableGraphMock.Create();
 
@@ -15,15 +15,19 @@ public sealed class ChangeTest
     {
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer initBuffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long initTxId = 0;
-        Change change = Change.Initial(initBuffer, initTxId);
+        IChange change = ChangeFactory.Initial(initBuffer, initTxId);
 
-        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"], addressesTable);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata)
+        );
         long txId = 1;
 
         // Act
-        Change actual = change.Delete(buffer, txId);
+        IChange actual = ChangeFactory.Delete(change, buffer, txId);
 
         // Assert
         Assert.Equal(txId, actual.WriteId);
@@ -38,11 +42,13 @@ public sealed class ChangeTest
     {
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long txId = 0;
 
         // Act
-        Change change = Change.Initial(buffer, txId);
+        IChange change = ChangeFactory.Initial(buffer, txId);
 
         // Assert
         Assert.Equal(txId, change.WriteId);
@@ -53,34 +59,17 @@ public sealed class ChangeTest
     }
 
     [Fact]
-    public void MarkAsWritten_MarksChangeAsWrittenToDataSource()
-    {
-        // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
-        long txId = 0;
-        Change change = Change.Initial(buffer, txId);
-
-        // Act
-        change.MarkAsWritten();
-
-        // Assert
-        Assert.Equal(txId, change.WriteId);
-        Assert.Equal(change.WriteId, change.ReadId);
-        Assert.Equal(RowAction.None, change.RowAction);
-        Assert.True(change.IsWrittenToDataSource);
-    }
-
-    [Fact]
     public void NewChange_ReturnsInsertChange()
     {
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long txId = 0;
 
         // Act
-        Change change = Change.NewChange(buffer, txId);
+        IChange change = ChangeFactory.NewChange(buffer, txId);
 
         // Assert
         Assert.Equal(txId, change.WriteId);
@@ -95,15 +84,19 @@ public sealed class ChangeTest
     {
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer initBuffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long initTxId = 0;
-        Change change = Change.NewChange(initBuffer, initTxId);
+        IChange change = ChangeFactory.NewChange(initBuffer, initTxId);
 
-        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"], addressesTable);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata)
+        );
         long txId = 1;
 
         // Act
-        Change actual = change.Update(buffer, txId);
+        IChange actual = ChangeFactory.Update(change, buffer, txId);
 
         // Assert
         Assert.Equal(txId, actual.WriteId);

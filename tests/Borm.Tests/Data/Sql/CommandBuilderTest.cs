@@ -2,9 +2,10 @@
 using Borm.Data.Sql;
 using Borm.Data.Storage;
 using Borm.Data.Storage.Tracking;
+using Borm.Model.Metadata;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
-using static Borm.Tests.Mocks.ValueBufferMockHelper;
+using static Borm.Tests.Mocks.ValueBufferMockFactory;
 
 namespace Borm.Tests.Data.Sql;
 
@@ -29,12 +30,12 @@ public sealed class CommandBuilderTest
         CommandBuilder builder = new(_graph, CommandFactory);
         Table table = _graph[typeof(AddressEntity)]!;
 
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
-        Change initial = Change.Initial(buffer, initialTxId);
+        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IChange initial = ChangeFactory.Initial(buffer, initialTxId);
         table.Tracker.PendChange(initial);
         table.Tracker.AcceptPendingChanges(initialTxId);
 
-        table.Tracker.PendChange(initial.Delete(buffer, txId));
+        table.Tracker.PendChange(ChangeFactory.Delete(initial, buffer, txId));
         table.Tracker.AcceptPendingChanges(txId);
 
         // Act
@@ -57,8 +58,8 @@ public sealed class CommandBuilderTest
         CommandBuilder builder = new(_graph, CommandFactory);
         Table table = _graph[typeof(AddressEntity)]!;
 
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
-        table.Tracker.PendChange(Change.NewChange(buffer, txId));
+        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        table.Tracker.PendChange(ChangeFactory.NewChange(buffer, txId));
         table.Tracker.AcceptPendingChanges(txId);
 
         // Act
@@ -82,12 +83,12 @@ public sealed class CommandBuilderTest
         CommandBuilder builder = new(_graph, CommandFactory);
         Table table = _graph[typeof(AddressEntity)]!;
 
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
-        Change initial = Change.Initial(buffer, initialTxId);
+        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IChange initial = ChangeFactory.Initial(buffer, initialTxId);
         table.Tracker.PendChange(initial);
         table.Tracker.AcceptPendingChanges(initialTxId);
 
-        table.Tracker.PendChange(initial.Update(buffer, txId));
+        table.Tracker.PendChange(ChangeFactory.Update(initial, buffer, txId));
         table.Tracker.AcceptPendingChanges(txId);
 
         // Act
@@ -124,8 +125,8 @@ public sealed class CommandBuilderTest
         CommandBuilder builder = new(_graph, CommandFactory);
         Table table = _graph[typeof(AddressEntity)]!;
 
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
-        table.Tracker.PendChange(Change.Initial(buffer, initialTxId));
+        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        table.Tracker.PendChange(ChangeFactory.Initial(buffer, initialTxId));
         table.Tracker.AcceptPendingChanges(initialTxId);
         table.Tracker.MarkChangesAsWritten();
 

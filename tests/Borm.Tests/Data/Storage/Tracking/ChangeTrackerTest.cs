@@ -2,7 +2,7 @@
 using Borm.Data.Storage.Tracking;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
-using static Borm.Tests.Mocks.ValueBufferMockHelper;
+using static Borm.Tests.Mocks.ValueBufferMockFactory;
 
 namespace Borm.Tests.Data.Storage.Tracking;
 
@@ -16,18 +16,20 @@ public sealed class ChangeTrackerTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeTracker tracker = new();
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long txId = 0;
-        Change incoming = Change.NewChange(buffer, txId);
+        IChange incoming = ChangeFactory.NewChange(buffer, txId);
         tracker.PendChange(incoming);
 
         // Act
         tracker.AcceptPendingChanges(txId);
 
         // Assert
-        IEnumerable<Change> changes = tracker.Changes;
+        IEnumerable<IChange> changes = tracker.Changes;
         Assert.Single(changes);
-        Change actual = changes.First();
+        IChange actual = changes.First();
 
         Assert.Equal(incoming.Record, actual.Record);
         Assert.Equal(incoming.WriteId, actual.WriteId);
@@ -44,7 +46,7 @@ public sealed class ChangeTrackerTest
         tracker.AcceptPendingChanges(0);
 
         // Assert
-        IEnumerable<Change> changes = tracker.Changes;
+        IEnumerable<IChange> changes = tracker.Changes;
         Assert.Empty(changes);
     }
 
@@ -54,15 +56,17 @@ public sealed class ChangeTrackerTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeTracker tracker = new();
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long txId = 0;
-        Change incoming = Change.NewChange(buffer, txId);
+        IChange incoming = ChangeFactory.NewChange(buffer, txId);
 
         // Act
         tracker.PendChange(incoming);
 
         // Assert
-        bool exists = tracker.TryGetChange(buffer.PrimaryKey, txId, out Change? actual);
+        bool exists = tracker.TryGetChange(buffer.PrimaryKey, txId, out IChange? actual);
         Assert.True(exists);
         Assert.Equal(incoming, actual);
     }
@@ -73,17 +77,19 @@ public sealed class ChangeTrackerTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeTracker tracker = new();
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long txId = 0;
-        Change incoming0 = Change.NewChange(buffer, txId);
-        Change incoming1 = incoming0.Update(buffer, txId);
+        IChange incoming0 = ChangeFactory.NewChange(buffer, txId);
+        IChange incoming1 = ChangeFactory.Update(incoming0, buffer, txId);
 
         // Act
         tracker.PendChange(incoming0);
         tracker.PendChange(incoming1);
 
         // Assert
-        bool exists = tracker.TryGetChange(buffer.PrimaryKey, txId, out Change? actual);
+        bool exists = tracker.TryGetChange(buffer.PrimaryKey, txId, out IChange? actual);
         Assert.True(exists);
         Assert.NotNull(actual);
         Assert.Equal(incoming1.Record, actual.Record);

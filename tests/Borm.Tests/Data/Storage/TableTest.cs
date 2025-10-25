@@ -6,7 +6,7 @@ using Borm.Data.Storage.Tracking;
 using Borm.Model.Metadata;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
-using static Borm.Tests.Mocks.ValueBufferMockHelper;
+using static Borm.Tests.Mocks.ValueBufferMockFactory;
 
 namespace Borm.Tests.Data.Storage;
 
@@ -21,8 +21,8 @@ public sealed class TableTest
         long initTxId = -1;
         long txId = 0;
         Table table = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
-        table.Tracker.PendChange(Change.Initial(buffer, initTxId));
+        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        table.Tracker.PendChange(ChangeFactory.Initial(buffer, initTxId));
         table.Tracker.AcceptPendingChanges(initTxId);
 
         // Act
@@ -30,7 +30,7 @@ public sealed class TableTest
         table.Tracker.AcceptPendingChanges(txId);
 
         // Assert
-        ImmutableList<Change> changes = table.Tracker.Changes;
+        ImmutableList<IChange> changes = table.Tracker.Changes;
 
         Assert.Single(changes);
         Assert.Equal(RowAction.Delete, changes[0].RowAction);
@@ -44,7 +44,7 @@ public sealed class TableTest
         // Arrange
         long txId = 0;
         Table table = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
+        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
 
         // Act
         Exception? exception = Record.Exception(() => table.Delete(buffer, txId));
@@ -72,7 +72,7 @@ public sealed class TableTest
     public void Equals_ReturnsTrue_WhenTablesAreEqual()
     {
         // Arrange
-        EntityMetadata metadata = _graph[typeof(AddressEntity)]!.Metadata;
+        IEntityMetadata metadata = _graph[typeof(AddressEntity)]!.Metadata;
         Table first = new(metadata);
         Table second = new(metadata);
 
@@ -89,18 +89,38 @@ public sealed class TableTest
         // Arrange
         long txId = 0;
         Table table = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
+        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
 
         // Act
         table.Insert(buffer, txId);
         table.Tracker.AcceptPendingChanges(txId);
 
         // Assert
-        ImmutableList<Change> changes = table.Tracker.Changes;
+        ImmutableList<IChange> changes = table.Tracker.Changes;
 
         Assert.Single(changes);
         Assert.Equal(RowAction.Insert, changes[0].RowAction);
         Assert.Equal(buffer, changes[0].Record);
+    }
+
+    [Fact]
+    public void Insert_ThrowsConstraintException_WhenIncomingBufferViolatesConstraints()
+    {
+        // Arrange
+        long txId = 0;
+        Table table = _graph[typeof(AddressEntity)]!;
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns([1, DBNull.Value, DBNull.Value, "city"], table.Metadata)
+        );
+
+        // Act
+        Exception? exception = Record.Exception(() => table.Insert(buffer, txId));
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<ConstraintException>(exception);
+
+        Assert.Empty(table.Tracker.Changes);
     }
 
     [Fact]
@@ -110,8 +130,8 @@ public sealed class TableTest
         long initTxId = -1;
         long txId = 0;
         Table table = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
-        table.Tracker.PendChange(Change.Initial(buffer, initTxId));
+        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        table.Tracker.PendChange(ChangeFactory.Initial(buffer, initTxId));
         table.Tracker.AcceptPendingChanges(initTxId);
 
         // Act
@@ -122,24 +142,6 @@ public sealed class TableTest
         Assert.IsType<ConstraintException>(exception);
 
         Assert.Single(table.Tracker.Changes);
-    }
-
-    [Fact]
-    public void Insert_ThrowsConstraintException_WhenIncomingBufferViolatesConstraints()
-    {
-        // Arrange
-        long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer([1, DBNull.Value, DBNull.Value, "city"], table);
-
-        // Act
-        Exception? exception = Record.Exception(() => table.Insert(buffer, txId));
-
-        // Assert
-        Assert.NotNull(exception);
-        Assert.IsType<ConstraintException>(exception);
-
-        Assert.Empty(table.Tracker.Changes);
     }
 
     [Fact]
@@ -173,7 +175,7 @@ public sealed class TableTest
         resultSet.AddRow(row);
         long initTxId = -1;
         Table table = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
+        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
 
         // Act
         table.Load(resultSet, initTxId);
@@ -182,7 +184,7 @@ public sealed class TableTest
         // Assert
         Assert.Single(table.Tracker.Changes);
 
-        Change change = table.Tracker.Changes[0];
+        IChange change = table.Tracker.Changes[0];
         Assert.Equal(RowAction.None, change.RowAction);
         Assert.True(change.IsWrittenToDataSource);
         Assert.Equal(buffer, change.Record);
@@ -195,9 +197,11 @@ public sealed class TableTest
         long initTxId = -1;
         long txId = 0;
         Table table = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
-        ValueBuffer bufferUpdate = CreateBuffer([1, "address", "address_1", "city"], table);
-        table.Tracker.PendChange(Change.Initial(buffer, initTxId));
+        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IValueBuffer bufferUpdate = CreateBuffer(
+            MapValuesToColumns([1, "address", "address_1", "city"], table.Metadata)
+        );
+        table.Tracker.PendChange(ChangeFactory.Initial(buffer, initTxId));
         table.Tracker.AcceptPendingChanges(initTxId);
 
         // Act
@@ -205,7 +209,7 @@ public sealed class TableTest
         table.Tracker.AcceptPendingChanges(txId);
 
         // Assert
-        ImmutableList<Change> changes = table.Tracker.Changes;
+        ImmutableList<IChange> changes = table.Tracker.Changes;
         Assert.Single(changes);
         Assert.Equal(RowAction.Update, changes[0].RowAction);
         Assert.Equal(bufferUpdate, changes[0].Record);
@@ -218,9 +222,11 @@ public sealed class TableTest
         long initTxId = -1;
         long txId = 0;
         Table table = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
-        ValueBuffer bufferUpdate = CreateBuffer([1, DBNull.Value, "address_1", "city"], table);
-        table.Tracker.PendChange(Change.Initial(buffer, initTxId));
+        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IValueBuffer bufferUpdate = CreateBuffer(
+            MapValuesToColumns([1, DBNull.Value, "address_1", "city"], table.Metadata)
+        );
+        table.Tracker.PendChange(ChangeFactory.Initial(buffer, initTxId));
         table.Tracker.AcceptPendingChanges(initTxId);
 
         // Act
@@ -230,7 +236,7 @@ public sealed class TableTest
         Assert.NotNull(exception);
         Assert.IsType<ConstraintException>(exception);
 
-        ImmutableList<Change> changes = table.Tracker.Changes;
+        ImmutableList<IChange> changes = table.Tracker.Changes;
         Assert.Single(changes);
         Assert.Equal(RowAction.None, changes[0].RowAction);
         Assert.Equal(buffer, changes[0].Record);
@@ -242,7 +248,7 @@ public sealed class TableTest
         // Arrange
         long txId = 0;
         Table table = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
+        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
 
         // Act
         Exception? exception = Record.Exception(() => table.Update(buffer, txId));

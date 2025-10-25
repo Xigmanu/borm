@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using Borm.Model;
 using Borm.Model.Metadata;
+using Borm.Reflection;
 
 namespace Borm.Tests.Model.Metadata;
 
@@ -14,8 +15,20 @@ public sealed class EntityMetadataValidatorTest
         // Arrange
         ColumnMetadataList columns = new(
             [
-                new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey),
-                new ColumnMetadata(index, "bar", "Bar", typeof(string), Constraints.AllowDbNull),
+                new ColumnMetadata(
+                    0,
+                    "foo",
+                    "Foo",
+                    new NullableType(typeof(int), isNullable: false),
+                    Constraints.PrimaryKey
+                ),
+                new ColumnMetadata(
+                    index,
+                    "bar",
+                    "Bar",
+                    new NullableType(typeof(string), isNullable: true),
+                    Constraints.AllowDbNull
+                ),
             ]
         );
         EntityMetadata info = new("foo", typeof(object), columns);
@@ -36,15 +49,35 @@ public sealed class EntityMetadataValidatorTest
         // Arrange
         ColumnMetadataList columns0 = new(
             [
-                new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey),
-                new ColumnMetadata(1, "bar", "Bar", typeof(object), Constraints.AllowDbNull)
+                new ColumnMetadata(
+                    0,
+                    "foo",
+                    "Foo",
+                    new NullableType(typeof(int), isNullable: false),
+                    Constraints.PrimaryKey
+                ),
+                new ColumnMetadata(
+                    1,
+                    "bar",
+                    "Bar",
+                    new NullableType(typeof(object), isNullable: true),
+                    Constraints.AllowDbNull
+                )
                 {
                     Reference = typeof(EntityB),
                 },
             ]
         );
         ColumnMetadataList columns1 = new(
-            [new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey)]
+            [
+                new ColumnMetadata(
+                    0,
+                    "foo",
+                    "Foo",
+                    new NullableType(typeof(int), isNullable: false),
+                    Constraints.PrimaryKey
+                ),
+            ]
         );
 
         EntityMetadata info0 = new("foo", typeof(EntityA), columns0);
@@ -66,8 +99,20 @@ public sealed class EntityMetadataValidatorTest
         // Arrange
         ColumnMetadataList columns = new(
             [
-                new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey),
-                new ColumnMetadata(1, "bar", "Bar", typeof(int), Constraints.PrimaryKey),
+                new ColumnMetadata(
+                    0,
+                    "foo",
+                    "Foo",
+                    new NullableType(typeof(int), isNullable: false),
+                    Constraints.PrimaryKey
+                ),
+                new ColumnMetadata(
+                    1,
+                    "bar",
+                    "Bar",
+                    new NullableType(typeof(int), isNullable: false),
+                    Constraints.PrimaryKey
+                ),
             ]
         );
         EntityMetadata info = new("foo", typeof(EntityA), columns);
@@ -92,7 +137,7 @@ public sealed class EntityMetadataValidatorTest
                     0,
                     "foo",
                     "Foo",
-                    typeof(int),
+                    new NullableType(typeof(int?), isNullable: true),
                     Constraints.PrimaryKey | Constraints.AllowDbNull
                 ),
             ]
@@ -114,7 +159,15 @@ public sealed class EntityMetadataValidatorTest
     {
         // Arrange
         ColumnMetadataList columns = new(
-            [new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.None)]
+            [
+                new ColumnMetadata(
+                    0,
+                    "foo",
+                    "Foo",
+                    new NullableType(typeof(int), isNullable: false),
+                    Constraints.None
+                ),
+            ]
         );
         EntityMetadata info = new("foo", typeof(EntityA), columns);
 
@@ -134,8 +187,20 @@ public sealed class EntityMetadataValidatorTest
         // Arrange
         ColumnMetadataList columns0 = new(
             [
-                new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey),
-                new ColumnMetadata(1, "bar", "Bar", typeof(float?), Constraints.AllowDbNull)
+                new ColumnMetadata(
+                    0,
+                    "foo",
+                    "Foo",
+                    new NullableType(typeof(int), isNullable: false),
+                    Constraints.PrimaryKey
+                ),
+                new ColumnMetadata(
+                    1,
+                    "bar",
+                    "Bar",
+                    new NullableType(typeof(float?), isNullable: true),
+                    Constraints.AllowDbNull
+                )
                 {
                     Reference = typeof(float),
                 },
@@ -161,15 +226,35 @@ public sealed class EntityMetadataValidatorTest
         // Arrange
         ColumnMetadataList columns0 = new(
             [
-                new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey),
-                new ColumnMetadata(1, "bar", "Bar", references, Constraints.None)
+                new ColumnMetadata(
+                    0,
+                    "foo",
+                    "Foo",
+                    new NullableType(typeof(int), isNullable: false),
+                    Constraints.PrimaryKey
+                ),
+                new ColumnMetadata(
+                    1,
+                    "bar",
+                    "Bar",
+                    new NullableType(references, isNullable: false),
+                    Constraints.None
+                )
                 {
                     Reference = typeof(EntityB),
                 },
             ]
         );
         ColumnMetadataList columns1 = new(
-            [new ColumnMetadata(0, "foo", "Foo", typeof(int), Constraints.PrimaryKey)]
+            [
+                new ColumnMetadata(
+                    0,
+                    "foo",
+                    "Foo",
+                    new NullableType(typeof(int), isNullable: false),
+                    Constraints.PrimaryKey
+                ),
+            ]
         );
 
         EntityMetadata info0 = new("foo", typeof(EntityA), columns0);

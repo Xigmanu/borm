@@ -1,8 +1,9 @@
 ﻿using Borm.Data.Storage;
 using Borm.Data.Storage.Tracking;
+using Borm.Model.Metadata;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
-using static Borm.Tests.Mocks.ValueBufferMockHelper;
+using static Borm.Tests.Mocks.ValueBufferMockFactory;
 
 namespace Borm.Tests.Data.Storage;
 
@@ -14,7 +15,9 @@ public sealed class BufferPreProcessorTest
     public void ResolveForeignKeys_ReturnsEmptyListAndSameBuffer_WhenValueBufferIsSimple()
     {
         // Arrange
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, _graph[typeof(AddressEntity)]!);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, _graph[typeof(AddressEntity)]!.Metadata)
+        );
         long txId = 0;
         BufferPreProcessor preProcessor = new(_graph);
 
@@ -27,7 +30,7 @@ public sealed class BufferPreProcessorTest
 
         // Assert
         Assert.Empty(resolved);
-        Assert.Equal(buffer, processed);
+        AssertBuffersAreEqual(buffer, processed);
     }
 
     [Fact]
@@ -38,12 +41,16 @@ public sealed class BufferPreProcessorTest
         Table personTable = _graph[typeof(PersonEntity)]!;
         long initialTxId = -1;
 
-        ValueBuffer addressBuffer = CreateBuffer(AddressesDummyData, addressTable);
-        addressTable.Tracker.PendChange(Change.Initial(addressBuffer, initialTxId));
+        IValueBuffer addressBuffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressTable.Metadata)
+        );
+        addressTable.Tracker.PendChange(ChangeFactory.Initial(addressBuffer, initialTxId));
         addressTable.Tracker.AcceptPendingChanges(initialTxId);
 
         AddressEntity address = new(1, "address", null, "city");
-        ValueBuffer buffer = CreateBuffer([1, "name", 42.619, address], personTable);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns([1, "name", 42.619, address], personTable.Metadata)
+        );
 
         ResolvedForeignKey expectedResolvedKey = new(
             addressTable,
@@ -52,7 +59,9 @@ public sealed class BufferPreProcessorTest
             IsComplexRecord: true,
             true
         );
-        ValueBuffer expectedProcessedBuffer = CreateBuffer(PersonsDummyData, personTable);
+        IValueBuffer expectedProcessedBuffer = CreateBuffer(
+            MapValuesToColumns(PersonsDummyData, personTable.Metadata)
+        );
 
         BufferPreProcessor preProcessor = new(_graph);
 
@@ -66,7 +75,7 @@ public sealed class BufferPreProcessorTest
         // Assert
         Assert.Single(resolved);
         Assert.Equal(expectedResolvedKey, resolved[0]);
-        Assert.Equal(expectedProcessedBuffer, processed);
+        AssertBuffersAreEqual(expectedProcessedBuffer, processed);
     }
 
     [Fact]
@@ -77,13 +86,15 @@ public sealed class BufferPreProcessorTest
         Table personTable = _graph[typeof(PersonEntity)]!;
         long initialTxId = -1;
 
-        ValueBuffer personBuffer = CreateBuffer(PersonsDummyData, personTable);
-        personTable.Tracker.PendChange(
-            Change.Initial(personBuffer, initialTxId)
+        IValueBuffer personBuffer = CreateBuffer(
+            MapValuesToColumns(PersonsDummyData, personTable.Metadata)
         );
+        personTable.Tracker.PendChange(ChangeFactory.Initial(personBuffer, initialTxId));
         personTable.Tracker.AcceptPendingChanges(initialTxId);
 
-        ValueBuffer buffer = CreateBuffer(EmployeesDummyData, employeeTable);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(EmployeesDummyData, employeeTable.Metadata)
+        );
 
         ResolvedForeignKey expectedResolvedKey = new(
             personTable,
@@ -105,6 +116,15 @@ public sealed class BufferPreProcessorTest
         // Assert
         Assert.Single(resolved);
         Assert.Equal(expectedResolvedKey, resolved[0]);
-        Assert.Equal(buffer, processed);
+        AssertBuffersAreEqual(buffer, processed);
+    }
+
+    private static void AssertBuffersAreEqual(IValueBuffer expected, IValueBuffer actual)
+    {
+        foreach ((IColumnMetadata column, object value) in expected)
+        {
+            object actual1 = actual[column];
+            Assert.Equal(value, actual1);
+        }
     }
 }

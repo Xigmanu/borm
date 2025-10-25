@@ -17,7 +17,7 @@ public sealed class ColumnMetadataTest
             1,
             expectedName,
             expectedPropName,
-            typeof(int),
+            new Borm.Reflection.NullableType(typeof(int), isNullable: false),
             Constraints.None
         );
 

@@ -65,7 +65,8 @@ public sealed class EntityModel
                 );
             }
 
-            EntityTypeInfo reflectedInfo = parser.Parse(entityType, _entityValidators[entityType]);
+            _entityValidators.TryGetValue(entityType, out Action<object>? validate);
+            EntityTypeInfo reflectedInfo = parser.Parse(entityType, validate);
             reflectedInfos.Add(reflectedInfo);
         }
 

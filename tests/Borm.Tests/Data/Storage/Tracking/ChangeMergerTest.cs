@@ -2,7 +2,7 @@
 using Borm.Data.Storage.Tracking;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
-using static Borm.Tests.Mocks.ValueBufferMockHelper;
+using static Borm.Tests.Mocks.ValueBufferMockFactory;
 
 namespace Borm.Tests.Data.Storage.Tracking;
 
@@ -15,16 +15,20 @@ public sealed class ChangeMergerTest
     {
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer initBuffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long initTxId = 0;
-        Change initChange = Change.NewChange(initBuffer, initTxId);
+        IChange initChange = ChangeFactory.NewChange(initBuffer, initTxId);
 
         long txId = 1;
-        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"], addressesTable);
-        Change incoming = initChange.Update(buffer, txId);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata)
+        );
+        IChange incoming = ChangeFactory.Update(initChange, buffer, txId);
 
         // Act
-        Change? merged = Merger.CommitMerge(initChange, incoming);
+        IChange? merged = Merger.CommitMerge(initChange, incoming);
 
         // Assert
         Assert.NotNull(merged);
@@ -39,15 +43,19 @@ public sealed class ChangeMergerTest
     {
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer initBuffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long initTxId = 0;
-        Change initChange = Change.Initial(initBuffer, initTxId);
+        IChange initChange = ChangeFactory.Initial(initBuffer, initTxId);
 
-        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"], addressesTable);
-        Change incoming = initChange.Update(buffer, initTxId);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata)
+        );
+        IChange incoming = ChangeFactory.Update(initChange, buffer, initTxId);
 
         // Act
-        Change? merged = Merger.Merge(initChange, incoming);
+        IChange? merged = Merger.Merge(initChange, incoming);
 
         // Assert
         Assert.NotNull(merged);
@@ -59,16 +67,20 @@ public sealed class ChangeMergerTest
     {
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer initBuffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long initTxId = 0;
-        Change initChange = Change.NewChange(initBuffer, initTxId);
+        IChange initChange = ChangeFactory.NewChange(initBuffer, initTxId);
 
         long txId = 1;
-        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"], addressesTable);
-        Change incoming = initChange.Update(buffer, txId);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata)
+        );
+        IChange incoming = ChangeFactory.Update(initChange, buffer, txId);
 
         // Act
-        Change? merged = Merger.Merge(initChange, incoming);
+        IChange? merged = Merger.Merge(initChange, incoming);
 
         // Assert
         Assert.NotNull(merged);
@@ -83,16 +95,20 @@ public sealed class ChangeMergerTest
     {
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer initBuffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long initTxId = 0;
-        Change initChange = Change.Initial(initBuffer, initTxId);
+        IChange initChange = ChangeFactory.Initial(initBuffer, initTxId);
 
         long txId = 1;
-        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"], addressesTable);
-        Change incoming = initChange.Update(buffer, txId);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata)
+        );
+        IChange incoming = ChangeFactory.Update(initChange, buffer, txId);
 
         // Act
-        Change? merged = Merger.Merge(initChange, incoming);
+        IChange? merged = Merger.Merge(initChange, incoming);
 
         // Assert
         Assert.NotNull(merged);
@@ -107,15 +123,17 @@ public sealed class ChangeMergerTest
     {
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer initBuffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long initTxId = 0;
-        Change initChange = Change.NewChange(initBuffer, initTxId);
+        IChange initChange = ChangeFactory.NewChange(initBuffer, initTxId);
 
         long txId = 1;
-        Change incoming = initChange.Delete(initBuffer, txId);
+        IChange incoming = ChangeFactory.Delete(initChange, initBuffer, txId);
 
         // Act
-        Change? merged = Merger.Merge(initChange, incoming);
+        IChange? merged = Merger.Merge(initChange, incoming);
 
         // Assert
         Assert.Null(merged);
@@ -126,13 +144,17 @@ public sealed class ChangeMergerTest
     {
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ValueBuffer initBuffer = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer initBuffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long initTxId = 1;
-        Change initChange = Change.Initial(initBuffer, initTxId);
+        IChange initChange = ChangeFactory.Initial(initBuffer, initTxId);
 
         long txId = 0;
-        ValueBuffer buffer = CreateBuffer([1, "address", "address_1", "city"], addressesTable);
-        Change incoming = Change.Initial(buffer, txId);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata)
+        );
+        IChange incoming = ChangeFactory.Initial(buffer, txId);
 
         // Act
         Exception? exception = Record.Exception(() => _ = Merger.Merge(initChange, incoming));

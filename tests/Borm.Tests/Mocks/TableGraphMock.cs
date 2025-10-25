@@ -8,9 +8,9 @@ internal static class TableGraphMock
     {
         TableGraph graph = new();
 
-        Table addressesTable = new(EntityMetadataMocks.AddressesMetadata);
-        Table personsTable = new(EntityMetadataMocks.PersonsMetadata);
-        Table employeesTable = new(EntityMetadataMocks.EmployeesMetadata);
+        Table addressesTable = new(EntityMetadataMockFactory.CreateMockAddressEntity());
+        Table personsTable = new(EntityMetadataMockFactory.CreateMockPersonEntity());
+        Table employeesTable = new(EntityMetadataMockFactory.CreateMockEmployeeEntity());
 
         graph.AddTable(addressesTable);
         graph.AddTable(personsTable);

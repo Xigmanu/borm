@@ -216,13 +216,13 @@ public sealed class TableGraphTest
     private static List<ColumnInfo> CreateTestColumns(Table table)
     {
         List<ColumnInfo> columns = [];
-        foreach (ColumnMetadata columnMetadata in table.Metadata.Columns)
+        foreach (IColumnMetadata columnMetadata in table.Metadata.Columns)
         {
             ColumnInfo columnSchema = new(
                 columnMetadata.Name,
-                columnMetadata.DataType == columnMetadata.Reference
+                columnMetadata.DataType.UnderlyingType == columnMetadata.Reference
                     ? typeof(int)
-                    : columnMetadata.DataType,
+                    : columnMetadata.DataType.UnderlyingType,
                 columnMetadata.Constraints.HasFlag(Borm.Model.Constraints.Unique),
                 columnMetadata.Constraints.HasFlag(Borm.Model.Constraints.AllowDbNull)
             );
