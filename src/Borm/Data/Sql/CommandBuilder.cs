@@ -19,7 +19,7 @@ internal sealed class CommandBuilder
 
     public IEnumerable<DbCommandDefinition> BuildUpdateCommands(Table table)
     {
-        IEnumerable<Change> changes = table.Tracker.Changes;
+        IEnumerable<IChange> changes = table.Tracker.Changes;
         if (!changes.Any())
         {
             return [];
@@ -27,7 +27,7 @@ internal sealed class CommandBuilder
 
         TableInfo schema = _graph.GetTableSchema(table);
 
-        foreach (Change change in changes)
+        foreach (IChange change in changes)
         {
             RowAction action = change.RowAction;
             DbCommandDefinition? command = change.RowAction switch
@@ -41,7 +41,7 @@ internal sealed class CommandBuilder
             if (command != null)
             {
                 Debug.Assert(!string.IsNullOrEmpty(command.Sql));
-                command.BatchQueue.Enqueue(change.Buffer);
+                command.BatchQueue.Enqueue(change.Record);
             }
         }
 

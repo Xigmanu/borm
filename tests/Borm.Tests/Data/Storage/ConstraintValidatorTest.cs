@@ -3,7 +3,7 @@ using Borm.Data.Storage;
 using Borm.Data.Storage.Tracking;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
-using static Borm.Tests.Mocks.ValueBufferMockHelper;
+using static Borm.Tests.Mocks.ValueBufferMockFactory;
 
 namespace Borm.Tests.Data.Storage;
 
@@ -16,7 +16,9 @@ public sealed class ConstraintValidatorTest
     {
         // Arrange
         Table table = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer([1, "address", DBNull.Value, DBNull.Value], table);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns([1, "address", DBNull.Value, DBNull.Value], table.Metadata)
+        );
 
         ConstraintValidator validator = new(table);
 
@@ -33,8 +35,8 @@ public sealed class ConstraintValidatorTest
     {
         // Arrange
         Table table = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
-        table.Tracker.PendChange(Change.NewChange(buffer, -1));
+        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        table.Tracker.PendChange(ChangeFactory.NewChange(buffer, -1));
         table.Tracker.AcceptPendingChanges(-1);
 
         ConstraintValidator validator = new(table);
@@ -52,7 +54,7 @@ public sealed class ConstraintValidatorTest
     {
         // Arrange
         Table table = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, table);
+        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
 
         ConstraintValidator validator = new(table);
 

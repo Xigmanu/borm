@@ -1,54 +1,48 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
 using Borm.Properties;
+using Borm.Reflection;
 
 namespace Borm.Model.Metadata;
 
-internal sealed class ConstructorSelector
+internal static class ConstructorSelector
 {
-    private readonly ColumnMetadataCollection _columns;
-    private readonly ConstructorInfo[] _entityConstructors;
-
-    public ConstructorSelector(
-        ColumnMetadataCollection columns,
-        ConstructorInfo[] entityConstructors
+    public static Constructor? FindMappingCtor(
+        IReadOnlyList<Constructor> constructors,
+        HashSet<string> columnNames
     )
     {
-        _columns = columns;
-        _entityConstructors = entityConstructors;
-    }
-
-    public ConstructorInfo? Select()
-    {
-        if (_entityConstructors[0].GetParameters().Length == 0)
+        if (constructors.Count == 1 && constructors[0].Parameters.Count == 0)
         {
-            return null;
+            return constructors[0];
         }
 
-        for (int i = 0; i < _entityConstructors.Length; i++)
+        for (int i = 0; i < constructors.Count; i++)
         {
-            ConstructorInfo current = _entityConstructors[i];
-            List<ParameterInfo> parameters = [.. current.GetParameters()];
-            if (_columns.Count == parameters.Count && IsCtorParamListValid(parameters))
+            Constructor current = constructors[i];
+            if (
+                columnNames.Count == current.Parameters.Count
+                && IsCtorParamListValid(current.Parameters, columnNames)
+            )
             {
                 return current;
             }
         }
 
-        throw new MissingMethodException(
-            Strings.InvalidEntityTypeConstructor(_entityConstructors[0].DeclaringType!.FullName!)
-        );
+        return null;
     }
 
-    private bool IsCtorParamListValid(List<ParameterInfo> parameters)
+    private static bool IsCtorParamListValid(
+        IReadOnlyList<MappingMember> parameters,
+        HashSet<string> columnNames
+    )
     {
-        HashSet<string> columnNameSet = [.. _columns.Select(column => column.Name)];
-        Debug.Assert(columnNameSet.Count == parameters.Count);
+        Debug.Assert(columnNames.Count == parameters.Count);
 
-        foreach (string? parameterName in parameters.Select(param => param.Name))
+        foreach (string? parameterName in parameters.Select(param => param.MemberName))
         {
             Debug.Assert(parameterName != null);
-            if (!columnNameSet.Contains(parameterName))
+            if (!columnNames.Contains(parameterName))
             {
                 return false;
             }

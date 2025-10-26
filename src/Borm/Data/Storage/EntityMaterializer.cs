@@ -13,23 +13,27 @@ internal sealed class EntityMaterializer
         _graph = graph;
     }
 
-    public object Materialize(ValueBuffer buffer, Table table)
+    public object Materialize(IValueBuffer buffer, Table table)
     {
         ValueBuffer tempBuffer = new();
 
-        foreach ((ColumnMetadata column, object columnValue) in buffer)
+        foreach ((IColumnMetadata column, object columnValue) in buffer)
         {
-            bool isSimpleValue =
-                column.Reference == null
-                || column.Reference != column.DataType
-                || columnValue.Equals(DBNull.Value);
-
+            bool isSimpleValue = IsColumnValueSimple(column, columnValue);
             tempBuffer[column] = isSimpleValue
                 ? columnValue
                 : MaterializeParent(_graph[column.Reference!]!, columnValue);
         }
 
-        return table.Metadata.Binding.MaterializeEntity(tempBuffer);
+        return table.Metadata.Conversion.MaterializeEntity(tempBuffer);
+    }
+
+    [DebuggerStepThrough]
+    private static bool IsColumnValueSimple(IColumnMetadata column, object columnValue)
+    {
+        return column.Reference == null
+            || column.Reference != column.DataType.UnderlyingType
+            || columnValue.Equals(DBNull.Value);
     }
 
     private object MaterializeParent(Table parent, object columnValue)
@@ -39,11 +43,11 @@ internal sealed class EntityMaterializer
         bool changeExists = parent.Tracker.TryGetChange(
             columnValue,
             Transaction.InitId,
-            out Change? change
+            out IChange? change
         );
         if (changeExists)
         {
-            return Materialize(change!.Buffer, parent);
+            return Materialize(change!.Record, parent);
         }
 
         return DBNull.Value;

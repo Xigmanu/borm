@@ -1,5 +1,6 @@
 ﻿using Borm.Model;
 using Borm.Model.Metadata;
+using Borm.Reflection;
 
 namespace Borm.Tests.Model.Metadata;
 
@@ -9,7 +10,7 @@ public sealed class EntityMetadataTest
     public void Constructor_ThrowsArgumentException_WhenColumnCollectionIsEmpty()
     {
         // Arrange
-        ColumnMetadataCollection columns = new([]);
+        ColumnMetadataList columns = new([]);
 
         // Act
         Exception exception = Record.Exception(
@@ -24,8 +25,14 @@ public sealed class EntityMetadataTest
     public void Equals_ReturnsFalse_WhenEntityNamesAreNotEqual()
     {
         // Arrange
-        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
-        ColumnMetadataCollection columns = new([pkColumn]);
+        ColumnMetadata pkColumn = new(
+            0,
+            "id",
+            "Id",
+            new NullableType(typeof(int), isNullable: false),
+            Constraints.PrimaryKey
+        );
+        ColumnMetadataList columns = new([pkColumn]);
         EntityMetadata metadata = new("foo", typeof(object), columns);
         EntityMetadata other = new("bar", typeof(object), columns);
 
@@ -42,8 +49,14 @@ public sealed class EntityMetadataTest
     public void Equals_ReturnsFalse_WhenOtherIsOfDifferentTypeOrNull(object? other)
     {
         // Arrange
-        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
-        ColumnMetadataCollection columns = new([pkColumn]);
+        ColumnMetadata pkColumn = new(
+            0,
+            "id",
+            "Id",
+            new NullableType(typeof(int), isNullable: false),
+            Constraints.PrimaryKey
+        );
+        ColumnMetadataList columns = new([pkColumn]);
         EntityMetadata metadata = new("foo", typeof(object), columns);
 
         // Act
@@ -57,8 +70,14 @@ public sealed class EntityMetadataTest
     public void Equals_ReturnsTrue_WhenEntityNamesAreEqual()
     {
         // Arrange
-        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
-        ColumnMetadataCollection columns = new([pkColumn]);
+        ColumnMetadata pkColumn = new(
+            0,
+            "id",
+            "Id",
+            new NullableType(typeof(int), isNullable: false),
+            Constraints.PrimaryKey
+        );
+        ColumnMetadataList columns = new([pkColumn]);
         EntityMetadata metadata = new("foo", typeof(object), columns);
         EntityMetadata other = new("foo", typeof(object), columns);
 
@@ -73,12 +92,18 @@ public sealed class EntityMetadataTest
     public void PrimaryKey_ReturnsPrimaryKeyColumn()
     {
         // Arrange
-        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.PrimaryKey);
-        ColumnMetadataCollection columns = new([pkColumn]);
+        ColumnMetadata pkColumn = new(
+            0,
+            "id",
+            "Id",
+            new NullableType(typeof(int), isNullable: false),
+            Constraints.PrimaryKey
+        );
+        ColumnMetadataList columns = new([pkColumn]);
         EntityMetadata info = new("foo", typeof(object), columns);
 
         // Act
-        ColumnMetadata actualPk = info.PrimaryKey;
+        IColumnMetadata actualPk = info.PrimaryKey;
 
         // Assert
         Assert.Equal(pkColumn.Name, actualPk.Name);
@@ -88,8 +113,14 @@ public sealed class EntityMetadataTest
     public void PrimaryKey_ThrowsInvalidOperationException_WhenEntityNodeHasNoPrimaryKey()
     {
         // Arrange
-        ColumnMetadata pkColumn = new(0, "id", "Id", typeof(int), Constraints.None);
-        ColumnMetadataCollection columns = new([pkColumn]);
+        ColumnMetadata pkColumn = new(
+            0,
+            "id",
+            "Id",
+            new NullableType(typeof(int), isNullable: false),
+            Constraints.None
+        );
+        ColumnMetadataList columns = new([pkColumn]);
         EntityMetadata info = new("foo", typeof(object), columns);
 
         // Act

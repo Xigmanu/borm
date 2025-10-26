@@ -108,21 +108,16 @@ public sealed class DataContext
     public void Initialize()
     {
         EntityModel model = _configuration.Model;
-        IEnumerable<ReflectedTypeInfo> typeInfos = model.GetReflectedInfo();
+        IEnumerable<EntityTypeInfo> typeInfos = model.GetReflectedInfo();
         if (!typeInfos.Any())
         {
             return;
         }
 
-        List<EntityMetadata> entityInfos = new(typeInfos.Count());
-        foreach (ReflectedTypeInfo typeInfo in typeInfos)
+        List<IEntityMetadata> entityInfos = new(typeInfos.Count());
+        foreach (EntityTypeInfo typeInfo in typeInfos)
         {
-            EntityMetadata entityMetadata = EntityMetadataBuilder.Build(typeInfo);
-
-            EntityMaterializationBinding binding = new(typeInfo.Type, entityMetadata.Columns);
-            entityMetadata.Binding = binding.CreateBinding();
-            entityMetadata.Validator = model.GetValidatorFunc(typeInfo.Type);
-
+            IEntityMetadata entityMetadata = EntityMetadataBuilder.Build(typeInfo);
             entityInfos.Add(entityMetadata);
         }
 

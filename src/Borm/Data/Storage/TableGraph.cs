@@ -20,7 +20,7 @@ internal sealed class TableGraph
     public int TableCount => _tables.Count;
 
     public Table? this[Type entityType] =>
-        _tables.FirstOrDefault(t => t.Metadata.DataType.Equals(entityType));
+        _tables.FirstOrDefault(t => t.Metadata.Type.Equals(entityType));
 
     public void AddEdge(Table parent, Table child)
     {
@@ -51,7 +51,7 @@ internal sealed class TableGraph
         Dictionary<ColumnInfo, TableInfo> fkRelationMap = [];
 
         ColumnInfo? primaryKey = null;
-        foreach (ColumnMetadata column in table.Metadata.Columns)
+        foreach (IColumnMetadata column in table.Metadata.Columns)
         {
             string columnName = column.Name;
             bool isUnique = column.Constraints.HasFlag(Constraints.Unique);
@@ -60,7 +60,7 @@ internal sealed class TableGraph
             ColumnInfo columnInfo;
             if (column.Reference == null)
             {
-                columnInfo = new(columnName, column.DataType, isUnique, isNullable);
+                columnInfo = new(columnName, column.DataType.UnderlyingType, isUnique, isNullable);
                 columns.Add(columnInfo);
 
                 if (column.Constraints.HasFlag(Constraints.PrimaryKey))
@@ -73,7 +73,12 @@ internal sealed class TableGraph
             Table? parent = this[column.Reference!];
             Debug.Assert(parent is not null);
 
-            columnInfo = new(columnName, parent.Metadata.PrimaryKey.DataType, isUnique, isNullable);
+            columnInfo = new(
+                columnName,
+                parent.Metadata.PrimaryKey.DataType.UnderlyingType,
+                isUnique,
+                isNullable
+            );
             TableInfo parentSchema = GetTableSchema(parent);
 
             columns.Add(columnInfo);

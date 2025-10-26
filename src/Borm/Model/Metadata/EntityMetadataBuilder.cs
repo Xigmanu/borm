@@ -1,43 +1,59 @@
 ﻿using System.Data;
+using System.Diagnostics;
+using Borm.Data.Storage;
+using Borm.Model.Metadata.Conversion;
+using Borm.Properties;
 using Borm.Reflection;
 
 namespace Borm.Model.Metadata;
 
 internal static class EntityMetadataBuilder
 {
-    public static EntityMetadata Build(ReflectedTypeInfo entityMetadata)
+    public static IEntityMetadata Build(EntityTypeInfo typeInfo)
     {
-        EntityAttribute entityAttribute = entityMetadata.Attribute;
-        string name = entityAttribute.Name ?? CreateDefaultName(entityMetadata.Type.Name);
+        string name = !string.IsNullOrWhiteSpace(typeInfo.Name)
+            ? typeInfo.Name
+            : CreateDefaultName(typeInfo.Type.Name);
 
-        IEnumerable<ColumnMetadata> columns = entityMetadata
+        IEnumerable<IColumnMetadata> columns = typeInfo
             .Properties.Select(CreateColumnInfo)
             .OrderBy(column => column.Index);
-        ColumnMetadataCollection columnCollection = new(columns);
+        ColumnMetadataList columnCollection = new(columns);
 
-        return new EntityMetadata(name, entityMetadata.Type, columnCollection);
+        IEntityBufferConversion conversion = EntityBufferConversionFactory.Create(
+            typeInfo,
+            columns
+        );
+
+        return new EntityMetadata(
+            name,
+            typeInfo.Type,
+            columnCollection,
+            conversion,
+            typeInfo.Validate
+        );
     }
 
-    private static ColumnMetadata CreateColumnInfo(Property property)
+    private static ColumnMetadata CreateColumnInfo(MappingMember property)
     {
-        ColumnAttribute columnAttribute = property.Attribute;
-
-        string? columnName = columnAttribute.Name ?? CreateDefaultName(property.Name);
+        MappingInfo? mapping = property.Mapping;
+        Debug.Assert(mapping != null);
+        string? columnName = mapping.ColumnName ?? CreateDefaultName(property.MemberName);
 
         Constraints constraints = GetConstraints(property);
 
         ColumnMetadata columnMetadata = new(
-            columnAttribute.Index,
+            mapping.ColumnIndex,
             columnName,
-            property.Name,
-            property.Type,
+            property.MemberName,
+            property.TypeInfo,
             constraints
         );
 
-        if (columnAttribute is ForeignKeyAttribute foreignKeyAttribute)
+        if (mapping.IsForeignKey)
         {
-            columnMetadata.Reference = foreignKeyAttribute.Reference;
-            columnMetadata.OnDelete = foreignKeyAttribute.OnDelete;
+            columnMetadata.Reference = mapping.Reference;
+            columnMetadata.OnDelete = mapping.OnDeleteAction;
         }
 
         return columnMetadata;
@@ -55,19 +71,19 @@ internal static class EntityMetadataBuilder
         return memberName;
     }
 
-    private static Constraints GetConstraints(Property property)
+    private static Constraints GetConstraints(MappingMember property)
     {
         Constraints constraints = Constraints.None;
-        ColumnAttribute attribute = property.Attribute;
-        if (attribute is PrimaryKeyAttribute)
+        MappingInfo mapping = property.Mapping!;
+        if (mapping.IsPrimaryKey)
         {
             constraints |= Constraints.PrimaryKey;
         }
-        else if (property.IsNullable)
+        else if (property.TypeInfo.IsNullable)
         {
             constraints |= Constraints.AllowDbNull;
         }
-        if (attribute.IsUnique)
+        if (mapping.IsUnique)
         {
             constraints |= Constraints.Unique;
         }

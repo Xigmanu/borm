@@ -14,14 +14,14 @@ internal sealed class BufferPreProcessor
     }
 
     public List<ResolvedForeignKey> ResolveForeignKeys(
-        ValueBuffer buffer,
+        IValueBuffer buffer,
         long txId,
-        out ValueBuffer processed
+        out IValueBuffer processed
     )
     {
-        processed = new();
+        processed = new ValueBuffer();
         List<ResolvedForeignKey> resolvedKeys = [];
-        foreach ((ColumnMetadata column, object columnValue) in buffer)
+        foreach ((IColumnMetadata column, object columnValue) in buffer)
         {
             if (!IsValueSimple(column, columnValue))
             {
@@ -40,19 +40,19 @@ internal sealed class BufferPreProcessor
 
     [DebuggerStepThrough]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static bool IsValueSimple(ColumnMetadata column, object columnValue)
+    private static bool IsValueSimple(IColumnMetadata column, object columnValue)
     {
         return column.Reference == null || columnValue.Equals(DBNull.Value);
     }
 
-    private ResolvedForeignKey ResolveKey(ColumnMetadata column, object columnValue, long txId)
+    private ResolvedForeignKey ResolveKey(IColumnMetadata column, object columnValue, long txId)
     {
         Table? parent = _graph[column.Reference!];
         Debug.Assert(parent is not null);
 
         bool changeExists;
-        EntityMetadata metadata = parent.Metadata;
-        if (column.DataType != metadata.DataType)
+        IEntityMetadata metadata = parent.Metadata;
+        if (column.DataType.UnderlyingType != metadata.Type)
         {
             changeExists = parent.Tracker.TryGetChange(primaryKey: columnValue, txId, out _);
             return new ResolvedForeignKey(
@@ -64,7 +64,7 @@ internal sealed class BufferPreProcessor
             );
         }
 
-        ValueBuffer parentBuffer = metadata.Binding.ToValueBuffer(columnValue);
+        IValueBuffer parentBuffer = metadata.Conversion.ToValueBuffer(columnValue);
         object primaryKey = parentBuffer.PrimaryKey;
 
         changeExists = parent.Tracker.TryGetChange(primaryKey, txId, out _);

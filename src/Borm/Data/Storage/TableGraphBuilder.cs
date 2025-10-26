@@ -5,25 +5,25 @@ namespace Borm.Data.Storage;
 
 internal sealed class TableGraphBuilder
 {
-    private readonly Dictionary<Type, EntityMetadata> _entityInfoMap;
+    private readonly Dictionary<Type, IEntityMetadata> _entityInfoMap;
 
-    public TableGraphBuilder(IEnumerable<EntityMetadata> entityInfos)
+    public TableGraphBuilder(IEnumerable<IEntityMetadata> entityInfos)
     {
-        _entityInfoMap = entityInfos.ToDictionary(e => e.DataType);
+        _entityInfoMap = entityInfos.ToDictionary(e => e.Type);
     }
 
     public void Build(TableGraph graph)
     {
         Debug.Assert(graph.TableCount == 0);
-        foreach (EntityMetadata entityMetadata in _entityInfoMap.Values)
+        foreach (IEntityMetadata entityMetadata in _entityInfoMap.Values)
         {
             BuildTableRecursive(entityMetadata, graph);
         }
     }
 
-    private Table BuildTableRecursive(EntityMetadata entityMetadata, TableGraph graph)
+    private Table BuildTableRecursive(IEntityMetadata entityMetadata, TableGraph graph)
     {
-        Table? cached = graph[entityMetadata.DataType];
+        Table? cached = graph[entityMetadata.Type];
         if (cached != null)
         {
             return cached;
@@ -39,7 +39,7 @@ internal sealed class TableGraphBuilder
                 continue;
             }
 
-            if (!_entityInfoMap.TryGetValue(reference, out EntityMetadata? dependency))
+            if (!_entityInfoMap.TryGetValue(reference, out IEntityMetadata? dependency))
             {
                 throw new InvalidOperationException(
                     $"No node found for referenced type {reference}"

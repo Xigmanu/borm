@@ -2,7 +2,7 @@
 using Borm.Data.Storage.Tracking;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
-using static Borm.Tests.Mocks.ValueBufferMockHelper;
+using static Borm.Tests.Mocks.ValueBufferMockFactory;
 
 namespace Borm.Tests.Data.Storage.Tracking;
 
@@ -15,22 +15,24 @@ public sealed class ChangeSetTest
     {
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
-        Change initial = Change.Initial(buffer, -1);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
+        IChange initial = ChangeFactory.Initial(buffer, -1);
 
         ChangeSet changes = [];
         changes.Add(initial);
 
         long txId = 0;
-        Change incoming = initial.Update(buffer, txId);
+        IChange incoming = ChangeFactory.Update(initial, buffer, txId);
 
         // Act
         changes.Add(incoming);
 
         // Assert
         Assert.Single(changes);
-        Change actual = changes.First();
-        Assert.Equal(incoming.WriteTxId, actual.WriteTxId);
+        IChange actual = changes.First();
+        Assert.Equal(incoming.WriteId, actual.WriteId);
     }
 
     [Fact]
@@ -38,14 +40,16 @@ public sealed class ChangeSetTest
     {
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long txId = 0;
-        Change newChange = Change.NewChange(buffer, txId);
+        IChange newChange = ChangeFactory.NewChange(buffer, txId);
 
         ChangeSet changes = [];
         changes.Add(newChange);
 
-        Change incoming = newChange.Delete(buffer, txId);
+        IChange incoming = ChangeFactory.Delete(newChange, buffer, txId);
 
         // Act
         changes.Add(incoming);
@@ -59,9 +63,11 @@ public sealed class ChangeSetTest
     {
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long txId = 0;
-        Change incoming = Change.NewChange(buffer, txId);
+        IChange incoming = ChangeFactory.NewChange(buffer, txId);
 
         ChangeSet changes = [];
 
@@ -70,7 +76,7 @@ public sealed class ChangeSetTest
 
         // Assert
         Assert.Single(changes);
-        Change actual = changes.First();
+        IChange actual = changes.First();
         Assert.Equal(incoming, actual);
     }
 
@@ -79,9 +85,11 @@ public sealed class ChangeSetTest
     {
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long txId = 0;
-        Change incoming = Change.NewChange(buffer, txId);
+        IChange incoming = ChangeFactory.NewChange(buffer, txId);
 
         ChangeSet changes = [];
         changes.Add(incoming);
@@ -91,8 +99,8 @@ public sealed class ChangeSetTest
 
         // Assert
         Assert.Single(changes);
-        Change actual = changes.First();
-        Assert.True(actual.IsWrittenToDb);
+        IChange actual = changes.First();
+        Assert.True(actual.IsWrittenToDataSource);
     }
 
     [Fact]
@@ -100,14 +108,16 @@ public sealed class ChangeSetTest
     {
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
-        Change initial = Change.Initial(buffer, -1);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
+        IChange initial = ChangeFactory.Initial(buffer, -1);
 
         ChangeSet changes = [];
         changes.Add(initial);
 
         long txId = 0;
-        Change incoming = initial.Delete(buffer, txId);
+        IChange incoming = ChangeFactory.Delete(initial, buffer, txId);
         changes.Add(incoming);
 
         // Act
@@ -123,13 +133,17 @@ public sealed class ChangeSetTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeSet existing = [];
-        ValueBuffer initial = CreateBuffer(AddressesDummyData, addressesTable);
-        Change initialChange = Change.Initial(initial, -1);
+        IValueBuffer initial = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
+        IChange initialChange = ChangeFactory.Initial(initial, -1);
         existing.Add(initialChange);
 
         ChangeSet incoming = [];
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
-        Change updateChange = initialChange.Update(buffer, 0);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
+        IChange updateChange = ChangeFactory.Update(initialChange, buffer, 0);
         incoming.Add(updateChange);
 
         // Act
@@ -137,9 +151,9 @@ public sealed class ChangeSetTest
 
         // Assert
         Assert.Single(merged);
-        Change actual = merged.First();
-        Assert.Equal(updateChange.Buffer, actual.Buffer);
-        Assert.Equal(updateChange.WriteTxId, actual.WriteTxId);
+        IChange actual = merged.First();
+        Assert.Equal(updateChange.Record, actual.Record);
+        Assert.Equal(updateChange.WriteId, actual.WriteId);
     }
 
     [Fact]
@@ -148,14 +162,18 @@ public sealed class ChangeSetTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeSet existing = [];
-        ValueBuffer initial = CreateBuffer(AddressesDummyData, addressesTable);
+        IValueBuffer initial = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
         long txId = 0;
-        Change initialChange = Change.NewChange(initial, txId);
+        IChange initialChange = ChangeFactory.NewChange(initial, txId);
         existing.Add(initialChange);
 
         ChangeSet incoming = [];
-        ValueBuffer buffer = CreateBuffer(AddressesDummyData, addressesTable);
-        Change deleteChange = initialChange.Delete(buffer, txId);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
+        IChange deleteChange = ChangeFactory.Delete(initialChange, buffer, txId);
         incoming.Add(deleteChange);
 
         // Act
@@ -171,23 +189,27 @@ public sealed class ChangeSetTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeSet existing = [];
-        ValueBuffer initial = CreateBuffer(AddressesDummyData, addressesTable);
-        Change initialChange = Change.Initial(initial, -1);
+        IValueBuffer initial = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
+        IChange initialChange = ChangeFactory.Initial(initial, -1);
         existing.Add(initialChange);
 
         ChangeSet incoming = [];
-        ValueBuffer buffer = CreateBuffer([2, "address", DBNull.Value, "city"], addressesTable);
-        Change newChange = Change.NewChange(buffer, 0);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns([2, "address", DBNull.Value, "city"], addressesTable.Metadata)
+        );
+        IChange newChange = ChangeFactory.NewChange(buffer, 0);
         incoming.Add(newChange);
 
         // Act
         ChangeSet merged = ChangeSet.Merge(existing, incoming);
 
         // Assert
-        Assert.Equal(2, merged.Count());
-        Change actualInitial = merged.First();
+        Assert.Equal(2, merged.Count);
+        IChange actualInitial = merged.First();
         Assert.Equal(initialChange, actualInitial);
-        Change actualNew = merged.ElementAt(1);
+        IChange actualNew = merged.ElementAt(1);
         Assert.Equal(newChange, actualNew);
     }
 
@@ -197,13 +219,17 @@ public sealed class ChangeSetTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeSet existing = [];
-        ValueBuffer initial = CreateBuffer(AddressesDummyData, addressesTable);
-        Change initialChange = Change.Initial(initial, -1);
+        IValueBuffer initial = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+        );
+        IChange initialChange = ChangeFactory.Initial(initial, -1);
         existing.Add(initialChange);
 
         ChangeSet incoming = [];
-        ValueBuffer buffer = CreateBuffer([2, "address", DBNull.Value, "city"], addressesTable);
-        Change newChange = initialChange.Update(buffer, 0);
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns([2, "address", DBNull.Value, "city"], addressesTable.Metadata)
+        );
+        IChange newChange = ChangeFactory.Update(initialChange, buffer, 0);
         incoming.Add(newChange);
 
         // Act

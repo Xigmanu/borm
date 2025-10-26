@@ -52,9 +52,9 @@ public sealed class EntityModel
         _entityValidators[typeof(TEntity)] = WrapValidator(validator);
     }
 
-    internal IEnumerable<ReflectedTypeInfo> GetReflectedInfo()
+    internal IEnumerable<EntityTypeInfo> GetReflectedInfo()
     {
-        List<ReflectedTypeInfo> reflectedInfos = new(_entities.Count);
+        List<EntityTypeInfo> reflectedInfos = new(_entities.Count);
         MetadataParser parser = new();
         foreach (Type entityType in _entities)
         {
@@ -65,17 +65,12 @@ public sealed class EntityModel
                 );
             }
 
-            ReflectedTypeInfo reflectedInfo = parser.Parse(entityType);
+            _entityValidators.TryGetValue(entityType, out Action<object>? validate);
+            EntityTypeInfo reflectedInfo = parser.Parse(entityType, validate);
             reflectedInfos.Add(reflectedInfo);
         }
 
         return reflectedInfos;
-    }
-
-    internal Action<object>? GetValidatorFunc(Type entityType)
-    {
-        _ = _entityValidators.TryGetValue(entityType, out Action<object>? validator);
-        return validator;
     }
 
     // TODO Implement a better validation logic

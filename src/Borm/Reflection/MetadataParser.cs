@@ -1,6 +1,7 @@
-﻿using System.Reflection;
-using Borm.Extensions;
+﻿using System.Linq.Expressions;
+using System.Reflection;
 using Borm.Model;
+using Borm.Properties;
 
 namespace Borm.Reflection;
 
@@ -13,38 +14,80 @@ internal sealed class MetadataParser
         _nullabilityCtx = new();
     }
 
-    public ReflectedTypeInfo Parse(Type entityType)
+    public EntityTypeInfo Parse(Type entityType, Action<object>? validate)
     {
         EntityAttribute entityAttribute =
             entityType.GetCustomAttribute<EntityAttribute>()
             ?? throw new MemberAccessException(
-                $"EntityAttribute was not applied to the member {entityType.FullName}"
+                Strings.EntityTypeNotDecorated(entityType.FullName!, nameof(EntityAttribute))
             );
 
-        List<Property> properties = [];
+        List<MappingMember> properties = [];
         PropertyInfo[] typeProperties = entityType.GetProperties();
         for (int i = 0; i < typeProperties.Length; i++)
         {
             PropertyInfo propertyInfo = typeProperties[i];
-            if (propertyInfo.HasAttribute<ColumnAttribute>())
+            ColumnAttribute? attribute = propertyInfo.GetCustomAttribute<ColumnAttribute>();
+            if (attribute != null)
             {
-                properties.Add(ParsePropertyInfo(propertyInfo));
+                NullableType type = ParseMemberType(propertyInfo);
+                MappingMember property = new(
+                    propertyInfo.Name,
+                    type,
+                    MappingInfo.FromAttribute(attribute)
+                );
+                properties.Add(property);
             }
         }
 
-        return new ReflectedTypeInfo(entityType, entityAttribute, properties);
+        IReadOnlyList<Constructor> constructors = entityType
+            .GetConstructors()
+            .Select(ParseConstructorInfo)
+            .ToList()
+            .AsReadOnly();
+
+        return new EntityTypeInfo(
+            entityAttribute.Name,
+            entityType,
+            properties.AsReadOnly(),
+            constructors,
+            validate
+        );
     }
 
-    private Property ParsePropertyInfo(PropertyInfo propertyInfo)
+    private Constructor ParseConstructorInfo(ConstructorInfo ctor)
     {
-        ColumnAttribute columnAttribute = propertyInfo.GetCustomAttribute<ColumnAttribute>()!;
-        bool isNullable =
-            _nullabilityCtx.Create(propertyInfo).ReadState == NullabilityState.Nullable;
-        return new Property(
-            propertyInfo.Name,
-            columnAttribute,
-            isNullable,
-            propertyInfo.PropertyType
+        List<MappingMember> parsedParams = [];
+        ParameterInfo[] parameters = ctor.GetParameters();
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            ParameterInfo param = parameters[i];
+            NullableType type = ParseMemberType(param);
+            MappingMember parsedParam = new(param.Name!, type, Mapping: null);
+            parsedParams.Add(parsedParam);
+        }
+
+        return new Constructor(
+            parameters.Length == 0,
+            parsedParams.AsReadOnly(),
+            (args) => Expression.New(ctor, args)
         );
+    }
+
+    private NullableType ParseMemberType(ICustomAttributeProvider member)
+    {
+        static bool isNull(NullabilityInfo info) => info.ReadState == NullabilityState.Nullable;
+        return member switch
+        {
+            PropertyInfo prop => new NullableType(
+                prop.PropertyType,
+                isNull(_nullabilityCtx.Create(prop))
+            ),
+            ParameterInfo param => new NullableType(
+                param.ParameterType,
+                isNull(_nullabilityCtx.Create(param))
+            ),
+            _ => throw new NotSupportedException(),
+        };
     }
 }
