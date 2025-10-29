@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Borm.Model.Metadata.Conversion;
+using Borm.Model.Conversion;
 using Borm.Properties;
 
 namespace Borm.Model.Metadata;

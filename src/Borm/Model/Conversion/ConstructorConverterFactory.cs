@@ -1,8 +1,9 @@
 ﻿using System.Linq.Expressions;
 using Borm.Data.Storage;
+using Borm.Model.Metadata;
 using Borm.Reflection;
 
-namespace Borm.Model.Metadata.Conversion;
+namespace Borm.Model.Conversion;
 
 internal sealed class ConstructorConverterFactory : ConverterFactory<Func<IValueBuffer, object>>
 {
