@@ -1,7 +1,8 @@
 ﻿using System.Linq.Expressions;
 using Borm.Data.Storage;
+using Borm.Model.Metadata;
 
-namespace Borm.Model.Metadata.Conversion;
+namespace Borm.Model.Conversion;
 
 internal class ValueBufferConverterFactory : ConverterFactory<Func<object, IValueBuffer>>
 {

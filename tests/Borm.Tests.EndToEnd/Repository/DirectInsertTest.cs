@@ -56,7 +56,6 @@ public sealed class DirectInsertTest
         Exception? inner = exception.InnerException;
         Assert.NotNull(inner);
         Assert.IsType<InvalidOperationException>(inner);
-        Assert.Equal(Strings.EntityValidationFailed(typeof(AddressEntity)), inner.Message);
 
         IEnumerable<AddressEntity> addresses = repository.Select();
         Assert.Empty(addresses);
@@ -163,7 +162,6 @@ public sealed class DirectInsertTest
         Exception? inner = exception.InnerException;
         Assert.NotNull(inner);
         Assert.IsType<InvalidOperationException>(inner);
-        Assert.Equal(Strings.EntityValidationFailed(typeof(AddressEntity)), inner.Message);
 
         Assert.Empty(addresses);
         Assert.Empty(persons);

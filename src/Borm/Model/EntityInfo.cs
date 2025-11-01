@@ -1,6 +1,8 @@
-﻿namespace Borm.Reflection;
+﻿using Borm.Reflection;
 
-internal sealed record EntityTypeInfo(
+namespace Borm.Model;
+
+public sealed record EntityInfo(
     string? Name,
     Type Type,
     IReadOnlyList<MappingMember> Properties,

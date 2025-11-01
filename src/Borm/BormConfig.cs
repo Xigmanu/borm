@@ -10,12 +10,12 @@ public sealed class BormConfig
 {
     private BormConfig(
         IDbCommandExecutor commandExecutor,
-        EntityModel model,
+        EntityInfo[] entities,
         IDbCommandDefinitionFactory commandDefinitionFactory
     )
     {
         CommandExecutor = commandExecutor;
-        Model = model;
+        Model = entities;
         CommandDefinitionFactory = commandDefinitionFactory;
     }
 
@@ -33,7 +33,7 @@ public sealed class BormConfig
     /// <summary>
     /// Entity model to be used for table creation.
     /// </summary>
-    public EntityModel Model { get; }
+    public EntityInfo[] Model { get; }
 
     /// <summary>
     /// Builder for constructing <see cref="BormConfig"/> instances.
@@ -42,7 +42,7 @@ public sealed class BormConfig
     {
         private IDbCommandDefinitionFactory? _commandDefinitionFactory;
         private IDbCommandExecutor? _commandExecutor;
-        private EntityModel? _model;
+        private EntityInfo[]? _entities;
 
         /// <summary>
         /// Builds a new <see cref="BormConfig"/> instance using the values set on this builder.
@@ -50,7 +50,7 @@ public sealed class BormConfig
         /// <exception cref="InvalidOperationException">Thrown if required components are not provided.</exception>
         public BormConfig Build()
         {
-            if (_model == null)
+            if (_entities == null)
             {
                 throw new InvalidOperationException("Entity model must be provided");
             }
@@ -63,7 +63,7 @@ public sealed class BormConfig
                 throw new InvalidOperationException("Command definition factory must be provided");
             }
 
-            return new BormConfig(_commandExecutor, _model, _commandDefinitionFactory);
+            return new BormConfig(_commandExecutor, _entities, _commandDefinitionFactory);
         }
 
         public Builder CommandDefinitionFactory(
@@ -93,10 +93,10 @@ public sealed class BormConfig
             return this;
         }
 
-        public Builder Model(EntityModel model)
+        public Builder Model(IEnumerable<EntityInfo> entities)
         {
-            ArgumentNullException.ThrowIfNull(model);
-            _model = model;
+            ArgumentNullException.ThrowIfNull(entities);
+            _entities = [.. entities];
             return this;
         }
     }

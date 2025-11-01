@@ -4,7 +4,6 @@ using Borm.Data.Storage;
 using Borm.Model;
 using Borm.Model.Metadata;
 using Borm.Properties;
-using Borm.Reflection;
 
 namespace Borm;
 
@@ -107,22 +106,21 @@ public sealed class DataContext
     /// </remarks>
     public void Initialize()
     {
-        EntityModel model = _configuration.Model;
-        IEnumerable<EntityTypeInfo> typeInfos = model.GetReflectedInfo();
-        if (!typeInfos.Any())
+        EntityInfo[] entities = _configuration.Model;
+        if (entities.Length == 0)
         {
             return;
         }
 
-        List<IEntityMetadata> entityInfos = new(typeInfos.Count());
-        foreach (EntityTypeInfo typeInfo in typeInfos)
+        List<IEntityMetadata> metadata = [];
+        for (int i = 0; i < entities.Length; i++)
         {
-            IEntityMetadata entityMetadata = EntityMetadataBuilder.Build(typeInfo);
-            entityInfos.Add(entityMetadata);
+            IEntityMetadata entityMetadata = EntityMetadataBuilder.Build(entities[i]);
+            metadata.Add(entityMetadata);
         }
 
-        EntityMetadataValidator validator = new(entityInfos);
-        entityInfos.ForEach(info =>
+        EntityMetadataValidator validator = new(metadata);
+        metadata.ForEach(info =>
         {
             if (!validator.IsValid(info, out Exception? exception))
             {
@@ -130,7 +128,7 @@ public sealed class DataContext
             }
         });
 
-        new TableGraphBuilder(entityInfos).Build(_tableGraph);
+        new TableGraphBuilder(metadata).Build(_tableGraph);
 
         _dataSynchronizer.SyncSchemaWithDataSource();
 
