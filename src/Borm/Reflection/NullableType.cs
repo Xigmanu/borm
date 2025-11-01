@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Borm.Reflection;
 
-internal sealed class NullableType
+public sealed class NullableType
 {
     private readonly Type _type;
 

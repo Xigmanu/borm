@@ -1,3 +1,3 @@
 ﻿namespace Borm.Reflection;
 
-internal sealed record MappingMember(string MemberName, NullableType TypeInfo, MappingInfo? Mapping);
+public sealed record MappingMember(string MemberName, NullableType TypeInfo, MappingInfo? Mapping);
