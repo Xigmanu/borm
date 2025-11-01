@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Reflection;
-using Borm.Properties;
 using Borm.Reflection;
 
 namespace Borm.Model.Metadata;

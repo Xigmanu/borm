@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 
 namespace Borm.Reflection;
 
@@ -33,5 +33,23 @@ public sealed class NullableType
             }
             return _type;
         }
+    }
+
+    public static NullableType WrapMemberType(ICustomAttributeProvider member)
+    {
+        NullabilityInfoContext context = new();
+        static bool isNullable(NullabilityInfo info) => info.ReadState == NullabilityState.Nullable;
+        return member switch
+        {
+            PropertyInfo property => new NullableType(
+                property.PropertyType,
+                isNullable(context.Create(property))
+            ),
+            ParameterInfo parameter => new NullableType(
+                parameter.ParameterType,
+                isNullable(context.Create(parameter))
+            ),
+            _ => throw new NotSupportedException(),
+        };
     }
 }

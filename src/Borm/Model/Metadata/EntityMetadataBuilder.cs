@@ -1,8 +1,6 @@
 ﻿using System.Data;
 using System.Diagnostics;
-using Borm.Data.Storage;
 using Borm.Model.Conversion;
-using Borm.Properties;
 using Borm.Reflection;
 
 namespace Borm.Model.Metadata;

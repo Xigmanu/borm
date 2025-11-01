@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Borm.Properties;
 using Borm.Reflection;
 
 namespace Borm.Model.Construction;
@@ -9,7 +10,6 @@ public sealed class ColumnBuilder<T>
     where T : class
 {
     private readonly Type _entityType = typeof(T);
-    private readonly NullabilityHelper _nullabilityHelper = new();
     private string? _columnName;
     private NullableType? _dataType;
     private int _index;
@@ -37,7 +37,7 @@ public sealed class ColumnBuilder<T>
 
     public ColumnBuilder<T> Index(int index)
     {
-        _index = index;
+        _index = index < 0 ? throw new ArgumentException(Strings.InvalidColumnIndex()) : index;
         return this;
     }
 
@@ -98,7 +98,7 @@ public sealed class ColumnBuilder<T>
             ?? throw new ArgumentException(
                 $"No public property '{memberName}' is declared in a type '{_entityType.FullName}'"
             );
-        _dataType = _nullabilityHelper.WrapMemberType(prop);
+        _dataType = NullableType.WrapMemberType(prop);
     }
 
     private void ValidateConfiguration() // TODO

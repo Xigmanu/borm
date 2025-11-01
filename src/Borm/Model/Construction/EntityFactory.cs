@@ -47,7 +47,6 @@ public static class EntityFactory
 
     private static List<MappingMember> ParseProperties(Type entityType)
     {
-        NullabilityHelper typeHelper = new();
         List<MappingMember> properties = [];
         PropertyInfo[] typeProps = entityType.GetProperties();
         for (int i = 0; i < typeProps.Length; i++)
@@ -59,7 +58,7 @@ public static class EntityFactory
                 continue;
             }
 
-            NullableType type = typeHelper.WrapMemberType(current);
+            NullableType type = NullableType.WrapMemberType(current);
             MappingMember property = new(current.Name, type, MappingInfo.FromAttribute(attribute));
             properties.Add(property);
         }

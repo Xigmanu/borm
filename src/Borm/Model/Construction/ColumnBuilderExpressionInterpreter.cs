@@ -5,19 +5,19 @@ using System.Reflection;
 
 namespace Borm.Model.Construction;
 
-internal static class ColumnBuilderExecutor
+internal static class ColumnBuilderExpressionInterpreter<TEntity>
+    where TEntity : class
 {
-    public static ColumnBuilder<T> Execute<T>(
-        Expression<Func<ColumnBuilder<T>, T, ColumnBuilder<T>>> expression
+    public static ColumnBuilder<TEntity> Interpret(
+        Expression<Func<ColumnBuilder<TEntity>, TEntity, ColumnBuilder<TEntity>>> expression
     )
-        where T : class
     {
         if (expression.Body is not MethodCallExpression call)
         {
             throw new ArgumentException("Expression body must be a method call.");
         }
 
-        return RebuildChain(call, new ColumnBuilder<T>());
+        return RebuildChain(call, new ColumnBuilder<TEntity>());
     }
 
     private static object? EvaluateArgumentExpression(Expression expression) =>
@@ -31,11 +31,10 @@ internal static class ColumnBuilderExecutor
     private static string? ExtractMemberName(MemberExpression m) =>
         m.Member is PropertyInfo property ? property.Name : null;
 
-    private static ColumnBuilder<T> RebuildChain<T>(
+    private static ColumnBuilder<TEntity> RebuildChain(
         MethodCallExpression call,
-        ColumnBuilder<T> builder
+        ColumnBuilder<TEntity> builder
     )
-        where T : class
     {
         if (call.Object is MethodCallExpression inner)
         {
@@ -51,6 +50,6 @@ internal static class ColumnBuilderExecutor
             args[i] = arg;
         }
 
-        return (ColumnBuilder<T>)call.Method.Invoke(builder, args)!;
+        return (ColumnBuilder<TEntity>)call.Method.Invoke(builder, args)!;
     }
 }

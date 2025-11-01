@@ -10,13 +10,12 @@ internal static class ConstructorParser
 
     private static Constructor ParseConstructorInfo(ConstructorInfo ctor)
     {
-        NullabilityHelper nullabilityHelper = new();
         List<MappingMember> parsedParams = [];
         ParameterInfo[] parameters = ctor.GetParameters();
         for (int i = 0; i < parameters.Length; i++)
         {
             ParameterInfo param = parameters[i];
-            NullableType type = nullabilityHelper.WrapMemberType(param);
+            NullableType type = NullableType.WrapMemberType(param);
             MappingMember parsedParam = new(param.Name!, type, Mapping: null);
             parsedParams.Add(parsedParam);
         }
