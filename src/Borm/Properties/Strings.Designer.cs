@@ -33,11 +33,6 @@ public static class Strings
     public static string EntityTypeNotDecorated(string typeName, string attributeName) => GetString([typeName, attributeName]);
 
     /// <summary>
-    /// Validation failed for entity type '{entityType}'.
-    /// </summary>
-    public static string EntityValidationFailed(Type entityType) => GetString([entityType]);
-
-    /// <summary>
     /// Column index cannot be lesser than zero.
     /// </summary>
     public static string InvalidColumnIndex() => GetString();

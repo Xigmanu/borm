@@ -16,14 +16,14 @@ public sealed class ChangeMergerTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long initTxId = 0;
         IChange initChange = ChangeFactory.NewChange(initBuffer, initTxId);
 
         long txId = 1;
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata)
+            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         IChange incoming = ChangeFactory.Update(initChange, buffer, txId);
 
@@ -44,13 +44,13 @@ public sealed class ChangeMergerTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long initTxId = 0;
         IChange initChange = ChangeFactory.Initial(initBuffer, initTxId);
 
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata)
+            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         IChange incoming = ChangeFactory.Update(initChange, buffer, initTxId);
 
@@ -68,14 +68,14 @@ public sealed class ChangeMergerTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long initTxId = 0;
         IChange initChange = ChangeFactory.NewChange(initBuffer, initTxId);
 
         long txId = 1;
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata)
+            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         IChange incoming = ChangeFactory.Update(initChange, buffer, txId);
 
@@ -96,14 +96,14 @@ public sealed class ChangeMergerTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long initTxId = 0;
         IChange initChange = ChangeFactory.Initial(initBuffer, initTxId);
 
         long txId = 1;
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata)
+            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         IChange incoming = ChangeFactory.Update(initChange, buffer, txId);
 
@@ -124,7 +124,7 @@ public sealed class ChangeMergerTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long initTxId = 0;
         IChange initChange = ChangeFactory.NewChange(initBuffer, initTxId);
@@ -145,14 +145,14 @@ public sealed class ChangeMergerTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long initTxId = 1;
         IChange initChange = ChangeFactory.Initial(initBuffer, initTxId);
 
         long txId = 0;
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata)
+            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         IChange incoming = ChangeFactory.Initial(buffer, txId);
 

@@ -2,7 +2,7 @@
 
 namespace Borm.Reflection;
 
-internal sealed class Constructor
+public sealed class Constructor
 {
     private readonly Func<IEnumerable<Expression>, Expression> _instanceInitializer;
 

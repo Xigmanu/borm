@@ -10,7 +10,7 @@ public sealed class BormConfigBuilderTest
     {
         // Arrange
         BormConfig.Builder builder = new();
-        builder.Model(new EntityModel());
+        builder.Model([]);
         builder.CommandExecutor(new InMemoryCommandExecutor());
         builder.CommandDefinitionFactory(new InMemoryCommandDefinitionFactory());
 
@@ -26,7 +26,7 @@ public sealed class BormConfigBuilderTest
     {
         // Arrange
         BormConfig.Builder builder = new();
-        builder.Model(new EntityModel());
+        builder.Model([]);
         builder.CommandExecutor(new InMemoryCommandExecutor());
 
         // Act
@@ -42,7 +42,7 @@ public sealed class BormConfigBuilderTest
     {
         // Arrange
         BormConfig.Builder builder = new();
-        builder.Model(new EntityModel());
+        builder.Model([]);
 
         // Act
         Exception? exception = Record.Exception(() => builder.Build());
@@ -99,7 +99,7 @@ public sealed class BormConfigBuilderTest
     {
         // Arrange
         BormConfig.Builder builder = new();
-        EntityModel model = new();
+        List<EntityInfo> model = [];
 
         // Act
         BormConfig config = builder.Model(model).InMemory().Build();

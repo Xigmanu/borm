@@ -1,4 +1,4 @@
-﻿using Borm.Model.Metadata.Conversion;
+﻿using Borm.Model.Conversion;
 
 namespace Borm.Model.Metadata;
 

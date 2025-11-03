@@ -1,6 +1,6 @@
 ﻿using Borm.Data.Storage;
 
-namespace Borm.Model.Metadata.Conversion;
+namespace Borm.Model.Conversion;
 
 internal interface IEntityBufferConversion
 {

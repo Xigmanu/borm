@@ -16,7 +16,7 @@ public sealed class BufferPreProcessorTest
     {
         // Arrange
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, _graph[typeof(AddressEntity)]!.Metadata)
+            MapValuesToColumns(AddressesDummyData, _graph[typeof(AddressEntity)]!.Metadata.Columns)
         );
         long txId = 0;
         BufferPreProcessor preProcessor = new(_graph);
@@ -42,14 +42,14 @@ public sealed class BufferPreProcessorTest
         long initialTxId = -1;
 
         IValueBuffer addressBuffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressTable.Metadata.Columns)
         );
         addressTable.Tracker.PendChange(ChangeFactory.Initial(addressBuffer, initialTxId));
         addressTable.Tracker.AcceptPendingChanges(initialTxId);
 
         AddressEntity address = new(1, "address", null, "city");
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns([1, "name", 42.619, address], personTable.Metadata)
+            MapValuesToColumns([1, "name", 42.619, address], personTable.Metadata.Columns)
         );
 
         ResolvedForeignKey expectedResolvedKey = new(
@@ -60,7 +60,7 @@ public sealed class BufferPreProcessorTest
             true
         );
         IValueBuffer expectedProcessedBuffer = CreateBuffer(
-            MapValuesToColumns(PersonsDummyData, personTable.Metadata)
+            MapValuesToColumns(PersonsDummyData, personTable.Metadata.Columns)
         );
 
         BufferPreProcessor preProcessor = new(_graph);
@@ -87,13 +87,13 @@ public sealed class BufferPreProcessorTest
         long initialTxId = -1;
 
         IValueBuffer personBuffer = CreateBuffer(
-            MapValuesToColumns(PersonsDummyData, personTable.Metadata)
+            MapValuesToColumns(PersonsDummyData, personTable.Metadata.Columns)
         );
         personTable.Tracker.PendChange(ChangeFactory.Initial(personBuffer, initialTxId));
         personTable.Tracker.AcceptPendingChanges(initialTxId);
 
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns(EmployeesDummyData, employeeTable.Metadata)
+            MapValuesToColumns(EmployeesDummyData, employeeTable.Metadata.Columns)
         );
 
         ResolvedForeignKey expectedResolvedKey = new(

@@ -21,7 +21,9 @@ public sealed class TableTest
         long initTxId = -1;
         long txId = 0;
         Table table = _graph[typeof(AddressEntity)]!;
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
+        );
         table.Tracker.PendChange(ChangeFactory.Initial(buffer, initTxId));
         table.Tracker.AcceptPendingChanges(initTxId);
 
@@ -44,7 +46,9 @@ public sealed class TableTest
         // Arrange
         long txId = 0;
         Table table = _graph[typeof(AddressEntity)]!;
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
+        );
 
         // Act
         Exception? exception = Record.Exception(() => table.Delete(buffer, txId));
@@ -89,7 +93,9 @@ public sealed class TableTest
         // Arrange
         long txId = 0;
         Table table = _graph[typeof(AddressEntity)]!;
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
+        );
 
         // Act
         table.Insert(buffer, txId);
@@ -110,7 +116,7 @@ public sealed class TableTest
         long txId = 0;
         Table table = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns([1, DBNull.Value, DBNull.Value, "city"], table.Metadata)
+            MapValuesToColumns([1, DBNull.Value, DBNull.Value, "city"], table.Metadata.Columns)
         );
 
         // Act
@@ -130,7 +136,9 @@ public sealed class TableTest
         long initTxId = -1;
         long txId = 0;
         Table table = _graph[typeof(AddressEntity)]!;
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
+        );
         table.Tracker.PendChange(ChangeFactory.Initial(buffer, initTxId));
         table.Tracker.AcceptPendingChanges(initTxId);
 
@@ -175,7 +183,9 @@ public sealed class TableTest
         resultSet.AddRow(row);
         long initTxId = -1;
         Table table = _graph[typeof(AddressEntity)]!;
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
+        );
 
         // Act
         table.Load(resultSet, initTxId);
@@ -197,9 +207,11 @@ public sealed class TableTest
         long initTxId = -1;
         long txId = 0;
         Table table = _graph[typeof(AddressEntity)]!;
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
+        );
         IValueBuffer bufferUpdate = CreateBuffer(
-            MapValuesToColumns([1, "address", "address_1", "city"], table.Metadata)
+            MapValuesToColumns([1, "address", "address_1", "city"], table.Metadata.Columns)
         );
         table.Tracker.PendChange(ChangeFactory.Initial(buffer, initTxId));
         table.Tracker.AcceptPendingChanges(initTxId);
@@ -222,9 +234,11 @@ public sealed class TableTest
         long initTxId = -1;
         long txId = 0;
         Table table = _graph[typeof(AddressEntity)]!;
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
+        );
         IValueBuffer bufferUpdate = CreateBuffer(
-            MapValuesToColumns([1, DBNull.Value, "address_1", "city"], table.Metadata)
+            MapValuesToColumns([1, DBNull.Value, "address_1", "city"], table.Metadata.Columns)
         );
         table.Tracker.PendChange(ChangeFactory.Initial(buffer, initTxId));
         table.Tracker.AcceptPendingChanges(initTxId);
@@ -248,7 +262,9 @@ public sealed class TableTest
         // Arrange
         long txId = 0;
         Table table = _graph[typeof(AddressEntity)]!;
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
+        );
 
         // Act
         Exception? exception = Record.Exception(() => table.Update(buffer, txId));

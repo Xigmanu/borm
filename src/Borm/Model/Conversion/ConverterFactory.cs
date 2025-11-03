@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
+using Borm.Model.Metadata;
 
-namespace Borm.Model.Metadata.Conversion;
+namespace Borm.Model.Conversion;
 
 internal abstract class ConverterFactory<T>
     where T : Delegate
@@ -9,6 +10,10 @@ internal abstract class ConverterFactory<T>
 
     protected ConverterFactory(IEnumerable<IColumnMetadata> columns)
     {
+        if (!columns.Any())
+        {
+            throw new ArgumentException("No columns were provided");
+        }
         this.columns = columns;
     }
 

@@ -24,6 +24,7 @@ public sealed class EntityAttribute : Attribute
     /// <param name="name">The name of the table to which the class is mapped.</param>
     public EntityAttribute(string name)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
         Name = name;
     }
 

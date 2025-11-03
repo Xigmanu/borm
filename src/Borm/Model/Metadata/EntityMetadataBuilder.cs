@@ -1,15 +1,13 @@
 ﻿using System.Data;
 using System.Diagnostics;
-using Borm.Data.Storage;
-using Borm.Model.Metadata.Conversion;
-using Borm.Properties;
+using Borm.Model.Conversion;
 using Borm.Reflection;
 
 namespace Borm.Model.Metadata;
 
 internal static class EntityMetadataBuilder
 {
-    public static IEntityMetadata Build(EntityTypeInfo typeInfo)
+    public static IEntityMetadata Build(EntityInfo typeInfo)
     {
         string name = !string.IsNullOrWhiteSpace(typeInfo.Name)
             ? typeInfo.Name
@@ -21,7 +19,8 @@ internal static class EntityMetadataBuilder
         ColumnMetadataList columnCollection = new(columns);
 
         IEntityBufferConversion conversion = EntityBufferConversionFactory.Create(
-            typeInfo,
+            typeInfo.Type,
+            typeInfo.Constructors,
             columns
         );
 
@@ -50,10 +49,10 @@ internal static class EntityMetadataBuilder
             constraints
         );
 
-        if (mapping.IsForeignKey)
+        if (mapping.Reference != null)
         {
             columnMetadata.Reference = mapping.Reference;
-            columnMetadata.OnDelete = mapping.OnDeleteAction;
+            columnMetadata.OnDelete = mapping.OnDelete;
         }
 
         return columnMetadata;

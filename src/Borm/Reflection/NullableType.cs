@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 
 namespace Borm.Reflection;
 
-internal sealed class NullableType
+public sealed class NullableType
 {
     private readonly Type _type;
 
@@ -13,25 +13,38 @@ internal sealed class NullableType
         IsNullable = isNullable;
     }
 
-    public string FullName => UnderlyingType.FullName!;
     public bool IsNullable { get; }
     public Type Type => _type;
     public Type UnderlyingType
     {
         get
         {
-            if (!_type.IsValueType)
+            if (!_type.IsValueType || !IsNullable)
             {
                 return _type;
             }
 
-            if (IsNullable)
-            {
-                Type? underyling = Nullable.GetUnderlyingType(_type);
-                Debug.Assert(underyling != null);
-                return underyling;
-            }
-            return _type;
+            Type? underyling = Nullable.GetUnderlyingType(_type);
+            Debug.Assert(underyling != null);
+            return underyling;
         }
+    }
+
+    public static NullableType WrapMemberType(ICustomAttributeProvider member)
+    {
+        NullabilityInfoContext context = new();
+        static bool isNullable(NullabilityInfo info) => info.ReadState == NullabilityState.Nullable;
+        return member switch
+        {
+            PropertyInfo property => new NullableType(
+                property.PropertyType,
+                isNullable(context.Create(property))
+            ),
+            ParameterInfo parameter => new NullableType(
+                parameter.ParameterType,
+                isNullable(context.Create(parameter))
+            ),
+            _ => throw new NotSupportedException(),
+        };
     }
 }

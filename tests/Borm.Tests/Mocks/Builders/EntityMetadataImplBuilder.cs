@@ -1,5 +1,5 @@
-﻿using Borm.Model.Metadata;
-using Borm.Model.Metadata.Conversion;
+﻿using Borm.Model.Conversion;
+using Borm.Model.Metadata;
 using Moq;
 
 namespace Borm.Tests.Mocks.Builders;

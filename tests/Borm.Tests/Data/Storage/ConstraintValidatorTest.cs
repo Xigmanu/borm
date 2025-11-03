@@ -17,7 +17,7 @@ public sealed class ConstraintValidatorTest
         // Arrange
         Table table = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns([1, "address", DBNull.Value, DBNull.Value], table.Metadata)
+            MapValuesToColumns([1, "address", DBNull.Value, DBNull.Value], table.Metadata.Columns)
         );
 
         ConstraintValidator validator = new(table);
@@ -35,7 +35,9 @@ public sealed class ConstraintValidatorTest
     {
         // Arrange
         Table table = _graph[typeof(AddressEntity)]!;
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
+        );
         table.Tracker.PendChange(ChangeFactory.NewChange(buffer, -1));
         table.Tracker.AcceptPendingChanges(-1);
 
@@ -54,7 +56,9 @@ public sealed class ConstraintValidatorTest
     {
         // Arrange
         Table table = _graph[typeof(AddressEntity)]!;
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
+        );
 
         ConstraintValidator validator = new(table);
 

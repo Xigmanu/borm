@@ -20,6 +20,14 @@ public sealed class EmployeeEntity
     )]
     public int Person { get; set; }
 
+    public static EmployeeEntity CreateFromArray(object[] values) =>
+        new()
+        {
+            Id = (int)values[0],
+            Person = (int)values[1],
+            IsActive = (bool)values[2],
+        };
+
     public override bool Equals(object? obj)
     {
         return obj is EmployeeEntity other

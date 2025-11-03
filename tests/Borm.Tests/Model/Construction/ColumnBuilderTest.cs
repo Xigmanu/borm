@@ -1,0 +1,207 @@
+﻿using Borm.Model;
+using Borm.Model.Construction;
+using Borm.Reflection;
+using Borm.Tests.Common;
+
+namespace Borm.Tests.Model.Construction;
+
+public sealed class ColumnBuilderTest
+{
+    [Fact]
+    public void Build_Column_WithValidConfiguration()
+    {
+        // Arrange
+        int idx = 0;
+        string name = "id";
+        string memberName = "Id";
+        Type type = typeof(int);
+
+        ColumnBuilder<AddressEntity> builder = new();
+
+        // Act
+        MappingMember column = builder
+            .Index(idx)
+            .Mapping(name, (e) => e.Id)
+            .PrimaryKey()
+            .Unique()
+            .Build();
+
+        // Assert
+        Assert.Equal(memberName, column.MemberName);
+        Assert.Equal(type, column.TypeInfo.Type);
+        Assert.NotNull(column.Mapping);
+        Assert.Equal(idx, column.Mapping.ColumnIndex);
+        Assert.Equal(name, column.Mapping.ColumnName);
+        Assert.True(column.Mapping.IsPrimaryKey);
+        Assert.True(column.Mapping.IsUnique);
+        Assert.Null(column.Mapping.Reference);
+    }
+
+    [Fact]
+    public void Build_ForeignKeyColumn_WithValidConfiguration()
+    {
+        // Arrange
+        int idx = 0;
+        string name = "address";
+        string memberName = "Address";
+        Type type = typeof(AddressEntity);
+        ReferentialAction action = ReferentialAction.Cascade;
+
+        ColumnBuilder<PersonEntity> builder = new();
+
+        // Act
+        MappingMember column = builder
+            .Index(idx)
+            .Mapping(name, (e) => e.Address)
+            .References(type)
+            .OnDelete(action)
+            .Build();
+
+        // Assert
+        Assert.Equal(memberName, column.MemberName);
+        Assert.Equal(type, column.TypeInfo.Type);
+        Assert.NotNull(column.Mapping);
+        Assert.Equal(idx, column.Mapping.ColumnIndex);
+        Assert.Equal(name, column.Mapping.ColumnName);
+        Assert.False(column.Mapping.IsPrimaryKey);
+        Assert.False(column.Mapping.IsUnique);
+        Assert.Equal(type, column.Mapping.Reference);
+        Assert.Equal(action, column.Mapping.OnDelete);
+    }
+
+    [Fact]
+    public void Build_ThrowsInvalidOperationException_WhenNameIsNotConfigured()
+    {
+        // Arrange
+        ColumnBuilder<AddressEntity> builder = new();
+
+        // Act
+        Exception? exception = Record.Exception(() => _ = builder.Build());
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<InvalidOperationException>(exception);
+    }
+
+    [Fact]
+    public void Index_ThrowsArgumentException_WithInvalidIndex()
+    {
+        // Arrange
+        int index = -1;
+
+        ColumnBuilder<AddressEntity> builder = new();
+
+        // Act
+        Exception? exception = Record.Exception(() => _ = builder.Index(index));
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<ArgumentException>(exception);
+    }
+
+    [Fact]
+    public void Mapping_ThrowsArgumentException_WhenExpressionIsNotMemberExpression()
+    {
+        // Arrange
+        ColumnBuilder<AddressEntity> builder = new();
+
+        // Act
+        Exception? exception = Record.Exception(() => _ = builder.Mapping(e => e.Id + 42));
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<ArgumentException>(exception);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("  ")]
+    public void Mapping_ThrowsArgumentException_WithInvalidColumnName(string name)
+    {
+        // Arrange
+        ColumnBuilder<AddressEntity> builder = new();
+
+        // Act
+        Exception? exception = Record.Exception(() => _ = builder.Mapping(name, (e) => e.Address));
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<ArgumentException>(exception);
+    }
+
+    [Fact]
+    public void Mapping_ThrowsArgumentException_WithNullColumnName()
+    {
+        // Arrange
+        ColumnBuilder<AddressEntity> builder = new();
+
+        // Act
+        Exception? exception = Record.Exception(() => _ = builder.Mapping(null!, e => e.Address));
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<ArgumentNullException>(exception);
+    }
+
+    [Fact]
+    public void Mapping_ThrowsArgumentException_WithNullMemberName()
+    {
+        // Arrange
+        ColumnBuilder<AddressEntity> builder = new();
+
+        // Act
+        Exception? exception = Record.Exception(() => _ = builder.Mapping<string>(null!));
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<ArgumentNullException>(exception);
+    }
+
+    [Fact]
+    public void PrimaryKey_ThrowsInvalidOperationException_WhenMakingForeignKeyPrimaryKey()
+    {
+        // Arrange
+        ColumnBuilder<AddressEntity> builder = new();
+
+        // Act
+        Exception? exception = Record.Exception(
+            () => _ = builder.References(typeof(PersonEntity)).PrimaryKey()
+        );
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<InvalidOperationException>(exception);
+    }
+
+    [Fact]
+    public void References_ThrowsArgumentException_WhenReferencingSelf()
+    {
+        // Arrange
+        ColumnBuilder<AddressEntity> builder = new();
+
+        // Act
+        Exception? exception = Record.Exception(
+            () => _ = builder.References(typeof(AddressEntity))
+        );
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<ArgumentException>(exception);
+    }
+
+    [Fact]
+    public void References_ThrowsInvalidOperationException_WhenAddingReferenceToPrimaryKey()
+    {
+        // Arrange
+        ColumnBuilder<AddressEntity> builder = new();
+
+        // Act
+        Exception? exception = Record.Exception(
+            () => _ = builder.PrimaryKey().References(typeof(PersonEntity))
+        );
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<InvalidOperationException>(exception);
+    }
+}

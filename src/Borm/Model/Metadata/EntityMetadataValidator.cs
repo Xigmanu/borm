@@ -42,7 +42,7 @@ internal sealed class EntityMetadataValidator
             if (!ColumnDataTypeHelper.IsSupported(column.DataType.UnderlyingType))
             {
                 throw new NotSupportedException(
-                    Strings.TypeNotSupported(column.DataType.FullName!)
+                    Strings.TypeNotSupported(column.DataType.UnderlyingType.FullName!)
                 );
             }
         }

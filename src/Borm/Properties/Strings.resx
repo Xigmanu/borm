@@ -129,9 +129,6 @@
   <data name="EntityTypeNotDecorated" xml:space="preserve">
     <value>Entity type '{0}' was not decorated with '{1}'</value>
   </data>
-  <data name="EntityValidationFailed" xml:space="preserve">
-    <value>Validation failed for entity type '{0}'.</value>
-  </data>
   <data name="InvalidColumnIndex" xml:space="preserve">
     <value>Column index cannot be lesser than zero.</value>
   </data>
