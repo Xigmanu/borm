@@ -17,6 +17,18 @@ public sealed class AddressEntity(int id, string address, string? address_1, str
     [PrimaryKey(0)]
     public int Id { get; } = id;
 
+    public Guid InternalId { get; set; }
+
+    public static AddressEntity CreateFromArray(object[] values)
+    {
+        return new AddressEntity(
+            (int)values[0],
+            (string)values[1],
+            values[2] == DBNull.Value ? null : (string)values[2],
+            (string)values[3]
+        );
+    }
+
     public override bool Equals(object? obj)
     {
         return obj is AddressEntity other

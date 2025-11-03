@@ -16,7 +16,7 @@ public sealed class ParameterBatchQueueTest
         // Arrange
         object[] values = [1, "address", DBNull.Value, "city"];
         IEntityMetadata metadata = EntityMetadataMockFactory.CreateMockAddressEntity();
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(values, metadata));
+        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(values, metadata.Columns));
 
         ParameterBatchQueue queue = new();
 
@@ -35,7 +35,7 @@ public sealed class ParameterBatchQueueTest
         IReadOnlyList<IColumnMetadata> columns = metadata.Columns;
         object[] values = [1, "address", DBNull.Value, "city"];
 
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(values, metadata));
+        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(values, metadata.Columns));
         ParameterBatchQueue queue = new();
         queue.Enqueue(buffer);
 

@@ -19,13 +19,15 @@ public sealed class EntityMaterializerTest
 
         AddressEntity expectedDependency = new(1, "address", null, "city");
         IChange change = ChangeFactory.Initial(
-            CreateBuffer(MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)),
+            CreateBuffer(MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)),
             -1
         );
         addressesTable.Tracker.PendChange(change);
 
         PersonEntity expected = new(1, "name", 42.619, expectedDependency);
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(PersonsDummyData, personsTable.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(PersonsDummyData, personsTable.Metadata.Columns)
+        );
 
         EntityMaterializer materializer = new(_graph);
 
@@ -44,7 +46,9 @@ public sealed class EntityMaterializerTest
         Table personsTable = _graph[typeof(PersonEntity)]!;
 
         PersonEntity expected = new(1, "name", 42.619, null);
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(PersonsDummyData, personsTable.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(PersonsDummyData, personsTable.Metadata.Columns)
+        );
 
         EntityMaterializer materializer = new(_graph);
 
@@ -61,7 +65,9 @@ public sealed class EntityMaterializerTest
     {
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, addressesTable.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
+        );
         AddressEntity expected = new(1, "address", null, "city");
 
         EntityMaterializer materializer = new(_graph);

@@ -26,10 +26,9 @@ internal static class ValueBufferMockFactory
 
     public static Dictionary<IColumnMetadata, object> MapValuesToColumns(
         object[] rowValues,
-        IEntityMetadata metadata
+        IReadOnlyList<IColumnMetadata> columns
     )
     {
-        IReadOnlyList<IColumnMetadata> columns = metadata.Columns;
         Dictionary<IColumnMetadata, object> columnValues = [];
         for (int i = 0; i < rowValues.Length; i++)
         {

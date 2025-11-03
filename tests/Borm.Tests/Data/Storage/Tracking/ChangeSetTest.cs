@@ -16,7 +16,7 @@ public sealed class ChangeSetTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         IChange initial = ChangeFactory.Initial(buffer, -1);
 
@@ -41,7 +41,7 @@ public sealed class ChangeSetTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long txId = 0;
         IChange newChange = ChangeFactory.NewChange(buffer, txId);
@@ -64,7 +64,7 @@ public sealed class ChangeSetTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long txId = 0;
         IChange incoming = ChangeFactory.NewChange(buffer, txId);
@@ -86,7 +86,7 @@ public sealed class ChangeSetTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long txId = 0;
         IChange incoming = ChangeFactory.NewChange(buffer, txId);
@@ -109,7 +109,7 @@ public sealed class ChangeSetTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         IChange initial = ChangeFactory.Initial(buffer, -1);
 
@@ -134,14 +134,14 @@ public sealed class ChangeSetTest
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeSet existing = [];
         IValueBuffer initial = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         IChange initialChange = ChangeFactory.Initial(initial, -1);
         existing.Add(initialChange);
 
         ChangeSet incoming = [];
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         IChange updateChange = ChangeFactory.Update(initialChange, buffer, 0);
         incoming.Add(updateChange);
@@ -163,7 +163,7 @@ public sealed class ChangeSetTest
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeSet existing = [];
         IValueBuffer initial = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long txId = 0;
         IChange initialChange = ChangeFactory.NewChange(initial, txId);
@@ -171,7 +171,7 @@ public sealed class ChangeSetTest
 
         ChangeSet incoming = [];
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         IChange deleteChange = ChangeFactory.Delete(initialChange, buffer, txId);
         incoming.Add(deleteChange);
@@ -190,14 +190,17 @@ public sealed class ChangeSetTest
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeSet existing = [];
         IValueBuffer initial = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         IChange initialChange = ChangeFactory.Initial(initial, -1);
         existing.Add(initialChange);
 
         ChangeSet incoming = [];
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns([2, "address", DBNull.Value, "city"], addressesTable.Metadata)
+            MapValuesToColumns(
+                [2, "address", DBNull.Value, "city"],
+                addressesTable.Metadata.Columns
+            )
         );
         IChange newChange = ChangeFactory.NewChange(buffer, 0);
         incoming.Add(newChange);
@@ -220,14 +223,17 @@ public sealed class ChangeSetTest
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeSet existing = [];
         IValueBuffer initial = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         IChange initialChange = ChangeFactory.Initial(initial, -1);
         existing.Add(initialChange);
 
         ChangeSet incoming = [];
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns([2, "address", DBNull.Value, "city"], addressesTable.Metadata)
+            MapValuesToColumns(
+                [2, "address", DBNull.Value, "city"],
+                addressesTable.Metadata.Columns
+            )
         );
         IChange newChange = ChangeFactory.Update(initialChange, buffer, 0);
         incoming.Add(newChange);

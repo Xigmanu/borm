@@ -16,13 +16,13 @@ public sealed class ChangeFactoryTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long initTxId = 0;
         IChange change = ChangeFactory.Initial(initBuffer, initTxId);
 
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata)
+            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         long txId = 1;
 
@@ -43,7 +43,7 @@ public sealed class ChangeFactoryTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long txId = 0;
 
@@ -64,7 +64,7 @@ public sealed class ChangeFactoryTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long txId = 0;
 
@@ -85,13 +85,13 @@ public sealed class ChangeFactoryTest
         // Arrange
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long initTxId = 0;
         IChange change = ChangeFactory.NewChange(initBuffer, initTxId);
 
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata)
+            MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         long txId = 1;
 

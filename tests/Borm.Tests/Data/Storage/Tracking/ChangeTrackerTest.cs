@@ -17,7 +17,7 @@ public sealed class ChangeTrackerTest
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeTracker tracker = new();
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long txId = 0;
         IChange incoming = ChangeFactory.NewChange(buffer, txId);
@@ -57,7 +57,7 @@ public sealed class ChangeTrackerTest
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeTracker tracker = new();
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long txId = 0;
         IChange incoming = ChangeFactory.NewChange(buffer, txId);
@@ -78,7 +78,7 @@ public sealed class ChangeTrackerTest
         Table addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeTracker tracker = new();
         IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata)
+            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         long txId = 0;
         IChange incoming0 = ChangeFactory.NewChange(buffer, txId);

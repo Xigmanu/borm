@@ -29,7 +29,9 @@ public sealed class CommandBuilderTest
         CommandBuilder builder = new(_graph, CommandFactory);
         Table table = _graph[typeof(AddressEntity)]!;
 
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
+        );
         IChange initial = ChangeFactory.Initial(buffer, initialTxId);
         table.Tracker.PendChange(initial);
         table.Tracker.AcceptPendingChanges(initialTxId);
@@ -57,7 +59,9 @@ public sealed class CommandBuilderTest
         CommandBuilder builder = new(_graph, CommandFactory);
         Table table = _graph[typeof(AddressEntity)]!;
 
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
+        );
         table.Tracker.PendChange(ChangeFactory.NewChange(buffer, txId));
         table.Tracker.AcceptPendingChanges(txId);
 
@@ -82,7 +86,9 @@ public sealed class CommandBuilderTest
         CommandBuilder builder = new(_graph, CommandFactory);
         Table table = _graph[typeof(AddressEntity)]!;
 
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
+        );
         IChange initial = ChangeFactory.Initial(buffer, initialTxId);
         table.Tracker.PendChange(initial);
         table.Tracker.AcceptPendingChanges(initialTxId);
@@ -124,7 +130,9 @@ public sealed class CommandBuilderTest
         CommandBuilder builder = new(_graph, CommandFactory);
         Table table = _graph[typeof(AddressEntity)]!;
 
-        IValueBuffer buffer = CreateBuffer(MapValuesToColumns(AddressesDummyData, table.Metadata));
+        IValueBuffer buffer = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
+        );
         table.Tracker.PendChange(ChangeFactory.Initial(buffer, initialTxId));
         table.Tracker.AcceptPendingChanges(initialTxId);
         table.Tracker.MarkChangesAsWritten();
