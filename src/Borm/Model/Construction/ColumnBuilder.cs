@@ -1,28 +1,29 @@
-﻿using System.Diagnostics;
+﻿using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using Borm.Properties;
 using Borm.Reflection;
 
 namespace Borm.Model.Construction;
 
-public sealed class ColumnBuilder<T>
-    where T : class
+public sealed class ColumnBuilder<TEntity>
+    where TEntity : class
 {
-    private readonly Type _entityType = typeof(T);
+    private readonly Type _entityType = typeof(TEntity);
     private string? _columnName;
     private NullableType? _dataType;
     private int _index;
     private bool _isPrimaryKey;
     private bool _isUnique;
-    private string? _memberName;
+    private string? _propName;
     private ReferentialAction _refAction;
     private Type? _reference;
 
     public MappingMember Build()
     {
-        ValidateConfiguration();
-        Debug.Assert(!string.IsNullOrWhiteSpace(_memberName) && _dataType != null);
+        if (string.IsNullOrWhiteSpace(_propName))
+        {
+            throw new InvalidOperationException();
+        }
 
         MappingInfo mappingInfo = new(
             _index,
@@ -32,48 +33,57 @@ public sealed class ColumnBuilder<T>
             _reference,
             _refAction
         );
-        return new MappingMember(_memberName, _dataType, mappingInfo);
+        return new MappingMember(_propName!, _dataType!, mappingInfo);
     }
 
-    public ColumnBuilder<T> Index(int index)
+    public ColumnBuilder<TEntity> Index(int index)
     {
         _index = index < 0 ? throw new ArgumentException(Strings.InvalidColumnIndex()) : index;
         return this;
     }
 
-    public ColumnBuilder<T> Mapping([CallerMemberName] string? memberName = null)
+    public ColumnBuilder<TEntity> Mapping<TProperty>(
+        Expression<Func<TEntity, TProperty>> propProvider
+    )
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(memberName);
-        ParseMemberFromName(memberName);
+        ResolvePropertyFromExpression(propProvider);
         return this;
     }
 
-    public ColumnBuilder<T> Mapping(string columnName, [CallerMemberName] string? memberName = null)
+    public ColumnBuilder<TEntity> Mapping<TProperty>(
+        string columnName,
+        Expression<Func<TEntity, TProperty>> propProvider
+    )
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(memberName);
         ArgumentException.ThrowIfNullOrWhiteSpace(columnName);
-
+        ResolvePropertyFromExpression(propProvider);
         _columnName = columnName;
-        ParseMemberFromName(memberName);
 
         return this;
     }
 
-    public ColumnBuilder<T> OnDelete(ReferentialAction refAction)
+    public ColumnBuilder<TEntity> OnDelete(ReferentialAction refAction)
     {
         _refAction = refAction;
         return this;
     }
 
-    public ColumnBuilder<T> PrimaryKey()
+    public ColumnBuilder<TEntity> PrimaryKey()
     {
+        if (_reference != null)
+        {
+            throw new InvalidOperationException("Primary key cannot be a foreign key");
+        }
         _isPrimaryKey = true;
         return this;
     }
 
-    public ColumnBuilder<T> References<TParent>()
+    public ColumnBuilder<TEntity> References(Type parentType)
     {
-        Type parentType = typeof(TParent);
+        if (_isPrimaryKey)
+        {
+            throw new InvalidOperationException("Primary key cannot be a foreign key");
+        }
         if (parentType == _entityType)
         {
             throw new ArgumentException("Circular Reference");
@@ -83,33 +93,29 @@ public sealed class ColumnBuilder<T>
         return this;
     }
 
-    public ColumnBuilder<T> Unique()
+    public ColumnBuilder<TEntity> Unique()
     {
         _isUnique = true;
         return this;
     }
 
-    private void ParseMemberFromName(string memberName)
+    private void ResolvePropertyFromExpression<TProperty>(
+        Expression<Func<TEntity, TProperty>> propProvider
+    )
     {
-        _memberName = memberName;
-
-        PropertyInfo? prop =
-            _entityType.GetProperties().FirstOrDefault(prop => prop.Name == memberName)
+        ArgumentNullException.ThrowIfNull(propProvider);
+        MemberExpression member =
+            propProvider.Body as MemberExpression
             ?? throw new ArgumentException(
-                $"No public property '{memberName}' is declared in a type '{_entityType.FullName}'"
+                "Only member expressions: `e => e.Property` are allowed"
             );
-        _dataType = NullableType.WrapMemberType(prop);
-    }
+        PropertyInfo property =
+            member.Member as PropertyInfo
+            ?? throw new MemberAccessException(
+                $"No public property '{member.Member.Name}' is declared in a type '{_entityType.FullName}'"
+            );
 
-    private void ValidateConfiguration() // TODO
-    {
-        if (string.IsNullOrWhiteSpace(_memberName))
-        {
-            throw new InvalidOperationException();
-        }
-        if (_dataType == null)
-        {
-            throw new InvalidOperationException();
-        }
+        _propName = property.Name;
+        _dataType = NullableType.WrapMemberType(property);
     }
 }

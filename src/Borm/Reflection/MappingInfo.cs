@@ -8,7 +8,7 @@ public sealed record MappingInfo(
     bool IsPrimaryKey,
     bool IsUnique,
     Type? Reference,
-    ReferentialAction OnDeleteAction
+    ReferentialAction OnDelete
 )
 {
     internal static MappingInfo FromAttribute(ColumnAttribute attribute)

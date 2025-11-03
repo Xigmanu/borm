@@ -1,5 +1,4 @@
-﻿using System.Linq.Expressions;
-using Borm.Reflection;
+﻿using Borm.Reflection;
 
 namespace Borm.Model.Construction;
 
@@ -12,9 +11,15 @@ public sealed class EntityBuilder<TEntity>
 
     public EntityInfo Build()
     {
+        if (_columns.Count == 0)
+        {
+            throw new InvalidOperationException("Cannot create an entity with no columns");
+        }
+
         IReadOnlyList<Constructor> constructors = ConstructorParser.ParseAll(typeof(TEntity));
         Action<object>? validatorAction =
             _validator != null ? (e) => _validator.Validate((TEntity)e) : null;
+
         return new EntityInfo(
             _name,
             typeof(TEntity),
@@ -25,13 +30,11 @@ public sealed class EntityBuilder<TEntity>
     }
 
     public EntityBuilder<TEntity> Column(
-        Expression<Func<ColumnBuilder<TEntity>, TEntity, ColumnBuilder<TEntity>>> columnBuilder
+        Func<ColumnBuilder<TEntity>, ColumnBuilder<TEntity>> columnBuilder
     )
     {
-        MappingMember column = ColumnBuilderExpressionInterpreter<TEntity>
-            .Interpret(columnBuilder)
-            .Build();
-        if (_columns.Contains(column))
+        MappingMember column = columnBuilder(new ColumnBuilder<TEntity>()).Build();
+        if (_columns.Any(c => c.MemberName == column.MemberName))
         {
             throw new ArgumentException(
                 $"Column {column.MemberName} is already defined for entity of type {typeof(TEntity).FullName}"

@@ -48,6 +48,7 @@ public class ColumnAttribute : Attribute
     public ColumnAttribute(int index, string name)
         : this(index)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
         Name = name;
     }
 

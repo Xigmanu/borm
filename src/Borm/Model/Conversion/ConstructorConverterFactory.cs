@@ -9,7 +9,10 @@ internal sealed class ConstructorConverterFactory : ConverterFactory<Func<IValue
 {
     private readonly Constructor _constructor;
 
-    public ConstructorConverterFactory(Constructor constructor, IEnumerable<IColumnMetadata> columns)
+    public ConstructorConverterFactory(
+        Constructor constructor,
+        IEnumerable<IColumnMetadata> columns
+    )
         : base(columns)
     {
         if (constructor.IsDefault)

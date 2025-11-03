@@ -19,7 +19,8 @@ internal static class EntityMetadataBuilder
         ColumnMetadataList columnCollection = new(columns);
 
         IEntityBufferConversion conversion = EntityBufferConversionFactory.Create(
-            typeInfo,
+            typeInfo.Type,
+            typeInfo.Constructors,
             columns
         );
 
@@ -51,7 +52,7 @@ internal static class EntityMetadataBuilder
         if (mapping.Reference != null)
         {
             columnMetadata.Reference = mapping.Reference;
-            columnMetadata.OnDelete = mapping.OnDeleteAction;
+            columnMetadata.OnDelete = mapping.OnDelete;
         }
 
         return columnMetadata;
