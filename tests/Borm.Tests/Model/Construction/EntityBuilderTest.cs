@@ -25,7 +25,7 @@ public sealed class EntityBuilderTest
     }
 
     [Fact]
-    public void Build_ThrowsInvalidOperationException_WhenNoColumnsConfigured()
+    public void Build_ThrowsArgumentException_WhenNoColumnsConfigured()
     {
         // Arrange
         EntityBuilder<AddressEntity> builder = new();
@@ -35,7 +35,7 @@ public sealed class EntityBuilderTest
 
         // Assert
         Assert.NotNull(exception);
-        Assert.IsType<InvalidOperationException>(exception);
+        Assert.IsType<ArgumentException>(exception);
     }
 
     [Fact]

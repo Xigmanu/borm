@@ -18,9 +18,9 @@ internal static class DataContextProvider
                 .Column(b => b.Index(2).Mapping(e => e.End, "end_date"))
                 .Column(b => b.Index(3).Mapping(e => e.Metadata, "meta"))
                 .Build(),
-            EntityFactory.FromType(typeof(AddressEntity), new AddressEntity.Validator()),
-            EntityFactory.FromType(typeof(PersonEntity)),
-            EntityFactory.FromType(typeof(EmployeeEntity)),
+            EntityFactory<AddressEntity>.Create(new AddressEntity.Validator()),
+            EntityFactory<PersonEntity>.Create(),
+            EntityFactory<EmployeeEntity>.Create(),
         ];
 
         BormConfig config = new BormConfig.Builder().Model(model).InMemory().Build();

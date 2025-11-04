@@ -1,31 +1,28 @@
 ﻿using System.Reflection;
+using Borm.Model.Validators;
 using Borm.Properties;
 using Borm.Reflection;
 
 namespace Borm.Model.Construction;
 
-public static class EntityFactory
+public static class EntityFactory<TEntity>
+    where TEntity : class
 {
-    public static EntityInfo FromType(Type entityType)
+    public static EntityInfo Create()
     {
-        return InternalCreate(entityType, null);
+        return InternalCreate(null);
     }
 
-    public static EntityInfo FromType<T>(Type entityType, IEntityValidator<T> validator)
-        where T : class
+    public static EntityInfo Create(IEntityValidator<TEntity> validator)
     {
-        if (typeof(T) != entityType)
-        {
-            throw new ArgumentException($"Invalid validator for entity type {entityType.FullName}");
-        }
+        Action<object>? validate = validator != null ? (e) => validator.Validate((TEntity)e) : null;
 
-        Action<object>? validate = validator != null ? (e) => validator.Validate((T)e) : null;
-
-        return InternalCreate(entityType, validate);
+        return InternalCreate(validate);
     }
 
-    private static EntityInfo InternalCreate(Type entityType, Action<object>? validate)
+    private static EntityInfo InternalCreate(Action<object>? validate)
     {
+        Type entityType = typeof(TEntity);
         EntityAttribute entityAttribute =
             entityType.GetCustomAttribute<EntityAttribute>()
             ?? throw new MemberAccessException(
@@ -33,6 +30,7 @@ public static class EntityFactory
             );
 
         List<MappingMember> properties = ParseProperties(entityType);
+        EntityConfigurationValidator.Validate<TEntity>(properties);
 
         IReadOnlyList<Constructor> constructors = ConstructorParser.ParseAll(entityType);
 
@@ -60,6 +58,7 @@ public static class EntityFactory
 
             NullableType type = NullableType.WrapMemberType(current);
             MappingMember property = new(current.Name, type, MappingInfo.FromAttribute(attribute));
+
             properties.Add(property);
         }
 

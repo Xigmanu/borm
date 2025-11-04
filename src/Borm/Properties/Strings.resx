@@ -144,6 +144,9 @@
   <data name="ModificationOfNonExistingRow" xml:space="preserve">
     <value>The transaction attempted to modify a row that had been removed by another transaction.</value>
   </data>
+  <data name="MultiplePrimaryKeys" xml:space="preserve">
+    <value>Multiple primary keys are not allowed for entities. Type: `{0}`.</value>
+  </data>
   <data name="NotDecoratedEntityType" xml:space="preserve">
     <value>Entity types must be decorated with the 'EntityAttribute'.</value>
   </data>

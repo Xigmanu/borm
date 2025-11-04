@@ -1,5 +1,6 @@
 ﻿using Borm.Model;
 using Borm.Model.Construction;
+using Borm.Model.Validators;
 using Borm.Tests.Common;
 
 namespace Borm.Tests.Model.Construction;
@@ -7,14 +8,14 @@ namespace Borm.Tests.Model.Construction;
 public sealed class EntityFactoryTest
 {
     [Fact]
-    public void FromType_ReturnsEntityInfo_WithValidEntityType()
+    public void Create_ReturnsEntityInfo_WithValidEntityType()
     {
         // Arrange
-        // Arrange
-        Type type = typeof(AddressEntity);
+        IEntityValidator<AddressEntity> validator = new AddressEntity.Validator();
 
         // Act
-        EntityInfo entity = EntityFactory.FromType(type, new AddressEntity.Validator());
+        EntityInfo entity = EntityFactory<AddressEntity>.Create(validator);
+
         // Assert
         Assert.Equal("addresses", entity.Name);
         Assert.Equal(4, entity.Properties.Count);
@@ -22,40 +23,13 @@ public sealed class EntityFactoryTest
     }
 
     [Fact]
-    public void FromType_ThrowsArgumentException_WithInvalidValidator()
+    public void Create_ThrowsMemberException_WithInvalidEntityType()
     {
-        // Arrange
-        Type type = typeof(AddressEntity);
-
         // Act
-        Exception? exception = Record.Exception(
-            () => _ = EntityFactory.FromType(type, new PersonValidator())
-        );
-
-        // Assert
-        Assert.NotNull(exception);
-        Assert.IsType<ArgumentException>(exception);
-    }
-
-    [Fact]
-    public void FromType_ThrowsMemberException_WithInvalidEntityType()
-    {
-        // Arrange
-        Type type = typeof(object);
-
-        // Act
-        Exception? exception = Record.Exception(() => _ = EntityFactory.FromType(type));
+        Exception? exception = Record.Exception(() => _ = EntityFactory<object>.Create());
 
         // Assert
         Assert.NotNull(exception);
         Assert.IsType<MemberAccessException>(exception);
-    }
-
-    private sealed class PersonValidator : IEntityValidator<PersonEntity>
-    {
-        public void Validate(PersonEntity entity)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

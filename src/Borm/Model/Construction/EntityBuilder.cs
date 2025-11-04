@@ -1,4 +1,5 @@
-﻿using Borm.Reflection;
+﻿using Borm.Model.Validators;
+using Borm.Reflection;
 
 namespace Borm.Model.Construction;
 
@@ -11,10 +12,7 @@ public sealed class EntityBuilder<TEntity>
 
     public EntityInfo Build()
     {
-        if (_columns.Count == 0)
-        {
-            throw new InvalidOperationException("Cannot create an entity with no columns");
-        }
+        EntityConfigurationValidator.Validate<TEntity>(_columns);
 
         IReadOnlyList<Constructor> constructors = ConstructorParser.ParseAll(typeof(TEntity));
         Action<object>? validatorAction =

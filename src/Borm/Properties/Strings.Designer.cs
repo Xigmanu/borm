@@ -11,7 +11,6 @@ namespace Borm.Properties;
 public static class Strings 
 {
     private static readonly ResourceManager ResourceManager = new("Borm.Properties.Strings", typeof(Strings).Assembly);
-
     /// <summary>
     /// Data context is not initialized.
     /// </summary>
@@ -56,6 +55,11 @@ public static class Strings
     /// The transaction attempted to modify a row that had been removed by another transaction.
     /// </summary>
     public static string ModificationOfNonExistingRow() => GetString();
+
+    /// <summary>
+    /// Multiple primary keys are not allowed for entities. Type: `{entityName}`.
+    /// </summary>
+    public static string MultiplePrimaryKeys(string entityName) => GetString([entityName]);
 
     /// <summary>
     /// Entity types must be decorated with the 'EntityAttribute'.
