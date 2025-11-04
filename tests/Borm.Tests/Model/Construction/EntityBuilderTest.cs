@@ -16,7 +16,7 @@ public sealed class EntityBuilderTest
         // Act
         EntityInfo entityInfo = builder
             .Name(name)
-            .Column(b => b.Index(0).Mapping("id", e => e.Id).PrimaryKey())
+            .Column(b => b.Index(0).Mapping(e => e.Id, "id").PrimaryKey())
             .Validator(new AddressEntity.Validator())
             .Build();
 

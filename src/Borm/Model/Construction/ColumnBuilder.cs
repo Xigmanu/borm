@@ -51,8 +51,8 @@ public sealed class ColumnBuilder<TEntity>
     }
 
     public ColumnBuilder<TEntity> Mapping<TProperty>(
-        string columnName,
-        Expression<Func<TEntity, TProperty>> propProvider
+        Expression<Func<TEntity, TProperty>> propProvider,
+        string columnName
     )
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(columnName);

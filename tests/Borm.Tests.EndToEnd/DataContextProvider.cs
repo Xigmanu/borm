@@ -14,9 +14,9 @@ internal static class DataContextProvider
             new EntityBuilder<DebugEntity>()
                 .Name("debug_infos")
                 .Column(b => b.Index(0).Mapping(e => e.Id).PrimaryKey())
-                .Column(b => b.Index(1).Mapping("begin_date", e => e.Begin))
-                .Column(b => b.Index(2).Mapping("end_date", e => e.End))
-                .Column(b => b.Index(3).Mapping("meta", e => e.Metadata))
+                .Column(b => b.Index(1).Mapping(e => e.Begin, "begin_date"))
+                .Column(b => b.Index(2).Mapping(e => e.End, "end_date"))
+                .Column(b => b.Index(3).Mapping(e => e.Metadata, "meta"))
                 .Build(),
             EntityFactory.FromType(typeof(AddressEntity), new AddressEntity.Validator()),
             EntityFactory.FromType(typeof(PersonEntity)),

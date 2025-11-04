@@ -21,7 +21,7 @@ public sealed class ColumnBuilderTest
         // Act
         MappingMember column = builder
             .Index(idx)
-            .Mapping(name, (e) => e.Id)
+            .Mapping((e) => e.Id, name)
             .PrimaryKey()
             .Unique()
             .Build();
@@ -52,7 +52,7 @@ public sealed class ColumnBuilderTest
         // Act
         MappingMember column = builder
             .Index(idx)
-            .Mapping(name, (e) => e.Address)
+            .Mapping((e) => e.Address, name)
             .References(type)
             .OnDelete(action)
             .Build();
@@ -122,7 +122,7 @@ public sealed class ColumnBuilderTest
         ColumnBuilder<AddressEntity> builder = new();
 
         // Act
-        Exception? exception = Record.Exception(() => _ = builder.Mapping(name, (e) => e.Address));
+        Exception? exception = Record.Exception(() => _ = builder.Mapping((e) => e.Address, name));
 
         // Assert
         Assert.NotNull(exception);
@@ -136,7 +136,7 @@ public sealed class ColumnBuilderTest
         ColumnBuilder<AddressEntity> builder = new();
 
         // Act
-        Exception? exception = Record.Exception(() => _ = builder.Mapping(null!, e => e.Address));
+        Exception? exception = Record.Exception(() => _ = builder.Mapping(e => e.Address, null!));
 
         // Assert
         Assert.NotNull(exception);
