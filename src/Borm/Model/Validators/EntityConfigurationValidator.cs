@@ -4,9 +4,10 @@ using Borm.Reflection;
 
 namespace Borm.Model.Validators;
 
-internal static class EntityConfigurationValidator
+internal sealed class EntityConfigurationValidator<TEntity> : IValidator<IReadOnlyList<MappingMember>>
+    where TEntity : class
 {
-    public static void Validate<TEntity>(IReadOnlyList<MappingMember> properties)
+    public void Validate(IReadOnlyList<MappingMember> properties)
     {
         ArgumentNullException.ThrowIfNull(properties);
 

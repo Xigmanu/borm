@@ -6,22 +6,29 @@ namespace Borm.Model.Construction;
 public sealed class EntityBuilder<TEntity>
     where TEntity : class
 {
-    private readonly List<MappingMember> _columns = [];
+    private readonly List<MappingMember> _properties = [];
+    private readonly IValidator<IReadOnlyList<MappingMember>> _validator;
+
+    internal EntityBuilder(IValidator<IReadOnlyList<MappingMember>> validator)
+    {
+        _validator = validator;
+    }
+
+    private IValidator<TEntity>? _entityValidator;
     private string? _name;
-    private IEntityValidator<TEntity>? _validator;
 
     public EntityInfo Build()
     {
-        EntityConfigurationValidator.Validate<TEntity>(_columns);
+        _validator.Validate(_properties);
 
         IReadOnlyList<Constructor> constructors = ConstructorParser.ParseAll(typeof(TEntity));
         Action<object>? validatorAction =
-            _validator != null ? (e) => _validator.Validate((TEntity)e) : null;
+            _entityValidator != null ? (e) => _entityValidator.Validate((TEntity)e) : null;
 
         return new EntityInfo(
             _name,
             typeof(TEntity),
-            _columns.AsReadOnly(),
+            _properties.AsReadOnly(),
             constructors,
             validatorAction
         );
@@ -31,14 +38,18 @@ public sealed class EntityBuilder<TEntity>
         Func<ColumnBuilder<TEntity>, ColumnBuilder<TEntity>> columnBuilder
     )
     {
-        MappingMember column = columnBuilder(new ColumnBuilder<TEntity>()).Build();
-        if (_columns.Any(c => c.MemberName == column.MemberName))
+        ColumnBuilder<TEntity> builder = columnBuilder(
+            new ColumnBuilder<TEntity>(new ColumnConfigurationValidator<TEntity>())
+        );
+
+        MappingMember column = builder.Build();
+        if (_properties.Any(c => c.MemberName == column.MemberName))
         {
             throw new ArgumentException(
                 $"Column {column.MemberName} is already defined for entity of type {typeof(TEntity).FullName}"
             );
         }
-        _columns.Add(column);
+        _properties.Add(column);
         return this;
     }
 
@@ -49,10 +60,10 @@ public sealed class EntityBuilder<TEntity>
         return this;
     }
 
-    public EntityBuilder<TEntity> Validator(IEntityValidator<TEntity> validator)
+    public EntityBuilder<TEntity> Validator(IValidator<TEntity> validator)
     {
         ArgumentNullException.ThrowIfNull(validator);
-        _validator = validator;
+        _entityValidator = validator;
         return this;
     }
 }

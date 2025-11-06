@@ -1,5 +1,6 @@
 ﻿using Borm.Model;
 using Borm.Model.Construction;
+using Borm.Model.Validators;
 using Borm.Reflection;
 using Borm.Tests.Common;
 
@@ -7,6 +8,11 @@ namespace Borm.Tests.Model.Construction;
 
 public sealed class ColumnBuilderTest
 {
+    private static readonly IValidator<ColumnBuilder<AddressEntity>.Configuration> TestAddressValidator =
+        new TestColumnBuilderConfigurationValidator<AddressEntity>();
+    private static readonly IValidator<ColumnBuilder<PersonEntity>.Configuration> TestPersonValidator =
+        new TestColumnBuilderConfigurationValidator<PersonEntity>();
+
     [Fact]
     public void Build_Column_WithValidConfiguration()
     {
@@ -16,7 +22,7 @@ public sealed class ColumnBuilderTest
         string memberName = "Id";
         Type type = typeof(int);
 
-        ColumnBuilder<AddressEntity> builder = new();
+        ColumnBuilder<AddressEntity> builder = new(TestAddressValidator);
 
         // Act
         MappingMember column = builder
@@ -28,7 +34,7 @@ public sealed class ColumnBuilderTest
 
         // Assert
         Assert.Equal(memberName, column.MemberName);
-        Assert.Equal(type, column.TypeInfo.Type);
+        Assert.Equal(type, column.Type.Type);
         Assert.NotNull(column.Mapping);
         Assert.Equal(idx, column.Mapping.ColumnIndex);
         Assert.Equal(name, column.Mapping.ColumnName);
@@ -47,7 +53,7 @@ public sealed class ColumnBuilderTest
         Type type = typeof(AddressEntity);
         ReferentialAction action = ReferentialAction.Cascade;
 
-        ColumnBuilder<PersonEntity> builder = new();
+        ColumnBuilder<PersonEntity> builder = new(TestPersonValidator);
 
         // Act
         MappingMember column = builder
@@ -59,7 +65,7 @@ public sealed class ColumnBuilderTest
 
         // Assert
         Assert.Equal(memberName, column.MemberName);
-        Assert.Equal(type, column.TypeInfo.Type);
+        Assert.Equal(type, column.Type.Type);
         Assert.NotNull(column.Mapping);
         Assert.Equal(idx, column.Mapping.ColumnIndex);
         Assert.Equal(name, column.Mapping.ColumnName);
@@ -70,26 +76,12 @@ public sealed class ColumnBuilderTest
     }
 
     [Fact]
-    public void Build_ThrowsInvalidOperationException_WhenNameIsNotConfigured()
-    {
-        // Arrange
-        ColumnBuilder<AddressEntity> builder = new();
-
-        // Act
-        Exception? exception = Record.Exception(() => _ = builder.Build());
-
-        // Assert
-        Assert.NotNull(exception);
-        Assert.IsType<InvalidOperationException>(exception);
-    }
-
-    [Fact]
     public void Index_ThrowsArgumentException_WithInvalidIndex()
     {
         // Arrange
         int index = -1;
 
-        ColumnBuilder<AddressEntity> builder = new();
+        ColumnBuilder<AddressEntity> builder = new(TestAddressValidator);
 
         // Act
         Exception? exception = Record.Exception(() => _ = builder.Index(index));
@@ -103,7 +95,7 @@ public sealed class ColumnBuilderTest
     public void Mapping_ThrowsArgumentException_WhenExpressionIsNotMemberExpression()
     {
         // Arrange
-        ColumnBuilder<AddressEntity> builder = new();
+        ColumnBuilder<AddressEntity> builder = new(TestAddressValidator);
 
         // Act
         Exception? exception = Record.Exception(() => _ = builder.Mapping(e => e.Id + 42));
@@ -119,7 +111,7 @@ public sealed class ColumnBuilderTest
     public void Mapping_ThrowsArgumentException_WithInvalidColumnName(string name)
     {
         // Arrange
-        ColumnBuilder<AddressEntity> builder = new();
+        ColumnBuilder<AddressEntity> builder = new(TestAddressValidator);
 
         // Act
         Exception? exception = Record.Exception(() => _ = builder.Mapping((e) => e.Address, name));
@@ -133,7 +125,7 @@ public sealed class ColumnBuilderTest
     public void Mapping_ThrowsArgumentException_WithNullColumnName()
     {
         // Arrange
-        ColumnBuilder<AddressEntity> builder = new();
+        ColumnBuilder<AddressEntity> builder = new(TestAddressValidator);
 
         // Act
         Exception? exception = Record.Exception(() => _ = builder.Mapping(e => e.Address, null!));
@@ -147,7 +139,7 @@ public sealed class ColumnBuilderTest
     public void Mapping_ThrowsArgumentException_WithNullMemberName()
     {
         // Arrange
-        ColumnBuilder<AddressEntity> builder = new();
+        ColumnBuilder<AddressEntity> builder = new(TestAddressValidator);
 
         // Act
         Exception? exception = Record.Exception(() => _ = builder.Mapping<string>(null!));
@@ -158,26 +150,10 @@ public sealed class ColumnBuilderTest
     }
 
     [Fact]
-    public void PrimaryKey_ThrowsInvalidOperationException_WhenMakingForeignKeyPrimaryKey()
-    {
-        // Arrange
-        ColumnBuilder<AddressEntity> builder = new();
-
-        // Act
-        Exception? exception = Record.Exception(
-            () => _ = builder.References(typeof(PersonEntity)).PrimaryKey()
-        );
-
-        // Assert
-        Assert.NotNull(exception);
-        Assert.IsType<InvalidOperationException>(exception);
-    }
-
-    [Fact]
     public void References_ThrowsArgumentException_WhenReferencingSelf()
     {
         // Arrange
-        ColumnBuilder<AddressEntity> builder = new();
+        ColumnBuilder<AddressEntity> builder = new(TestAddressValidator);
 
         // Act
         Exception? exception = Record.Exception(
@@ -189,19 +165,10 @@ public sealed class ColumnBuilderTest
         Assert.IsType<ArgumentException>(exception);
     }
 
-    [Fact]
-    public void References_ThrowsInvalidOperationException_WhenAddingReferenceToPrimaryKey()
+    private sealed class TestColumnBuilderConfigurationValidator<TEntity>
+        : IValidator<ColumnBuilder<TEntity>.Configuration>
+        where TEntity : class
     {
-        // Arrange
-        ColumnBuilder<AddressEntity> builder = new();
-
-        // Act
-        Exception? exception = Record.Exception(
-            () => _ = builder.PrimaryKey().References(typeof(PersonEntity))
-        );
-
-        // Assert
-        Assert.NotNull(exception);
-        Assert.IsType<InvalidOperationException>(exception);
+        public void Validate(ColumnBuilder<TEntity>.Configuration value) { }
     }
 }

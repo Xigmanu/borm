@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
+using Borm.Model.Validators;
 using Borm.Properties;
 using Borm.Reflection;
 
@@ -9,6 +10,7 @@ public sealed class ColumnBuilder<TEntity>
     where TEntity : class
 {
     private readonly Type _entityType = typeof(TEntity);
+    private readonly IValidator<Configuration> _validator;
     private string? _columnName;
     private NullableType? _dataType;
     private int _index;
@@ -18,12 +20,21 @@ public sealed class ColumnBuilder<TEntity>
     private ReferentialAction _refAction;
     private Type? _reference;
 
+    internal sealed record Configuration(
+        string? PropertyName,
+        NullableType? DataType,
+        bool IsPrimaryKey,
+        Type? Reference
+    );
+
+    internal ColumnBuilder(IValidator<Configuration> validator)
+    {
+        _validator = validator;
+    }
+
     public MappingMember Build()
     {
-        if (string.IsNullOrWhiteSpace(_propName))
-        {
-            throw new InvalidOperationException();
-        }
+        _validator.Validate(new Configuration(_propName, _dataType, _isPrimaryKey, _reference));
 
         MappingInfo mappingInfo = new(
             _index,
@@ -70,20 +81,12 @@ public sealed class ColumnBuilder<TEntity>
 
     public ColumnBuilder<TEntity> PrimaryKey()
     {
-        if (_reference != null)
-        {
-            throw new InvalidOperationException("Primary key cannot be a foreign key");
-        }
         _isPrimaryKey = true;
         return this;
     }
 
     public ColumnBuilder<TEntity> References(Type parentType)
     {
-        if (_isPrimaryKey)
-        {
-            throw new InvalidOperationException("Primary key cannot be a foreign key");
-        }
         if (parentType == _entityType)
         {
             throw new ArgumentException("Circular Reference");

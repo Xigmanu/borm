@@ -5,22 +5,29 @@ using Borm.Reflection;
 
 namespace Borm.Model.Construction;
 
-public static class EntityFactory<TEntity>
+internal static class EntityFactory<TEntity>
     where TEntity : class
 {
-    public static EntityInfo Create()
+    public static EntityInfo Create(IValidator<IReadOnlyList<MappingMember>> validator)
     {
-        return InternalCreate(null);
+        return InternalCreate(validator, null);
     }
 
-    public static EntityInfo Create(IEntityValidator<TEntity> validator)
+    public static EntityInfo Create(
+        IValidator<IReadOnlyList<MappingMember>> validator,
+        IValidator<TEntity> entityValidator
+    )
     {
-        Action<object>? validate = validator != null ? (e) => validator.Validate((TEntity)e) : null;
+        Action<object>? validate =
+            entityValidator != null ? (e) => entityValidator.Validate((TEntity)e) : null;
 
-        return InternalCreate(validate);
+        return InternalCreate(validator, validate);
     }
 
-    private static EntityInfo InternalCreate(Action<object>? validate)
+    private static EntityInfo InternalCreate(
+        IValidator<IReadOnlyList<MappingMember>> validator,
+        Action<object>? validate
+    )
     {
         Type entityType = typeof(TEntity);
         EntityAttribute entityAttribute =
@@ -30,7 +37,7 @@ public static class EntityFactory<TEntity>
             );
 
         List<MappingMember> properties = ParseProperties(entityType);
-        EntityConfigurationValidator.Validate<TEntity>(properties);
+        validator.Validate(properties);
 
         IReadOnlyList<Constructor> constructors = ConstructorParser.ParseAll(entityType);
 

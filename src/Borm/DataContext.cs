@@ -3,6 +3,7 @@ using Borm.Data;
 using Borm.Data.Storage;
 using Borm.Model;
 using Borm.Model.Metadata;
+using Borm.Model.Validators;
 using Borm.Properties;
 
 namespace Borm;
@@ -30,6 +31,7 @@ public sealed class DataContext
 {
     private readonly BormConfig _configuration;
     private readonly DataSynchronizer _dataSynchronizer;
+    private readonly ContextInitializer _initializer;
     private readonly TableGraph _tableGraph;
 
     /// <summary>
@@ -41,6 +43,7 @@ public sealed class DataContext
     {
         _configuration = configuration;
         _tableGraph = new();
+        _initializer = new(new ModelRelationsValidator());
         _dataSynchronizer = new(
             configuration.CommandExecutor,
             _tableGraph,
@@ -53,11 +56,11 @@ public sealed class DataContext
     /// </summary>
     public event EventHandler? Initialized;
 
-    internal TableGraph TableGraph
-    {
-        get =>
-            _tableGraph ?? throw new InvalidOperationException(Strings.DataContextNotInitialized());
-    }
+    internal DataSynchronizer DataSynchronizer => _dataSynchronizer;
+
+    internal IReadOnlyList<EntityInfo> Model => _configuration.Model;
+
+    internal TableGraph TableGraph => _tableGraph;
 
     /// <summary>
     /// Begins a new transaction scope for changes performed through this context.
@@ -106,32 +109,7 @@ public sealed class DataContext
     /// </remarks>
     public void Initialize()
     {
-        EntityInfo[] entities = _configuration.Model;
-        if (entities.Length == 0)
-        {
-            return;
-        }
-
-        List<IEntityMetadata> metadata = [];
-        for (int i = 0; i < entities.Length; i++)
-        {
-            IEntityMetadata entityMetadata = EntityMetadataBuilder.Build(entities[i]);
-            metadata.Add(entityMetadata);
-        }
-
-        EntityMetadataValidator validator = new(metadata);
-        metadata.ForEach(info =>
-        {
-            if (!validator.IsValid(info, out Exception? exception))
-            {
-                throw exception;
-            }
-        });
-
-        new TableGraphBuilder(metadata).Build(_tableGraph);
-
-        _dataSynchronizer.SyncSchemaWithDataSource();
-
+        _initializer.Initialize(this);
         OnInitialized();
     }
 

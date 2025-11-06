@@ -33,7 +33,7 @@ public sealed class BormConfig
     /// <summary>
     /// Entity model to be used for table creation.
     /// </summary>
-    public EntityInfo[] Model { get; }
+    public IReadOnlyList<EntityInfo> Model { get; }
 
     /// <summary>
     /// Builder for constructing <see cref="BormConfig"/> instances.

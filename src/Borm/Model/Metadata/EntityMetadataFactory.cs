@@ -5,9 +5,9 @@ using Borm.Reflection;
 
 namespace Borm.Model.Metadata;
 
-internal static class EntityMetadataBuilder
+internal static class EntityMetadataFactory
 {
-    public static IEntityMetadata Build(EntityInfo typeInfo)
+    public static IEntityMetadata Create(EntityInfo typeInfo)
     {
         string name = !string.IsNullOrWhiteSpace(typeInfo.Name)
             ? typeInfo.Name
@@ -45,7 +45,7 @@ internal static class EntityMetadataBuilder
             mapping.ColumnIndex,
             columnName,
             property.MemberName,
-            property.TypeInfo,
+            property.Type,
             constraints
         );
 
@@ -78,7 +78,7 @@ internal static class EntityMetadataBuilder
         {
             constraints |= Constraints.PrimaryKey;
         }
-        else if (property.TypeInfo.IsNullable)
+        else if (property.Type.IsNullable)
         {
             constraints |= Constraints.AllowDbNull;
         }

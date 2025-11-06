@@ -44,7 +44,7 @@ public sealed class AddressEntity(int id, string address, string? address_1, str
         return HashCode.Combine(Id, Address, Address_1, City);
     }
 
-    public sealed class Validator : IEntityValidator<AddressEntity>
+    public sealed class Validator : IValidator<AddressEntity>
     {
         public void Validate(AddressEntity entity)
         {

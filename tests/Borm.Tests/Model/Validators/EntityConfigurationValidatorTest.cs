@@ -1,6 +1,6 @@
-﻿using Borm.Reflection;
+﻿using Borm.Model.Validators;
+using Borm.Reflection;
 using Borm.Tests.Common;
-using static Borm.Model.Validators.EntityConfigurationValidator;
 
 namespace Borm.Tests.Model.Validators;
 
@@ -11,9 +11,10 @@ public sealed class EntityConfigurationValidatorTest
     {
         // Arrange
         IReadOnlyList<MappingMember> properties = [];
+        EntityConfigurationValidator<AddressEntity> validator = new();
 
         // Act
-        Exception? exception = Record.Exception(() => Validate<AddressEntity>(properties));
+        Exception? exception = Record.Exception(() => validator.Validate(properties));
 
         // Assert
         Assert.NotNull(exception);
@@ -25,9 +26,10 @@ public sealed class EntityConfigurationValidatorTest
     {
         // Arrange
         IReadOnlyList<MappingMember> properties = null!;
+        EntityConfigurationValidator<AddressEntity> validator = new();
 
         // Act
-        Exception? exception = Record.Exception(() => Validate<AddressEntity>(properties));
+        Exception? exception = Record.Exception(() => validator.Validate(properties));
 
         // Assert
         Assert.NotNull(exception);
@@ -63,9 +65,10 @@ public sealed class EntityConfigurationValidatorTest
             )
         );
         IReadOnlyList<MappingMember> properties = [property0, property1];
+        EntityConfigurationValidator<AddressEntity> validator = new();
 
         // Act
-        Exception? exception = Record.Exception(() => Validate<AddressEntity>(properties));
+        Exception? exception = Record.Exception(() => validator.Validate(properties));
 
         // Assert
         Assert.NotNull(exception);
@@ -101,9 +104,10 @@ public sealed class EntityConfigurationValidatorTest
             )
         );
         IReadOnlyList<MappingMember> properties = [property0, property1];
+        EntityConfigurationValidator<AddressEntity> validator = new();
 
         // Act
-        Exception? exception = Record.Exception(() => Validate<AddressEntity>(properties));
+        Exception? exception = Record.Exception(() => validator.Validate(properties));
 
         // Assert
         Assert.NotNull(exception);
@@ -139,9 +143,10 @@ public sealed class EntityConfigurationValidatorTest
             )
         );
         IReadOnlyList<MappingMember> properties = [property0, property1];
+        EntityConfigurationValidator<AddressEntity> validator = new();
 
         // Act
-        Exception? exception = Record.Exception(() => Validate<AddressEntity>(properties));
+        Exception? exception = Record.Exception(() => validator.Validate(properties));
 
         // Assert
         Assert.NotNull(exception);
@@ -165,9 +170,10 @@ public sealed class EntityConfigurationValidatorTest
             )
         );
         IReadOnlyList<MappingMember> properties = [property];
+        EntityConfigurationValidator<AddressEntity> validator = new();
 
         // Act
-        Exception? exception = Record.Exception(() => Validate<AddressEntity>(properties));
+        Exception? exception = Record.Exception(() => validator.Validate(properties));
 
         // Assert
         Assert.NotNull(exception);
