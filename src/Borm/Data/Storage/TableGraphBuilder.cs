@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Borm.Model.Metadata;
+using Borm.Properties;
 
 namespace Borm.Data.Storage;
 
@@ -41,8 +42,8 @@ internal sealed class TableGraphBuilder
 
             if (!_entityInfoMap.TryGetValue(reference, out IEntityMetadata? dependency))
             {
-                throw new InvalidOperationException(
-                    $"No node found for referenced type {reference}"
+                throw new EntityNotFoundException(
+                    Strings.EntityDependencyNotFound(reference.FullName!)
                 );
             }
 

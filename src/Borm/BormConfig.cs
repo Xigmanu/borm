@@ -1,5 +1,6 @@
 ﻿using Borm.Data.Sql;
 using Borm.Model;
+using Borm.Properties;
 
 namespace Borm;
 
@@ -52,15 +53,21 @@ public sealed class BormConfig
         {
             if (_entities == null)
             {
-                throw new InvalidOperationException("Entity model must be provided");
+                throw new InvalidOperationException(
+                    Strings.MissingEntityModelConfiguration(nameof(Model))
+                );
             }
             if (_commandExecutor == null)
             {
-                throw new InvalidOperationException("Command executor must be provided");
+                throw new InvalidOperationException(
+                    Strings.MissingCommandExecutor(nameof(CommandExecutor), nameof(InMemory))
+                );
             }
             if (_commandDefinitionFactory == null)
             {
-                throw new InvalidOperationException("Command definition factory must be provided");
+                throw new InvalidOperationException(
+                    Strings.MissingDefinitionFactory(nameof(CommandDefinitionFactory))
+                );
             }
 
             return new BormConfig(_commandExecutor, _entities, _commandDefinitionFactory);

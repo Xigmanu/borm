@@ -4,7 +4,8 @@ using Borm.Reflection;
 
 namespace Borm.Model.Validators;
 
-internal sealed class EntityConfigurationValidator<TEntity> : IValidator<IReadOnlyList<MappingMember>>
+internal sealed class EntityConfigurationValidator<TEntity>
+    : IValidator<IReadOnlyList<MappingMember>>
     where TEntity : class
 {
     public void Validate(IReadOnlyList<MappingMember> properties)
@@ -46,13 +47,13 @@ internal sealed class EntityConfigurationValidator<TEntity> : IValidator<IReadOn
             if (!columnIndexes.Add(mapping.ColumnIndex))
             {
                 throw new InvalidOperationException(
-                    $"Duplicate column index '{mapping.ColumnIndex}' found in entity '{entityName}'."
+                    Strings.DuplicateColumnIndex(mapping.ColumnIndex, entityName)
                 );
             }
             if (mapping.ColumnName != null && !columnNames.Add(mapping.ColumnName))
             {
                 throw new InvalidOperationException(
-                    $"Duplicate column name '{mapping.ColumnName}' found in entity '{entityName}'."
+                    Strings.DuplicateColumnName(mapping.ColumnName, entityName)
                 );
             }
         }

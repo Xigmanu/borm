@@ -21,18 +21,16 @@ internal sealed class ColumnConfigurationValidator<TEntity>
         Debug.Assert(dataType != null);
 
         Type? reference = configuration.Reference;
-
+        string entityName = typeof(TEntity).FullName ?? typeof(TEntity).Name;
         if (configuration.IsPrimaryKey)
         {
             if (reference != null)
             {
-                throw new InvalidOperationException("Primary key cannot be a foreign key");
+                throw new InvalidOperationException(Strings.PrimaryKeyAsForeignKey(entityName));
             }
             if (dataType.IsNullable)
             {
-                throw new InvalidOperationException(
-                    $"Primary key cannot be nullable. Entity: {typeof(TEntity).FullName}"
-                );
+                throw new InvalidOperationException(Strings.NullablePrimaryKey(entityName));
             }
         }
         if (reference == null && !ColumnDataTypeHelper.IsSupported(dataType.UnderlyingType))

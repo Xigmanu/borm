@@ -1,5 +1,6 @@
 ﻿using Borm.Data.Storage;
 using Borm.Model.Metadata;
+using Borm.Properties;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
 
@@ -28,7 +29,7 @@ public sealed class TableGraphBuilderTest
     }
 
     [Fact]
-    public void Build_ThrowsInvalidOperationException_WhenReferencedEntityDoesNotExist()
+    public void Build_ThrowsEntityNotFoundException_WhenReferencedEntityDoesNotExist()
     {
         // Arrange
         IEntityMetadata persons = _graph[typeof(PersonEntity)]!.Metadata;
@@ -40,6 +41,7 @@ public sealed class TableGraphBuilderTest
 
         // Assert
         Assert.NotNull(exception);
-        Assert.IsType<InvalidOperationException>(exception);
+        Assert.IsType<EntityNotFoundException>(exception);
+        Assert.Equal(Strings.EntityDependencyNotFound(typeof(AddressEntity).FullName!), exception.Message);
     }
 }

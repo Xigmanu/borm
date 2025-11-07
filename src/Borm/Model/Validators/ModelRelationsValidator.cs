@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Borm.Model.Metadata;
+using Borm.Properties;
 using Borm.Reflection;
 
 namespace Borm.Model.Validators;
@@ -11,33 +12,45 @@ internal sealed class ModelRelationsValidator : IValidator<IReadOnlyList<EntityI
         ArgumentNullException.ThrowIfNull(model);
         Debug.Assert(model.Count != 0);
 
-        foreach (MappingMember property in model.SelectMany(e => e.Properties))
+        foreach (EntityInfo entity in model)
         {
-            MappingInfo? mapping = property.Mapping;
-            Type propType = property.Type.UnderlyingType;
-            Debug.Assert(mapping != null);
-            if (mapping.Reference == null)
+            Type entityType = entity.Type;
+            foreach (MappingMember property in entity.Properties)
             {
-                continue;
+                ValidateProperty(entityType.FullName ?? entityType.Name, property, model);
             }
+        }
+    }
 
-            EntityInfo? parent =
-                model.FirstOrDefault(e => e.Type == mapping.Reference)
-                ?? throw new EntityNotFoundException(
-                    $"Referenced entity type {mapping.Reference.FullName} does not exist",
-                    mapping.Reference
-                );
+    private static void ValidateProperty(
+        string entityTypeName,
+        MappingMember property,
+        IReadOnlyList<EntityInfo> model
+    )
+    {
+        MappingInfo? mapping = property.Mapping;
+        Type propType = property.Type.UnderlyingType;
+        Debug.Assert(mapping != null);
+        if (mapping.Reference == null)
+        {
+            return;
+        }
 
-            MappingMember parentPK = parent.Properties.First(p => p.Mapping!.IsPrimaryKey);
-            bool isTypeValid =
-                propType.Equals(parent.Type) || propType.Equals(parentPK.Type.UnderlyingType);
+        Type reference = mapping.Reference;
+        EntityInfo? parent =
+            model.FirstOrDefault(e => e.Type == reference)
+            ?? throw new EntityNotFoundException(
+                Strings.EntityDependencyNotFound(reference.FullName ?? reference.Name),
+                reference
+            );
 
-            if (!isTypeValid)
-            {
-                throw new InvalidOperationException(
-                    $"The foreign key property must be of the referenced type or the type of its primary key. Entity: {parent.Type.FullName}"
-                );
-            }
+        MappingMember parentPK = parent.Properties.First(p => p.Mapping!.IsPrimaryKey);
+        bool isTypeValid =
+            propType.Equals(parent.Type) || propType.Equals(parentPK.Type.UnderlyingType);
+
+        if (!isTypeValid)
+        {
+            throw new InvalidOperationException(Strings.InvalidForeignKeyDataType(entityTypeName));
         }
     }
 }

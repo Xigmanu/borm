@@ -14,21 +14,7 @@ public sealed class ResultSet
     /// <summary>
     /// Gets the row at the current cursor position.
     /// </summary>
-    ///
-    /// <exception cref="InvalidOperationException">
-    /// Thrown if the cursor is not positioned on a valid row.
-    /// </exception>
-    public IReadOnlyDictionary<string, object> Current
-    {
-        get
-        {
-            if (_cursor < 0 || _cursor >= _rows.Count)
-            {
-                throw new InvalidOperationException("Cursor is not positioned on a valid row."); // TODO
-            }
-            return _rows[_cursor];
-        }
-    }
+    public IReadOnlyDictionary<string, object> Current => _rows[_cursor];
 
     /// <summary>
     /// Number of rows in the result set.

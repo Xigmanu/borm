@@ -30,6 +30,13 @@ internal static class EntityFactory<TEntity>
     )
     {
         Type entityType = typeof(TEntity);
+        if (entityType.IsAbstract)
+        {
+            throw new InvalidOperationException(
+                Strings.EntityTypeCannotBeAbstract(entityType.FullName ?? entityType.Name)
+            );
+        }
+
         EntityAttribute entityAttribute =
             entityType.GetCustomAttribute<EntityAttribute>()
             ?? throw new MemberAccessException(

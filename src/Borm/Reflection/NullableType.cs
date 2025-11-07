@@ -44,7 +44,7 @@ public sealed class NullableType
                 parameter.ParameterType,
                 isNullable(context.Create(parameter))
             ),
-            _ => throw new NotSupportedException(),
+            _ => throw new NotSupportedException($"Member {member} is not supported"),
         };
     }
 }

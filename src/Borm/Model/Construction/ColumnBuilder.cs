@@ -89,7 +89,9 @@ public sealed class ColumnBuilder<TEntity>
     {
         if (parentType == _entityType)
         {
-            throw new ArgumentException("Circular Reference");
+            throw new ArgumentException(
+                Strings.EntityDependencyCircularReference(_entityType.FullName ?? _entityType.Name)
+            );
         }
 
         _reference = parentType;
@@ -109,13 +111,14 @@ public sealed class ColumnBuilder<TEntity>
         ArgumentNullException.ThrowIfNull(propProvider);
         MemberExpression member =
             propProvider.Body as MemberExpression
-            ?? throw new ArgumentException(
-                "Only member expressions: `e => e.Property` are allowed"
-            );
+            ?? throw new ArgumentException(Strings.InvalidMemberExpression());
         PropertyInfo property =
             member.Member as PropertyInfo
             ?? throw new MemberAccessException(
-                $"No public property '{member.Member.Name}' is declared in a type '{_entityType.FullName}'"
+                Strings.NoPublicPropertyDeclared(
+                    member.Member.Name,
+                    _entityType.FullName ?? _entityType.Name
+                )
             );
 
         _propName = property.Name;

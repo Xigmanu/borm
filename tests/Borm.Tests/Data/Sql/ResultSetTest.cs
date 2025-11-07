@@ -22,18 +22,4 @@ public sealed class ResultSetTest
         Assert.Equal(row.Count, current.Count);
         Assert.Equal(row["test"], current["test"]);
     }
-
-    [Fact]
-    public void Current_ThrowsInvalidOperationException_WhenCursorIsLesserThanZero()
-    {
-        // Arrange
-        ResultSet resultSet = new();
-
-        // Act
-        Exception? exception = Record.Exception(() => _ = resultSet.Current);
-
-        // Assert
-        Assert.NotNull(exception);
-        Assert.IsType<InvalidOperationException>(exception);
-    }
 }
