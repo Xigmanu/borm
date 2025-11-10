@@ -5,11 +5,11 @@ using Borm.Model.Metadata;
 
 namespace Borm.Data.Storage.Tracking;
 
-[DebuggerDisplay("ChangeCount = {Changes.Count}")]
+[DebuggerDisplay("Changes = {Changes}")]
 internal sealed class ChangeTracker
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private static readonly object _lock = new();
+    private static readonly object Lock = new();
 
     private readonly ChangeSet _changeSet = [];
     private readonly Dictionary<long, ChangeSet> _txChangeSets = [];
@@ -18,7 +18,7 @@ internal sealed class ChangeTracker
     {
         get
         {
-            lock (_lock)
+            lock (Lock)
             {
                 return [.. _changeSet];
             }
@@ -34,7 +34,7 @@ internal sealed class ChangeTracker
 
         try
         {
-            lock (_lock)
+            lock (Lock)
             {
                 ChangeSet merged = ChangeSet.Merge(_changeSet, pendingSet);
                 _changeSet.ReplaceRange(merged);
@@ -49,7 +49,7 @@ internal sealed class ChangeTracker
 
     public bool IsColumnValueUnique(IColumnMetadata column, object columnValue, long txId)
     {
-        return FindChange(txId, (buffer) => buffer[column].Equals(columnValue)) == null;
+        return FindChange(txId, buffer => buffer[column].Equals(columnValue)) == null;
     }
 
     public void MarkChangesAsWritten()
@@ -72,7 +72,7 @@ internal sealed class ChangeTracker
 
     public bool TryGetChange(object primaryKey, long txId, [NotNullWhen(true)] out IChange? change)
     {
-        change = FindChange(txId, (buffer) => buffer.PrimaryKey.Equals(primaryKey));
+        change = FindChange(txId, buffer => buffer.PrimaryKey.Equals(primaryKey));
         return change != null;
     }
 

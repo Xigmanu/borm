@@ -8,7 +8,7 @@ public interface IEntityRepository<T>
     void Insert(T entity);
     void Insert(T entity, Transaction transaction);
     IEnumerable<T> Select();
-    IEnumerable<R> Select<R>(Func<T, R> selector);
+    IEnumerable<TR> Select<TR>(Func<T, TR> selector);
     void Update(T entity);
     void Update(T entity, Transaction transaction);
 }

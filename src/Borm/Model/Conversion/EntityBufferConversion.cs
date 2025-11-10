@@ -5,11 +5,11 @@ namespace Borm.Model.Conversion;
 internal sealed class EntityBufferConversion : IEntityBufferConversion
 {
     /// <summary>
-    /// This global is for testing purposes only.
+    ///     This global is for testing purposes only.
     /// </summary>
     public static readonly EntityBufferConversion Empty = new(
-        (v) => throw new NotImplementedException(),
-        (o) => throw new NotImplementedException()
+        v => throw new NotImplementedException(),
+        o => throw new NotImplementedException()
     );
 
     private readonly Func<IValueBuffer, object> _materializeEntity;

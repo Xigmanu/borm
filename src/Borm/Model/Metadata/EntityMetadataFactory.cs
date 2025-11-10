@@ -1,21 +1,20 @@
-﻿using System.Data;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Borm.Model.Conversion;
 using Borm.Reflection;
 
 namespace Borm.Model.Metadata;
 
-internal static class EntityMetadataBuilder
+internal static class EntityMetadataFactory
 {
-    public static IEntityMetadata Build(EntityInfo typeInfo)
+    public static IEntityMetadata Create(EntityInfo typeInfo)
     {
         string name = !string.IsNullOrWhiteSpace(typeInfo.Name)
             ? typeInfo.Name
             : CreateDefaultName(typeInfo.Type.Name);
 
-        IEnumerable<IColumnMetadata> columns = typeInfo
+        List<ColumnMetadata> columns = typeInfo
             .Properties.Select(CreateColumnInfo)
-            .OrderBy(column => column.Index);
+            .OrderBy(column => column.Index).ToList();
         ColumnMetadataList columnCollection = new(columns);
 
         IEntityBufferConversion conversion = EntityBufferConversionFactory.Create(
@@ -37,7 +36,7 @@ internal static class EntityMetadataBuilder
     {
         MappingInfo? mapping = property.Mapping;
         Debug.Assert(mapping != null);
-        string? columnName = mapping.ColumnName ?? CreateDefaultName(property.MemberName);
+        string columnName = mapping.ColumnName ?? CreateDefaultName(property.MemberName);
 
         Constraints constraints = GetConstraints(property);
 
@@ -45,15 +44,17 @@ internal static class EntityMetadataBuilder
             mapping.ColumnIndex,
             columnName,
             property.MemberName,
-            property.TypeInfo,
+            property.Type,
             constraints
         );
 
-        if (mapping.Reference != null)
+        if (mapping.Reference == null)
         {
-            columnMetadata.Reference = mapping.Reference;
-            columnMetadata.OnDelete = mapping.OnDelete;
+            return columnMetadata;
         }
+
+        columnMetadata.Reference = mapping.Reference;
+        columnMetadata.OnDelete = mapping.OnDelete;
 
         return columnMetadata;
     }
@@ -67,6 +68,7 @@ internal static class EntityMetadataBuilder
                 ? char.ToLower(first).ToString()
                 : char.ToLower(first) + memberName[1..];
         }
+
         return memberName;
     }
 
@@ -78,10 +80,11 @@ internal static class EntityMetadataBuilder
         {
             constraints |= Constraints.PrimaryKey;
         }
-        else if (property.TypeInfo.IsNullable)
+        else if (property.Type.IsNullable)
         {
             constraints |= Constraints.AllowDbNull;
         }
+
         if (mapping.IsUnique)
         {
             constraints |= Constraints.Unique;

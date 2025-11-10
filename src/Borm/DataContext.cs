@@ -2,155 +2,132 @@
 using Borm.Data;
 using Borm.Data.Storage;
 using Borm.Model;
-using Borm.Model.Metadata;
+using Borm.Model.Validators;
 using Borm.Properties;
 
 namespace Borm;
 
 /// <summary>
-/// Represents a session with a database and can be used to create instances of <see cref="IEntityRepository{T}"/>
-/// to provide read/write access to an entity table.
+///     Represents a session with a database and can be used to create instances of <see cref="IEntityRepository{T}" />
+///     to provide read/write access to an entity table.
 /// </summary>
-///
 /// <remarks>
 ///     <para>
-///         Entity classes are public classes that are marked with the <see cref="EntityAttribute"/>.
-///         Any properties in these classes that are to be used for mapping must be marked with the <see cref="ColumnAttribute"/>.
-///         Entity classes are then registered using the <see cref="EntityModel"/> class as part of the data context configuration.
+///         Entity classes are public classes that are marked with the <see cref="EntityAttribute" />.
+///         Any properties in these classes that are to be used for mapping must be marked with the
+///         <see cref="ColumnAttribute" />.
+///         Entity classes are then registered using the <see cref="EntityModel" /> class as part of the data context
+///         configuration.
 ///     </para>
 ///     <para>
 ///         Instances of entity classes are created using either a public constructor or public setters.
 ///         For constructor binding, an entity class must contain a single constructor that initialises all
 ///         properties relevant for mapping (other properties or fields cannot be initialised using a constructor).
-///         The parameters of the constructor must have the same name as the columns to which they assign a value.<br/>
-///         Note: Constructor binding will automatically be used if an entity class contains an explicit constructor.For setter-based binding, do not define any constructors.
+///         The parameters of the constructor must have the same name as the columns to which they assign a value.<br />
+///         Note: Constructor binding will automatically be used if an entity class contains an explicit constructor.For
+///         setter-based binding, do not define any constructors.
 ///     </para>
 /// </remarks>
 public sealed class DataContext
 {
     private readonly BormConfig _configuration;
-    private readonly DataSynchronizer _dataSynchronizer;
-    private readonly TableGraph _tableGraph;
+    private readonly ContextInitializer _initializer;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DataContext"/> class with the specified configuration.
+    ///     Initializes a new instance of the <see cref="DataContext" /> class with the specified configuration.
     /// </summary>
-    ///
     /// <param name="configuration">Configuration for the context.</param>
     public DataContext(BormConfig configuration)
     {
         _configuration = configuration;
-        _tableGraph = new();
-        _dataSynchronizer = new(
+        TableGraph = new TableGraph();
+        _initializer = new ContextInitializer(new ModelRelationsValidator());
+        DataSynchronizer = new DataSynchronizer(
             configuration.CommandExecutor,
-            _tableGraph,
+            TableGraph,
             configuration.CommandDefinitionFactory
         );
     }
 
+    internal DataSynchronizer DataSynchronizer { get; }
+
+    internal IReadOnlyList<EntityInfo> Model => _configuration.Model;
+
+    internal TableGraph TableGraph { get; }
+
     /// <summary>
-    /// An event fired at the end of a call to <see cref="Initialize"/>.
+    ///     An event fired at the end of a call to <see cref="Initialize" />.
     /// </summary>
     public event EventHandler? Initialized;
 
-    internal TableGraph TableGraph
-    {
-        get =>
-            _tableGraph ?? throw new InvalidOperationException(Strings.DataContextNotInitialized());
-    }
-
     /// <summary>
-    /// Begins a new transaction scope for changes performed through this context.
+    ///     Begins a new transaction scope for changes performed through this context.
     /// </summary>
-    ///
     /// <remarks>
-    ///     Transactions are disposable. Commits and rollbacks occur when the <see cref="O:Dispose"/> method is called.
+    ///     Transactions are disposable. Commits and rollbacks occur when the <see cref="O:Dispose" /> method is called.
     /// </remarks>
     /// <returns>A transaction for given data context.</returns>
     public Transaction BeginTransaction()
     {
-        return new Transaction(_tableGraph);
+        return new Transaction(TableGraph);
     }
 
     /// <summary>
-    /// Creates a repository for the specified entity type.
+    ///     Creates a repository for the specified entity type.
     /// </summary>
-    ///
     /// <typeparam name="T">The entity type registered in this data context.</typeparam>
-    /// <returns>An <see cref="IEntityRepository{T}"/> for the specified entity type.</returns>
-    /// <exception cref="InvalidOperationException">The <see cref="Initialize"/> was not called prior to calling this method.</exception>
-    /// <exception cref="ArgumentException">Provided generic argument does not match any entity type registered in this data context.</exception>
+    /// <returns>An <see cref="IEntityRepository{T}" /> for the specified entity type.</returns>
+    /// <exception cref="InvalidOperationException">The <see cref="Initialize" /> was not called prior to calling this method.</exception>
+    /// <exception cref="ArgumentException">
+    ///     Provided generic argument does not match any entity type registered in this data
+    ///     context.
+    /// </exception>
     public IEntityRepository<T> GetRepository<T>()
         where T : class
     {
-        if (_tableGraph == null)
+        if (TableGraph == null)
         {
             throw new InvalidOperationException(Strings.DataContextNotInitialized());
         }
 
         Type entityType = typeof(T);
         Table table =
-            _tableGraph[entityType]
+            TableGraph[entityType]
             ?? throw new ArgumentException(Strings.MissingTableForEntity(entityType.FullName!));
         Debug.Assert(table != null);
 
-        return new EntityRepository<T>(table, _tableGraph);
+        return new EntityRepository<T>(table, TableGraph);
     }
 
     /// <summary>
-    /// Initializes this data context using the provided configuration.
+    ///     Initializes this data context using the provided configuration.
     /// </summary>
-    ///
     /// <remarks>
-    ///     This method must be invoked prior to calling <see cref="GetRepository{T}"/>, <see cref="SaveChanges"/> or <see cref="SaveChangesAsync"/>.
+    ///     This method must be invoked prior to calling <see cref="GetRepository{T}" />, <see cref="SaveChanges" /> or
+    ///     <see cref="SaveChangesAsync" />.
     /// </remarks>
     public void Initialize()
     {
-        EntityInfo[] entities = _configuration.Model;
-        if (entities.Length == 0)
-        {
-            return;
-        }
-
-        List<IEntityMetadata> metadata = [];
-        for (int i = 0; i < entities.Length; i++)
-        {
-            IEntityMetadata entityMetadata = EntityMetadataBuilder.Build(entities[i]);
-            metadata.Add(entityMetadata);
-        }
-
-        EntityMetadataValidator validator = new(metadata);
-        metadata.ForEach(info =>
-        {
-            if (!validator.IsValid(info, out Exception? exception))
-            {
-                throw exception;
-            }
-        });
-
-        new TableGraphBuilder(metadata).Build(_tableGraph);
-
-        _dataSynchronizer.SyncSchemaWithDataSource();
-
+        _initializer.Initialize(this);
         OnInitialized();
     }
 
     /// <summary>
-    /// Writes all changes made to this context since it was initialized
-    /// or since the last time this method was called.
+    ///     Writes all changes made to this context since it was initialized
+    ///     or since the last time this method was called.
     /// </summary>
     public void SaveChanges()
     {
-        _dataSynchronizer.SaveChanges();
+        DataSynchronizer.SaveChanges();
     }
 
     /// <summary>
-    /// Asynchronously writes all changes made to this context since it was initialized
-    /// or since the last time this method was called.
+    ///     Asynchronously writes all changes made to this context since it was initialized
+    ///     or since the last time this method was called.
     /// </summary>
     public Task SaveChangesAsync()
     {
-        return _dataSynchronizer.SaveChangesAsync();
+        return DataSynchronizer.SaveChangesAsync();
     }
 
     private void OnInitialized()

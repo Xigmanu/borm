@@ -7,8 +7,8 @@ namespace Borm.Data.Sql;
 internal sealed class CommandBuilder
 {
     private readonly Dictionary<RowAction, DbCommandDefinition> _commandCache;
-    private readonly TableGraph _graph;
     private readonly IDbCommandDefinitionFactory _commandFactory;
+    private readonly TableGraph _graph;
 
     public CommandBuilder(TableGraph graph, IDbCommandDefinitionFactory commandFactory)
     {
@@ -17,7 +17,7 @@ internal sealed class CommandBuilder
         _commandCache = [];
     }
 
-    public IEnumerable<DbCommandDefinition> BuildUpdateCommands(Table table)
+    public IReadOnlyList<DbCommandDefinition> BuildUpdateCommands(Table table)
     {
         IEnumerable<IChange> changes = table.Tracker.Changes;
         if (!changes.Any())
@@ -35,17 +35,19 @@ internal sealed class CommandBuilder
                 RowAction.Insert => GetOrCreate(schema, action, _commandFactory.Insert),
                 RowAction.Update => GetOrCreate(schema, action, _commandFactory.Update),
                 RowAction.Delete => GetOrCreate(schema, action, _commandFactory.Delete),
-                _ => null,
+                _ => null
             };
 
-            if (command != null)
+            if (command == null)
             {
-                Debug.Assert(!string.IsNullOrEmpty(command.Sql));
-                command.BatchQueue.Enqueue(change.Record);
+                continue;
             }
+
+            Debug.Assert(!string.IsNullOrEmpty(command.Sql));
+            command.BatchQueue.Enqueue(change.Record);
         }
 
-        return _commandCache.Values;
+        return _commandCache.Values.ToList();
     }
 
     [DebuggerStepThrough]

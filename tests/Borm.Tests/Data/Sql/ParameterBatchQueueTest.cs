@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System.Collections;
+using System.Data;
 using Borm.Data.Sql;
 using Borm.Data.Storage;
 using Borm.Model.Metadata;
@@ -46,6 +47,10 @@ public sealed class ParameterBatchQueueTest
         collectionMock
             .Setup(pc => pc[It.IsAny<int>()])
             .Returns((int idx) => paramMocks[idx].Object);
+        collectionMock.As<IEnumerable<IDataParameter>>().Setup(pc => pc.GetEnumerator())
+            .Returns(() => paramMocks.Select(m => m.Object).GetEnumerator());
+        collectionMock.As<IEnumerable>().Setup(pc => pc.GetEnumerator())
+            .Returns(() => paramMocks.Select(p => p.Object).GetEnumerator());
 
         Mock<IDbCommand> cmdMock = new();
         cmdMock.Setup(c => c.Parameters).Returns(collectionMock.Object);

@@ -15,41 +15,38 @@ internal static class EntityMetadataMockFactory
                 .Index(0)
                 .Name("id")
                 .PropertyName("Id")
-                .DataType(typeof(int), isNullable: false)
+                .DataType(typeof(int), false)
                 .PrimaryKey()
                 .Build(),
             new ColumnMetadataImplBuilder()
                 .Index(1)
                 .Name("address")
                 .PropertyName("Address")
-                .DataType(typeof(string), isNullable: false)
+                .DataType(typeof(string), false)
                 .Build(),
             new ColumnMetadataImplBuilder()
                 .Index(2)
                 .Name("address_1")
                 .PropertyName("Address_1")
-                .DataType(typeof(string), isNullable: true)
+                .DataType(typeof(string), true)
                 .Nullable()
                 .Build(),
             new ColumnMetadataImplBuilder()
                 .Index(3)
                 .Name("city")
                 .PropertyName("City")
-                .DataType(typeof(string), isNullable: false)
+                .DataType(typeof(string), false)
                 .Unique()
-                .Build(),
+                .Build()
         ];
 
         IEntityBufferConversion conversion = new EntityBufferConversionImplBuilder()
-            .MaterializeEntity(buffer =>
-            {
-                return new AddressEntity(
-                    (int)buffer["id"],
-                    (string)buffer["address"],
-                    (string?)(buffer["address_1"] != DBNull.Value ? buffer["address_1"] : null),
-                    (string)buffer["city"]
-                );
-            })
+            .MaterializeEntity(buffer => new AddressEntity(
+                (int)buffer["id"],
+                (string)buffer["address"],
+                (string?)(buffer["address_1"] != DBNull.Value ? buffer["address_1"] : null),
+                (string)buffer["city"]
+            ))
             .ToValueBuffer(entity =>
             {
                 AddressEntity address = (AddressEntity)entity;
@@ -93,14 +90,14 @@ internal static class EntityMetadataMockFactory
                 .Index(0)
                 .Name("id")
                 .PropertyName("Id")
-                .DataType(typeof(int), isNullable: false)
+                .DataType(typeof(int), false)
                 .PrimaryKey()
                 .Build(),
             new ColumnMetadataImplBuilder()
                 .Index(1)
                 .Name("person_id")
                 .PropertyName("Person")
-                .DataType(typeof(int), isNullable: false)
+                .DataType(typeof(int), false)
                 .Unique()
                 .Reference(typeof(PersonEntity))
                 .Build(),
@@ -108,19 +105,16 @@ internal static class EntityMetadataMockFactory
                 .Index(2)
                 .Name("is_active")
                 .PropertyName("IsActive")
-                .DataType(typeof(bool), isNullable: false)
-                .Build(),
+                .DataType(typeof(bool), false)
+                .Build()
         ];
 
         IEntityBufferConversion conversion = new EntityBufferConversionImplBuilder()
-            .MaterializeEntity(buffer =>
+            .MaterializeEntity(buffer => new EmployeeEntity
             {
-                return new EmployeeEntity()
-                {
-                    Id = (int)buffer["id"],
-                    Person = (int)buffer["person_id"],
-                    IsActive = (bool)buffer["is_active"],
-                };
+                Id = (int)buffer["id"],
+                Person = (int)buffer["person_id"],
+                IsActive = (bool)buffer["is_active"]
             })
             .ToValueBuffer(entity =>
             {
@@ -154,42 +148,39 @@ internal static class EntityMetadataMockFactory
                 .Index(0)
                 .Name("id")
                 .PropertyName("Id")
-                .DataType(typeof(int), isNullable: false)
+                .DataType(typeof(int), false)
                 .PrimaryKey()
                 .Build(),
             new ColumnMetadataImplBuilder()
                 .Index(1)
                 .Name("name")
                 .PropertyName("Name")
-                .DataType(typeof(string), isNullable: false)
+                .DataType(typeof(string), false)
                 .Unique()
                 .Build(),
             new ColumnMetadataImplBuilder()
                 .Index(2)
                 .Name("salary")
                 .PropertyName("Salary")
-                .DataType(typeof(double), isNullable: false)
+                .DataType(typeof(double), false)
                 .Build(),
             new ColumnMetadataImplBuilder()
                 .Index(3)
                 .Name("address")
                 .PropertyName("Address")
-                .DataType(typeof(AddressEntity), isNullable: true)
+                .DataType(typeof(AddressEntity), true)
                 .Reference(typeof(AddressEntity))
                 .Nullable()
-                .Build(),
+                .Build()
         ];
 
         IEntityBufferConversion conversion = new EntityBufferConversionImplBuilder()
-            .MaterializeEntity(buffer =>
-            {
-                return new PersonEntity(
-                    (int)buffer["id"],
-                    (string)buffer["name"],
-                    (double)buffer["salary"],
-                    buffer["address"] == DBNull.Value ? null : (AddressEntity)buffer["address"]
-                );
-            })
+            .MaterializeEntity(buffer => new PersonEntity(
+                (int)buffer["id"],
+                (string)buffer["name"],
+                (double)buffer["salary"],
+                buffer["address"] == DBNull.Value ? null : (AddressEntity)buffer["address"]
+            ))
             .ToValueBuffer(entity =>
             {
                 PersonEntity person = (PersonEntity)entity;

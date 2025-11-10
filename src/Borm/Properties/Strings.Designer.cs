@@ -18,9 +18,29 @@ public static class Strings
     public static string DataContextNotInitialized() => GetString();
 
     /// <summary>
+    /// Duplicate column index '{index}' found in entity '{entityTypeName}'.
+    /// </summary>
+    public static string DuplicateColumnIndex(int index, string entityTypeName) => GetString([index, entityTypeName]);
+
+    /// <summary>
+    /// Duplicate column name '{name}' found in entity '{entityTypeName}'.
+    /// </summary>
+    public static string DuplicateColumnName(string name, string entityTypeName) => GetString([name, entityTypeName]);
+
+    /// <summary>
     /// Entity '{entityName}' must have at least 1 column.
     /// </summary>
     public static string EmptyColumnCollection(string entityName) => GetString([entityName]);
+
+    /// <summary>
+    /// Circular Reference. Entity '{entityTypeName}' cannot depend on itself.
+    /// </summary>
+    public static string EntityDependencyCircularReference(string entityTypeName) => GetString([entityTypeName]);
+
+    /// <summary>
+    /// Referenced entity type {entityTypeName} does not exist.
+    /// </summary>
+    public static string EntityDependencyNotFound(string entityTypeName) => GetString([entityTypeName]);
 
     /// <summary>
     /// The entity type '{entityTypeName}' cannot be abstract.
@@ -43,6 +63,31 @@ public static class Strings
     public static string InvalidEntityTypeConstructor(string entityTypeName) => GetString([entityTypeName]);
 
     /// <summary>
+    /// The foreign key property must be of the referenced type or the type of its primary key. Entity: '{entityTypeName}'.
+    /// </summary>
+    public static string InvalidForeignKeyDataType(string entityTypeName) => GetString([entityTypeName]);
+
+    /// <summary>
+    /// Only member expressions: `e => e.Property` are allowed.
+    /// </summary>
+    public static string InvalidMemberExpression() => GetString();
+
+    /// <summary>
+    /// Command executor is missing. Call '{firstMethod}' or '{secondMethod}'.
+    /// </summary>
+    public static string MissingCommandExecutor(string firstMethod, string secondMethod) => GetString([firstMethod, secondMethod]);
+
+    /// <summary>
+    /// Command definition factory is missing. Call '{methodNamed}'.
+    /// </summary>
+    public static string MissingDefinitionFactory(string methodName) => GetString([methodName]);
+
+    /// <summary>
+    /// Entity model is missing. Call '{methodName}'.
+    /// </summary>
+    public static string MissingEntityModelConfiguration(string methodName) => GetString([methodName]);
+
+    /// <summary>
     /// Entity '{entityName}' has no primary key.
     /// </summary>
     public static string MissingPrimaryKey(string entityName) => GetString([entityName]);
@@ -58,14 +103,29 @@ public static class Strings
     public static string ModificationOfNonExistingRow() => GetString();
 
     /// <summary>
-    /// Entity types must be decorated with the 'EntityAttribute'.
+    /// Multiple primary keys are not allowed for entities. Type: `{entityName}`.
     /// </summary>
-    public static string NotDecoratedEntityType() => GetString();
+    public static string MultiplePrimaryKeys(string entityName) => GetString([entityName]);
+
+    /// <summary>
+    /// No public property '{propName}' is declared in a type '{entityTypeName}'.
+    /// </summary>
+    public static string NoPublicPropertyDeclared(string propName, string entityTypeName) => GetString([propName, entityTypeName]);
 
     /// <summary>
     /// The column '{columnName}' in the table '{tableName}' cannot be set to null.
     /// </summary>
     public static string NullableConstraintViolation(string columnName, string tableName) => GetString([columnName, tableName]);
+
+    /// <summary>
+    /// Primary key cannot be nullable. Entity: '{entityTypeName}'.
+    /// </summary>
+    public static string NullablePrimaryKey(string entityTypeName) => GetString([entityTypeName]);
+
+    /// <summary>
+    /// Primary key cannot be a foreign key. Entity: '{entityTypeName}'.
+    /// </summary>
+    public static string PrimaryKeyAsForeignKey(string entityTypeName) => GetString([entityTypeName]);
 
     /// <summary>
     /// The table '{tableName}' already contains a row with the primary key '{primaryKey}'.

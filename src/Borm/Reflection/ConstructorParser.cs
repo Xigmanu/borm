@@ -12,18 +12,14 @@ internal static class ConstructorParser
     {
         List<MappingMember> parsedParams = [];
         ParameterInfo[] parameters = ctor.GetParameters();
-        for (int i = 0; i < parameters.Length; i++)
-        {
-            ParameterInfo param = parameters[i];
-            NullableType type = NullableType.WrapMemberType(param);
-            MappingMember parsedParam = new(param.Name!, type, Mapping: null);
-            parsedParams.Add(parsedParam);
-        }
+        parsedParams.AddRange(from param in parameters
+            let type = NullableType.WrapMemberType(param)
+            select new MappingMember(param.Name!, type, null));
 
         return new Constructor(
             parameters.Length == 0,
             parsedParams.AsReadOnly(),
-            (args) => Expression.New(ctor, args)
+            args => Expression.New(ctor, args)
         );
     }
 }

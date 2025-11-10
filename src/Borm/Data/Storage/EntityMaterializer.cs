@@ -32,8 +32,8 @@ internal sealed class EntityMaterializer
     private static bool IsColumnValueSimple(IColumnMetadata column, object columnValue)
     {
         return column.Reference == null
-            || column.Reference != column.DataType.UnderlyingType
-            || columnValue.Equals(DBNull.Value);
+               || column.Reference != column.DataType.UnderlyingType
+               || columnValue.Equals(DBNull.Value);
     }
 
     private object MaterializeParent(Table parent, object columnValue)

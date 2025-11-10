@@ -12,7 +12,7 @@ public sealed class ConstructorInfoExtensionsTest
         ConstructorInfo ctor = typeof(TestType).GetConstructor([typeof(int)])!;
 
         // Act
-        bool isNoArgs = ConstructorInfoExtensions.IsNoArgs(ctor);
+        bool isNoArgs = ctor.IsNoArgs();
 
         // Assert
         Assert.False(isNoArgs);
@@ -25,7 +25,7 @@ public sealed class ConstructorInfoExtensionsTest
         ConstructorInfo ctor = typeof(TestType).GetConstructor(Type.EmptyTypes)!;
 
         // Act
-        bool isNoArgs = ConstructorInfoExtensions.IsNoArgs(ctor);
+        bool isNoArgs = ctor.IsNoArgs();
 
         // Assert
         Assert.True(isNoArgs);
@@ -40,7 +40,9 @@ public sealed class ConstructorInfoExtensionsTest
         }
 #pragma warning restore S1144 // Unused private types or members should be removed
 
-        public TestType() { }
+        public TestType()
+        {
+        }
 
         public int Value { get; }
     }

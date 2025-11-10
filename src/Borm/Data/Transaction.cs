@@ -5,15 +5,15 @@ using Borm.Properties;
 namespace Borm.Data;
 
 /// <summary>
-/// Represents a transactional scope for write operations performed through a <see cref="DataContext"/>.
+///     Represents a transactional scope for write operations performed through a <see cref="DataContext" />.
 /// </summary>
-///
 /// <remarks>
 ///     <para>
-///         If any of the entries affected by this transaction have been changed by another transaction, the operations will be re-executed in the same order.
+///         If any of the entries affected by this transaction have been changed by another transaction, the operations
+///         will be re-executed in the same order.
 ///     </para>
 ///     <para>
-///         Created by calling <see cref="DataContext.BeginTransaction"/>.
+///         Created by calling <see cref="DataContext.BeginTransaction" />.
 ///     </para>
 /// </remarks>
 public sealed class Transaction : IDisposable
@@ -30,11 +30,13 @@ public sealed class Transaction : IDisposable
     private Exception? _exception;
 
     internal Transaction(TableGraph graph)
-        : this(IdProvider.Next(), graph) { }
+        : this(IdProvider.Next(), graph)
+    {
+    }
 
     internal Transaction(long id, TableGraph graph)
     {
-        this._id = id;
+        _id = id;
         _exception = null;
         _graph = graph;
         _operationQueue = [];

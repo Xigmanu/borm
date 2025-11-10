@@ -100,12 +100,12 @@ public sealed class DirectInsertTest
         personRepo.Insert(person);
 
         // Assert
-        IEnumerable<AddressEntity> addresses = addressRepo.Select();
+        IEnumerable<AddressEntity> addresses = addressRepo.Select().ToList();
 
         Assert.Single(addresses);
         Assert.Equal(address, addresses.First());
 
-        IEnumerable<PersonEntity> persons = personRepo.Select();
+        IEnumerable<PersonEntity> persons = personRepo.Select().ToList();
         Assert.Single(persons);
         Assert.Equal(person, persons.First());
     }
@@ -126,12 +126,12 @@ public sealed class DirectInsertTest
         personRepo.Insert(person);
 
         // Assert
-        IEnumerable<AddressEntity> addresses = addressRepo.Select();
+        IEnumerable<AddressEntity> addresses = addressRepo.Select().ToList();
 
         Assert.Single(addresses);
         Assert.Equal(address, addresses.First());
 
-        IEnumerable<PersonEntity> persons = personRepo.Select();
+        IEnumerable<PersonEntity> persons = personRepo.Select().ToList();
         Assert.Single(persons);
         Assert.Equal(person, persons.First());
     }
@@ -181,7 +181,7 @@ public sealed class DirectInsertTest
         repository.Insert(entity);
 
         // Assert
-        IEnumerable<AddressEntity> addresses = repository.Select();
+        IEnumerable<AddressEntity> addresses = repository.Select().ToList();
 
         Assert.Single(addresses);
         Assert.Equal(entity, addresses.First());
@@ -259,7 +259,7 @@ public sealed class DirectInsertTest
         context.SaveChanges();
 
         // Assert
-        IEnumerable<AddressEntity> addresses = repository.Select();
+        IEnumerable<AddressEntity> addresses = repository.Select().ToList();
 
         Assert.Single(addresses);
         Assert.Equal(entity, addresses.First());
@@ -277,7 +277,7 @@ public sealed class DirectInsertTest
         {
             Id = 1,
             Person = person.Id,
-            IsActive = true,
+            IsActive = true
         };
         IEntityRepository<PersonEntity> personRepo = context.GetRepository<PersonEntity>();
         IEntityRepository<EmployeeEntity> employeeRepo = context.GetRepository<EmployeeEntity>();
@@ -287,7 +287,7 @@ public sealed class DirectInsertTest
         employeeRepo.Insert(employee);
 
         // Assert
-        IEnumerable<EmployeeEntity> employees = employeeRepo.Select();
+        IEnumerable<EmployeeEntity> employees = employeeRepo.Select().ToList();
 
         Assert.Single(employees);
         Assert.Equal(employee, employees.First());
@@ -305,7 +305,7 @@ public sealed class DirectInsertTest
         {
             Id = 1,
             Person = person.Id,
-            IsActive = true,
+            IsActive = true
         };
         IEntityRepository<EmployeeEntity> employeeRepo = context.GetRepository<EmployeeEntity>();
 

@@ -11,16 +11,17 @@ internal static class DataContextProvider
     {
         List<EntityInfo> model =
         [
-            new EntityBuilder<DebugEntity>()
+            EntityConfigurator<DebugEntity>
+                .Builder()
                 .Name("debug_infos")
                 .Column(b => b.Index(0).Mapping(e => e.Id).PrimaryKey())
-                .Column(b => b.Index(1).Mapping("begin_date", e => e.Begin))
-                .Column(b => b.Index(2).Mapping("end_date", e => e.End))
-                .Column(b => b.Index(3).Mapping("meta", e => e.Metadata))
+                .Column(b => b.Index(1).Mapping(e => e.Begin, "begin_date"))
+                .Column(b => b.Index(2).Mapping(e => e.End, "end_date"))
+                .Column(b => b.Index(3).Mapping(e => e.Metadata, "meta"))
                 .Build(),
-            EntityFactory.FromType(typeof(AddressEntity), new AddressEntity.Validator()),
-            EntityFactory.FromType(typeof(PersonEntity)),
-            EntityFactory.FromType(typeof(EmployeeEntity)),
+            EntityConfigurator<AddressEntity>.FromType(new AddressEntity.Validator()),
+            EntityConfigurator<PersonEntity>.FromType(),
+            EntityConfigurator<EmployeeEntity>.FromType()
         ];
 
         BormConfig config = new BormConfig.Builder().Model(model).InMemory().Build();

@@ -18,10 +18,10 @@ public sealed class ChangeMergerTest
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
-        long initTxId = 0;
+        const long initTxId = 0;
         IChange initChange = ChangeFactory.NewChange(initBuffer, initTxId);
 
-        long txId = 1;
+        const long txId = 1;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
@@ -46,7 +46,7 @@ public sealed class ChangeMergerTest
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
-        long initTxId = 0;
+        const long initTxId = 0;
         IChange initChange = ChangeFactory.Initial(initBuffer, initTxId);
 
         IValueBuffer buffer = CreateBuffer(
@@ -70,10 +70,10 @@ public sealed class ChangeMergerTest
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
-        long initTxId = 0;
+        const long initTxId = 0;
         IChange initChange = ChangeFactory.NewChange(initBuffer, initTxId);
 
-        long txId = 1;
+        const long txId = 1;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
@@ -98,10 +98,10 @@ public sealed class ChangeMergerTest
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
-        long initTxId = 0;
+        const long initTxId = 0;
         IChange initChange = ChangeFactory.Initial(initBuffer, initTxId);
 
-        long txId = 1;
+        const long txId = 1;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
@@ -126,10 +126,10 @@ public sealed class ChangeMergerTest
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
-        long initTxId = 0;
+        const long initTxId = 0;
         IChange initChange = ChangeFactory.NewChange(initBuffer, initTxId);
 
-        long txId = 1;
+        const long txId = 1;
         IChange incoming = ChangeFactory.Delete(initChange, initBuffer, txId);
 
         // Act
@@ -147,10 +147,10 @@ public sealed class ChangeMergerTest
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
-        long initTxId = 1;
+        const long initTxId = 1;
         IChange initChange = ChangeFactory.Initial(initBuffer, initTxId);
 
-        long txId = 0;
+        const long txId = 0;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );

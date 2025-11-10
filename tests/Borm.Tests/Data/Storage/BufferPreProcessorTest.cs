@@ -56,7 +56,7 @@ public sealed class BufferPreProcessorTest
             addressTable,
             addressBuffer.PrimaryKey,
             address,
-            IsComplexRecord: true,
+            true,
             true
         );
         IValueBuffer expectedProcessedBuffer = CreateBuffer(
@@ -100,7 +100,7 @@ public sealed class BufferPreProcessorTest
             personTable,
             personBuffer.PrimaryKey,
             personBuffer.PrimaryKey,
-            IsComplexRecord: false,
+            false,
             true
         );
 

@@ -1,20 +1,25 @@
 ﻿using Borm.Model;
 using Borm.Model.Construction;
+using Borm.Model.Validators;
+using Borm.Reflection;
 using Borm.Tests.Common;
 
 namespace Borm.Tests.Model.Construction;
 
 public sealed class EntityFactoryTest
 {
+    private static readonly IValidator<IReadOnlyList<MappingMember>> TestValidator =
+        new TestPropertyValidator();
+
     [Fact]
-    public void FromType_ReturnsEntityInfo_WithValidEntityType()
+    public void Create_ReturnsEntityInfo_WithValidEntityType()
     {
         // Arrange
-        // Arrange
-        Type type = typeof(AddressEntity);
+        IValidator<AddressEntity> validator = new AddressEntity.Validator();
 
         // Act
-        EntityInfo entity = EntityFactory.FromType(type, new AddressEntity.Validator());
+        EntityInfo entity = EntityFactory<AddressEntity>.Create(TestValidator, validator);
+
         // Assert
         Assert.Equal("addresses", entity.Name);
         Assert.Equal(4, entity.Properties.Count);
@@ -22,40 +27,21 @@ public sealed class EntityFactoryTest
     }
 
     [Fact]
-    public void FromType_ThrowsArgumentException_WithInvalidValidator()
+    public void Create_ThrowsMemberException_WithInvalidEntityType()
     {
-        // Arrange
-        Type type = typeof(AddressEntity);
-
         // Act
-        Exception? exception = Record.Exception(
-            () => _ = EntityFactory.FromType(type, new PersonValidator())
+        Exception? exception = Record.Exception(() => _ = EntityFactory<object>.Create(TestValidator)
         );
-
-        // Assert
-        Assert.NotNull(exception);
-        Assert.IsType<ArgumentException>(exception);
-    }
-
-    [Fact]
-    public void FromType_ThrowsMemberException_WithInvalidEntityType()
-    {
-        // Arrange
-        Type type = typeof(object);
-
-        // Act
-        Exception? exception = Record.Exception(() => _ = EntityFactory.FromType(type));
 
         // Assert
         Assert.NotNull(exception);
         Assert.IsType<MemberAccessException>(exception);
     }
 
-    private sealed class PersonValidator : IEntityValidator<PersonEntity>
+    private sealed class TestPropertyValidator : IValidator<IReadOnlyList<MappingMember>>
     {
-        public void Validate(PersonEntity entity)
+        public void Validate(IReadOnlyList<MappingMember> value)
         {
-            throw new NotImplementedException();
         }
     }
 }

@@ -6,5 +6,5 @@ public enum Constraints
     None = 0,
     PrimaryKey = 2,
     Unique = 4,
-    AllowDbNull = 8,
+    AllowDbNull = 8
 }

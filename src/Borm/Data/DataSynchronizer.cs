@@ -19,7 +19,7 @@ internal sealed class DataSynchronizer
         _executor = executor;
         _graph = graph;
         _commandFactory = commandFactory;
-        _commandBuilder = new(graph, commandFactory);
+        _commandBuilder = new CommandBuilder(graph, commandFactory);
     }
 
     public void SaveChanges()
@@ -32,6 +32,7 @@ internal sealed class DataSynchronizer
             {
                 _executor.ExecuteBatch(command);
             }
+
             table.Tracker.MarkChangesAsWritten();
         }
     }
@@ -46,6 +47,7 @@ internal sealed class DataSynchronizer
             {
                 await _executor.ExecuteBatchAsync(command, cancellationToken);
             }
+
             table.Tracker.MarkChangesAsWritten();
         }
     }
@@ -66,8 +68,7 @@ internal sealed class DataSynchronizer
             DbCommandDefinition selectAll = _commandFactory.SelectAll(tableSchema);
             ResultSet resultSet = _executor.Query(selectAll);
 
-            transaction.Execute(
-                (txId, affectedTables) =>
+            transaction.Execute((txId, affectedTables) =>
                 {
                     table.Load(resultSet, txId);
                     affectedTables.Add(table);

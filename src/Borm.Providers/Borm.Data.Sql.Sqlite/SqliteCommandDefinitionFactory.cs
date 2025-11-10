@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Data.Common;
+using System.Text;
 using Microsoft.Data.Sqlite;
 
 namespace Borm.Data.Sql.Sqlite;
@@ -33,6 +34,7 @@ public sealed class SqliteCommandDefinitionFactory : IDbCommandDefinitionFactory
 
             columnDefinitions.Add(columnDefinitionBuilder.ToString());
         }
+
         string columnDefinitionsStr = new StringBuilder()
             .AppendJoin(',', columnDefinitions)
             .ToString();
@@ -44,7 +46,7 @@ public sealed class SqliteCommandDefinitionFactory : IDbCommandDefinitionFactory
     public DbCommandDefinition Delete(TableInfo tableSchema)
     {
         ColumnInfo primaryKey = tableSchema.PrimaryKey;
-        (string expression, SqliteParameter[] parameters) = CreateParametrizedExpression(
+        (string expression, DbParameter[] parameters) = CreateParametrizedExpression(
             [primaryKey],
             (columnName, paramName) => $"{columnName} = {paramName}"
         );
@@ -54,7 +56,7 @@ public sealed class SqliteCommandDefinitionFactory : IDbCommandDefinitionFactory
 
     public DbCommandDefinition Insert(TableInfo tableSchema)
     {
-        (string expression, SqliteParameter[] parameters) = CreateParametrizedExpression(
+        (string expression, DbParameter[] parameters) = CreateParametrizedExpression(
             [.. tableSchema.Columns],
             (_, paramName) => paramName
         );
@@ -79,7 +81,7 @@ public sealed class SqliteCommandDefinitionFactory : IDbCommandDefinitionFactory
         );
 
         SqliteParameter conditionalParam = CreateParameterForColumn(primaryKey);
-        SqliteParameter[] parameters = new SqliteParameter[expressionParams.Length + 1];
+        DbParameter[] parameters = new DbParameter[expressionParams.Length + 1];
         Array.Copy(expressionParams, parameters, expressionParams.Length);
         parameters[^1] = conditionalParam;
 
@@ -121,7 +123,7 @@ public sealed class SqliteCommandDefinitionFactory : IDbCommandDefinitionFactory
 
     private static SqliteParameter CreateParameterForColumn(ColumnInfo column)
     {
-        string paramName = string.Format("${0}", column.Name);
+        string paramName = $"${column.Name}";
         SqliteType type = SqliteTypeHelper.ToSqliteType(column.DataType);
         return new SqliteParameter(paramName, type);
     }

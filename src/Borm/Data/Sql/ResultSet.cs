@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace Borm.Data.Sql;
 
 /// <summary>
-/// Represents a forward-only, row-based result set returned from a database query.
+///     Represents a forward-only, row-based result set returned from a database query.
 /// </summary>
 public sealed class ResultSet
 {
@@ -12,26 +12,12 @@ public sealed class ResultSet
     private int _cursor = -1;
 
     /// <summary>
-    /// Gets the row at the current cursor position.
+    ///     Gets the row at the current cursor position.
     /// </summary>
-    ///
-    /// <exception cref="InvalidOperationException">
-    /// Thrown if the cursor is not positioned on a valid row.
-    /// </exception>
-    public IReadOnlyDictionary<string, object> Current
-    {
-        get
-        {
-            if (_cursor < 0 || _cursor >= _rows.Count)
-            {
-                throw new InvalidOperationException("Cursor is not positioned on a valid row."); // TODO
-            }
-            return _rows[_cursor];
-        }
-    }
+    public IReadOnlyDictionary<string, object> Current => _rows[_cursor];
 
     /// <summary>
-    /// Number of rows in the result set.
+    ///     Number of rows in the result set.
     /// </summary>
     public int RowCount => _rows.Count;
 
@@ -40,7 +26,7 @@ public sealed class ResultSet
         Debug.Assert(!reader.IsClosed);
 
         ResultSet resultSet = new();
-        IEnumerable<string> columnNames = reader.GetColumnSchema().Select(c => c.ColumnName);
+        List<string> columnNames = reader.GetColumnSchema().Select(c => c.ColumnName).ToList();
 
         while (reader.Read())
         {
@@ -49,6 +35,7 @@ public sealed class ResultSet
             {
                 row[column] = reader[column];
             }
+
             resultSet.AddRow(row);
         }
 
@@ -56,12 +43,11 @@ public sealed class ResultSet
     }
 
     /// <summary>
-    /// Advances the cursor to the next row in the result set.
+    ///     Advances the cursor to the next row in the result set.
     /// </summary>
-    ///
     /// <returns>
-    /// <see langword="true"/> if the cursor was successfully advanced to the next row;
-    /// <see langword="false"/> if there are no more rows.
+    ///     <see langword="true" /> if the cursor was successfully advanced to the next row;
+    ///     <see langword="false" /> if there are no more rows.
     /// </returns>
     public bool MoveNext()
     {

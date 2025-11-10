@@ -1,10 +1,11 @@
 ﻿using Borm.Data.Sql;
 using Borm.Model;
+using Borm.Properties;
 
 namespace Borm;
 
 /// <summary>
-/// Configuration to be used to initialize <see cref="DataContext"/>.
+///     Configuration to be used to initialize <see cref="DataContext" />.
 /// </summary>
 public sealed class BormConfig
 {
@@ -20,23 +21,23 @@ public sealed class BormConfig
     }
 
     /// <summary>
-    /// Factory responsible for creating <see cref="DbCommandDefinition"/> instances
-    /// for database operations.
+    ///     Factory responsible for creating <see cref="DbCommandDefinition" /> instances
+    ///     for database operations.
     /// </summary>
     public IDbCommandDefinitionFactory CommandDefinitionFactory { get; }
 
     /// <summary>
-    /// Executor responsible for executing database commands.
+    ///     Executor responsible for executing database commands.
     /// </summary>
     public IDbCommandExecutor CommandExecutor { get; }
 
     /// <summary>
-    /// Entity model to be used for table creation.
+    ///     Entity model to be used for table creation.
     /// </summary>
-    public EntityInfo[] Model { get; }
+    public IReadOnlyList<EntityInfo> Model { get; }
 
     /// <summary>
-    /// Builder for constructing <see cref="BormConfig"/> instances.
+    ///     Builder for constructing <see cref="BormConfig" /> instances.
     /// </summary>
     public sealed class Builder
     {
@@ -45,22 +46,30 @@ public sealed class BormConfig
         private EntityInfo[]? _entities;
 
         /// <summary>
-        /// Builds a new <see cref="BormConfig"/> instance using the values set on this builder.
+        ///     Builds a new <see cref="BormConfig" /> instance using the values set on this builder.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if required components are not provided.</exception>
         public BormConfig Build()
         {
             if (_entities == null)
             {
-                throw new InvalidOperationException("Entity model must be provided");
+                throw new InvalidOperationException(
+                    Strings.MissingEntityModelConfiguration(nameof(Model))
+                );
             }
+
             if (_commandExecutor == null)
             {
-                throw new InvalidOperationException("Command executor must be provided");
+                throw new InvalidOperationException(
+                    Strings.MissingCommandExecutor(nameof(CommandExecutor), nameof(InMemory))
+                );
             }
+
             if (_commandDefinitionFactory == null)
             {
-                throw new InvalidOperationException("Command definition factory must be provided");
+                throw new InvalidOperationException(
+                    Strings.MissingDefinitionFactory(nameof(CommandDefinitionFactory))
+                );
             }
 
             return new BormConfig(_commandExecutor, _entities, _commandDefinitionFactory);
@@ -83,7 +92,7 @@ public sealed class BormConfig
         }
 
         /// <summary>
-        /// Configures the builder to use an in-memory database implementation.
+        ///     Configures the builder to use an in-memory database implementation.
         /// </summary>
         /// <returns></returns>
         public Builder InMemory()

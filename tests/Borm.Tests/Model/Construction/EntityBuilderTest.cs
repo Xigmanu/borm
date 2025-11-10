@@ -1,22 +1,27 @@
 ﻿using Borm.Model;
 using Borm.Model.Construction;
+using Borm.Model.Validators;
+using Borm.Reflection;
 using Borm.Tests.Common;
 
 namespace Borm.Tests.Model.Construction;
 
 public sealed class EntityBuilderTest
 {
+    private static readonly IValidator<IReadOnlyList<MappingMember>> TestValidator =
+        new TestPropertyValidator();
+
     [Fact]
     public void Build_BuildsEntity_WithValidConfiguration()
     {
         // Arrange
         string name = "addresses";
-        EntityBuilder<AddressEntity> builder = new();
+        EntityBuilder<AddressEntity> builder = new(TestValidator);
 
         // Act
         EntityInfo entityInfo = builder
             .Name(name)
-            .Column(b => b.Index(0).Mapping("id", e => e.Id).PrimaryKey())
+            .Column(b => b.Index(0).Mapping(e => e.Id, "id").PrimaryKey())
             .Validator(new AddressEntity.Validator())
             .Build();
 
@@ -25,31 +30,16 @@ public sealed class EntityBuilderTest
     }
 
     [Fact]
-    public void Build_ThrowsInvalidOperationException_WhenNoColumnsConfigured()
-    {
-        // Arrange
-        EntityBuilder<AddressEntity> builder = new();
-
-        // Act
-        Exception? exception = Record.Exception(() => _ = builder.Build());
-
-        // Assert
-        Assert.NotNull(exception);
-        Assert.IsType<InvalidOperationException>(exception);
-    }
-
-    [Fact]
     public void Column_ThrowsArgumentException_WhenColumnAlreadyExists()
     {
         // Arrange
-        EntityBuilder<AddressEntity> builder = new();
+        EntityBuilder<AddressEntity> builder = new(TestValidator);
 
         // Act
-        Exception? exception = Record.Exception(
-            () =>
-                _ = builder
-                    .Column(b => b.Index(1).Mapping(e => e.Id))
-                    .Column(b => b.Index(2).Mapping(e => e.Id))
+        Exception? exception = Record.Exception(() =>
+            _ = builder
+                .Column(b => b.Index(1).Mapping(e => e.Id))
+                .Column(b => b.Index(2).Mapping(e => e.Id))
         );
 
         // Assert
@@ -63,7 +53,7 @@ public sealed class EntityBuilderTest
     public void Name_ThrowsArgumentException_WithInvalidName(string name)
     {
         // Arrange
-        EntityBuilder<AddressEntity> builder = new();
+        EntityBuilder<AddressEntity> builder = new(TestValidator);
 
         // Act
         Exception? exception = Record.Exception(() => _ = builder.Name(name));
@@ -77,7 +67,7 @@ public sealed class EntityBuilderTest
     public void Name_ThrowsArgumentNullException_WithNullName()
     {
         // Arrange
-        EntityBuilder<AddressEntity> builder = new();
+        EntityBuilder<AddressEntity> builder = new(TestValidator);
 
         // Act
         Exception? exception = Record.Exception(() => _ = builder.Name(null!));
@@ -91,7 +81,7 @@ public sealed class EntityBuilderTest
     public void Validator_ThrowsArgumentNullException_WithNullValidator()
     {
         // Arrange
-        EntityBuilder<AddressEntity> builder = new();
+        EntityBuilder<AddressEntity> builder = new(TestValidator);
 
         // Act
         Exception? exception = Record.Exception(() => _ = builder.Validator(null!));
@@ -99,5 +89,12 @@ public sealed class EntityBuilderTest
         // Assert
         Assert.NotNull(exception);
         Assert.IsType<ArgumentNullException>(exception);
+    }
+
+    private sealed class TestPropertyValidator : IValidator<IReadOnlyList<MappingMember>>
+    {
+        public void Validate(IReadOnlyList<MappingMember> value)
+        {
+        }
     }
 }

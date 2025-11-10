@@ -1,5 +1,6 @@
 ﻿using Borm.Model;
 using Borm.Model.Metadata;
+using Borm.Reflection;
 
 namespace Borm.Tests.Model.Metadata;
 
@@ -17,7 +18,7 @@ public sealed class ColumnMetadataTest
             1,
             expectedName,
             expectedPropName,
-            new Borm.Reflection.NullableType(typeof(int), isNullable: false),
+            new NullableType(typeof(int), false),
             Constraints.None
         );
 

@@ -4,12 +4,12 @@ internal static class Merger
 {
     public static IChange? CommitMerge(IChange existing, IChange incoming)
     {
-        return MergeInternal(existing, incoming, isCommit: true);
+        return MergeInternal(existing, incoming, true);
     }
 
     public static IChange? Merge(IChange existing, IChange incoming)
     {
-        return MergeInternal(existing, incoming, isCommit: false);
+        return MergeInternal(existing, incoming, false);
     }
 
     private static Change? MergeInternal(IChange existing, IChange incoming, bool isCommit)
@@ -33,6 +33,7 @@ internal static class Merger
             {
                 return null;
             }
+
             rowAction = existing.RowAction;
         }
 

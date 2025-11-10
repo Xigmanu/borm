@@ -21,11 +21,11 @@ public sealed class DbCommandDefinitionTest
     public void Prepare_ShouldSetCommandTextAndAddParameters()
     {
         // Arrange
-        string sql = "INSERT INTO person VALUES ($id, $name);";
+        const string sql = "INSERT INTO person VALUES ($id, $name);";
         DbParameter[] parameters =
         [
             CreateParameter("id", DbType.Int32),
-            CreateParameter("name", DbType.String),
+            CreateParameter("name", DbType.String)
         ];
 
         DbCommandDefinition command = new(sql, parameters);

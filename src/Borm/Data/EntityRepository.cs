@@ -15,11 +15,11 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
 
     public EntityRepository(Table table, TableGraph graph)
     {
-        _preProcessor = new(graph);
+        _preProcessor = new BufferPreProcessor(graph);
         _graph = graph;
         _table = table;
-        _materializer = new(graph);
-        _integrityHelper = new(graph);
+        _materializer = new EntityMaterializer(graph);
+        _integrityHelper = new ReferentialIntegrityHelper(graph);
     }
 
     public void Delete(T entity)
@@ -51,7 +51,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             .Cast<T>();
     }
 
-    public IEnumerable<R> Select<R>(Func<T, R> selector)
+    public IEnumerable<TR> Select<TR>(Func<T, TR> selector)
     {
         return Select().Select(selector);
     }
@@ -166,19 +166,18 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             txId,
             out IValueBuffer preProcessed
         );
-        foreach (ResolvedForeignKey resolvedKey in resolvedKeys)
+        foreach ((Table parent, object primaryKey, object rawValue, bool isComplexRecord, bool changeExists) in
+                 resolvedKeys)
         {
-            if (resolvedKey.ChangeExists)
+            if (changeExists)
             {
                 continue;
             }
 
-            Table parent = resolvedKey.Parent;
             IEntityMetadata metadata = parent.Metadata;
 
-            if (resolvedKey.IsComplexRecord)
+            if (isComplexRecord)
             {
-                object rawValue = resolvedKey.RawValue;
                 metadata.Validate(rawValue);
 
                 IValueBuffer parentBuffer = metadata.Conversion.ToValueBuffer(rawValue);
@@ -187,7 +186,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             else
             {
                 throw new RecordNotFoundException(
-                    Strings.RowNotFound(parent.Name, primaryKey: resolvedKey.PrimaryKey)
+                    Strings.RowNotFound(parent.Name, primaryKey)
                 );
             }
         }

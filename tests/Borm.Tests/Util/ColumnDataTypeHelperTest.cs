@@ -19,7 +19,7 @@ public sealed class ColumnDataTypeHelperTest
         [typeof(bool)],
         [typeof(string)],
         [typeof(Guid)],
-        [typeof(DateTime)],
+        [typeof(DateTime)]
     ];
 
     [Fact]

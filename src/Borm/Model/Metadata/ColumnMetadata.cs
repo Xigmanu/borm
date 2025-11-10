@@ -1,6 +1,6 @@
-﻿using Borm.Reflection;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Borm.Reflection;
 
 namespace Borm.Model.Metadata;
 

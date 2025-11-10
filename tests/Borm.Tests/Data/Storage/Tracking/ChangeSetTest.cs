@@ -43,11 +43,13 @@ public sealed class ChangeSetTest
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
-        long txId = 0;
+        const long txId = 0;
         IChange newChange = ChangeFactory.NewChange(buffer, txId);
 
-        ChangeSet changes = [];
-        changes.Add(newChange);
+        ChangeSet changes =
+        [
+            newChange
+        ];
 
         IChange incoming = ChangeFactory.Delete(newChange, buffer, txId);
 
@@ -66,13 +68,14 @@ public sealed class ChangeSetTest
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
-        long txId = 0;
+        const long txId = 0;
         IChange incoming = ChangeFactory.NewChange(buffer, txId);
 
-        ChangeSet changes = [];
-
         // Act
-        changes.Add(incoming);
+        ChangeSet changes =
+        [
+            incoming
+        ];
 
         // Assert
         Assert.Single(changes);
@@ -88,11 +91,13 @@ public sealed class ChangeSetTest
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
-        long txId = 0;
+        const long txId = 0;
         IChange incoming = ChangeFactory.NewChange(buffer, txId);
 
-        ChangeSet changes = [];
-        changes.Add(incoming);
+        ChangeSet changes =
+        [
+            incoming
+        ];
 
         // Act
         changes.MarkAsWritten();
@@ -113,10 +118,12 @@ public sealed class ChangeSetTest
         );
         IChange initial = ChangeFactory.Initial(buffer, -1);
 
-        ChangeSet changes = [];
-        changes.Add(initial);
+        ChangeSet changes =
+        [
+            initial
+        ];
 
-        long txId = 0;
+        const long txId = 0;
         IChange incoming = ChangeFactory.Delete(initial, buffer, txId);
         changes.Add(incoming);
 
@@ -165,7 +172,7 @@ public sealed class ChangeSetTest
         IValueBuffer initial = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
-        long txId = 0;
+        const long txId = 0;
         IChange initialChange = ChangeFactory.NewChange(initial, txId);
         existing.Add(initialChange);
 

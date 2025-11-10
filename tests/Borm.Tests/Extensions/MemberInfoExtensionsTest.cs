@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
+using MemberInfoExtensions = Borm.Extensions.MemberInfoExtensions;
 
 namespace Borm.Tests.Extensions;
 
@@ -13,7 +14,7 @@ public sealed class MemberInfoExtensionsTest
 
         // Act
         bool hasAttribute =
-            Borm.Extensions.MemberInfoExtensions.HasAttribute<DebuggerStepThroughAttribute>(
+            MemberInfoExtensions.HasAttribute<DebuggerStepThroughAttribute>(
                 memberInfo
             );
 
@@ -29,7 +30,7 @@ public sealed class MemberInfoExtensionsTest
 
         // Act
         bool hasAttribute =
-            Borm.Extensions.MemberInfoExtensions.HasAttribute<DebuggerStepThroughAttribute>(
+            MemberInfoExtensions.HasAttribute<DebuggerStepThroughAttribute>(
                 memberInfo
             );
 

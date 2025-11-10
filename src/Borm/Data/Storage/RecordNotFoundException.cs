@@ -1,34 +1,40 @@
 ﻿namespace Borm.Data.Storage;
 
 /// <summary>
-/// The exception that is thrown when a table record cannot be found
-/// for a given primary key.
+///     The exception that is thrown when a table record cannot be found
+///     for a given primary key.
 /// </summary>
 public sealed class RecordNotFoundException : InvalidOperationException
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="RecordNotFoundException"/> class.
+    ///     Initializes a new instance of the <see cref="RecordNotFoundException" /> class.
     /// </summary>
-    public RecordNotFoundException() { }
+    public RecordNotFoundException()
+    {
+    }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="RecordNotFoundException"/> class
-    /// with a specified error message.
+    ///     Initializes a new instance of the <see cref="RecordNotFoundException" /> class
+    ///     with a specified error message.
     /// </summary>
     public RecordNotFoundException(string? message)
-        : base(message) { }
+        : base(message)
+    {
+    }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="RecordNotFoundException"/> class
-    /// with a specified error message and a reference to the exception that
-    /// is the cause of this exception.
+    ///     Initializes a new instance of the <see cref="RecordNotFoundException" /> class
+    ///     with a specified error message and a reference to the exception that
+    ///     is the cause of this exception.
     /// </summary>
     public RecordNotFoundException(string? message, Exception? innerException)
-        : base(message, innerException) { }
+        : base(message, innerException)
+    {
+    }
 
     /// <summary>
-    /// Initializes a new instance of the<see cref = "RecordNotFoundException" /> class
-    /// with a specified error message, entity name, and primary key value.
+    ///     Initializes a new instance of the<see cref="RecordNotFoundException" /> class
+    ///     with a specified error message, entity name, and primary key value.
     /// </summary>
     /// <param name="message"></param>
     /// <param name="entityName"></param>
@@ -41,12 +47,12 @@ public sealed class RecordNotFoundException : InvalidOperationException
     }
 
     /// <summary>
-    /// Name of the entity whose row could not be found.
+    ///     Name of the entity whose row could not be found.
     /// </summary>
     public string? EntityName { get; }
 
     /// <summary>
-    /// Primary key value that was used to query the missing row.
+    ///     Primary key value that was used to query the missing row.
     /// </summary>
     public object? PrimaryKey { get; }
 }

@@ -54,12 +54,12 @@ internal sealed class BufferPreProcessor
         IEntityMetadata metadata = parent.Metadata;
         if (column.DataType.UnderlyingType != metadata.Type)
         {
-            changeExists = parent.Tracker.TryGetChange(primaryKey: columnValue, txId, out _);
+            changeExists = parent.Tracker.TryGetChange(columnValue, txId, out _);
             return new ResolvedForeignKey(
                 parent,
                 columnValue,
                 columnValue,
-                IsComplexRecord: false,
+                false,
                 changeExists
             );
         }
@@ -72,7 +72,7 @@ internal sealed class BufferPreProcessor
             parent,
             primaryKey,
             columnValue,
-            IsComplexRecord: true,
+            true,
             changeExists
         );
     }

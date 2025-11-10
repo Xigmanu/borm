@@ -1,4 +1,5 @@
 ﻿using Borm.Data.Storage;
+using Borm.Model;
 using Borm.Model.Metadata;
 using Moq;
 
@@ -43,7 +44,7 @@ internal sealed class ValueBufferImplBuilder
                     .PrimaryKey(
                         columnValues
                             .First(kvp =>
-                                kvp.Key.Constraints.HasFlag(Borm.Model.Constraints.PrimaryKey)
+                                kvp.Key.Constraints.HasFlag(Constraints.PrimaryKey)
                             )
                             .Value
                     )
@@ -62,8 +63,7 @@ internal sealed class ValueBufferImplBuilder
         _mock.Setup(v => v[It.IsAny<string>()]).Returns<string>(c => colNameValues[c]);
         _mock
             .SetupSet(v => v[It.IsAny<IColumnMetadata>()] = It.IsAny<object>())
-            .Callback<IColumnMetadata, object>(
-                (column, value) =>
+            .Callback<IColumnMetadata, object>((column, value) =>
                 {
                     columnValues[column] = value;
                     colNameValues[column.Name] = value;

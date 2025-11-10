@@ -18,13 +18,13 @@ public sealed class ChangeFactoryTest
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
-        long initTxId = 0;
+        const long initTxId = 0;
         IChange change = ChangeFactory.Initial(initBuffer, initTxId);
 
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
-        long txId = 1;
+        const long txId = 1;
 
         // Act
         IChange actual = ChangeFactory.Delete(change, buffer, txId);
@@ -45,7 +45,7 @@ public sealed class ChangeFactoryTest
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
-        long txId = 0;
+        const long txId = 0;
 
         // Act
         IChange change = ChangeFactory.Initial(buffer, txId);
@@ -66,7 +66,7 @@ public sealed class ChangeFactoryTest
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
-        long txId = 0;
+        const long txId = 0;
 
         // Act
         IChange change = ChangeFactory.NewChange(buffer, txId);
@@ -87,13 +87,13 @@ public sealed class ChangeFactoryTest
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
-        long initTxId = 0;
+        const long initTxId = 0;
         IChange change = ChangeFactory.NewChange(initBuffer, initTxId);
 
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
-        long txId = 1;
+        const long txId = 1;
 
         // Act
         IChange actual = ChangeFactory.Update(change, buffer, txId);

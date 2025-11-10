@@ -1,4 +1,5 @@
 ﻿using Borm.Data.Storage;
+using Borm.Model;
 using Borm.Model.Metadata;
 using Borm.Tests.Mocks.Builders;
 
@@ -16,9 +17,7 @@ internal static class ValueBufferMockFactory
             .ColumnValues(columnValues)
             .PrimaryKey(
                 columnValues
-                    .FirstOrDefault(kvp =>
-                        kvp.Key.Constraints.HasFlag(Borm.Model.Constraints.PrimaryKey)
-                    )!
+                    .FirstOrDefault(kvp => kvp.Key.Constraints.HasFlag(Constraints.PrimaryKey))
                     .Value
             )
             .Build();

@@ -1,31 +1,42 @@
-﻿using System.Reflection;
+﻿using Borm.Model.Validators;
 using Borm.Properties;
 using Borm.Reflection;
+using System.Reflection;
 
 namespace Borm.Model.Construction;
 
-public static class EntityFactory
+internal static class EntityFactory<TEntity>
+    where TEntity : class
 {
-    public static EntityInfo FromType(Type entityType)
+    public static EntityInfo Create(IValidator<IReadOnlyList<MappingMember>> validator)
     {
-        return InternalCreate(entityType, null);
+        return InternalCreate(validator, null);
     }
 
-    public static EntityInfo FromType<T>(Type entityType, IEntityValidator<T> validator)
-        where T : class
+    public static EntityInfo Create(
+        IValidator<IReadOnlyList<MappingMember>> validator,
+        IValidator<TEntity> entityValidator
+    )
     {
-        if (typeof(T) != entityType)
+        Action<object>? validate =
+            entityValidator != null ? (e) => entityValidator.Validate((TEntity)e) : null;
+
+        return InternalCreate(validator, validate);
+    }
+
+    private static EntityInfo InternalCreate(
+        IValidator<IReadOnlyList<MappingMember>> validator,
+        Action<object>? validate
+    )
+    {
+        Type entityType = typeof(TEntity);
+        if (entityType.IsAbstract)
         {
-            throw new ArgumentException($"Invalid validator for entity type {entityType.FullName}");
+            throw new InvalidOperationException(
+                Strings.EntityTypeCannotBeAbstract(entityType.FullName ?? entityType.Name)
+            );
         }
 
-        Action<object>? validate = validator != null ? (e) => validator.Validate((T)e) : null;
-
-        return InternalCreate(entityType, validate);
-    }
-
-    private static EntityInfo InternalCreate(Type entityType, Action<object>? validate)
-    {
         EntityAttribute entityAttribute =
             entityType.GetCustomAttribute<EntityAttribute>()
             ?? throw new MemberAccessException(
@@ -33,6 +44,7 @@ public static class EntityFactory
             );
 
         List<MappingMember> properties = ParseProperties(entityType);
+        validator.Validate(properties);
 
         IReadOnlyList<Constructor> constructors = ConstructorParser.ParseAll(entityType);
 
@@ -60,6 +72,7 @@ public static class EntityFactory
 
             NullableType type = NullableType.WrapMemberType(current);
             MappingMember property = new(current.Name, type, MappingInfo.FromAttribute(attribute));
+
             properties.Add(property);
         }
 

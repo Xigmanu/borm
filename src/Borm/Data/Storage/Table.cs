@@ -10,22 +10,22 @@ using Borm.Util;
 
 namespace Borm.Data.Storage;
 
-[DebuggerDisplay("Name = {Name}"), DebuggerTypeProxy(typeof(TableDebugView))]
+[DebuggerDisplay("Name = {Name}")]
+[DebuggerTypeProxy(typeof(TableDebugView))]
 internal sealed class Table
 {
     private readonly ConstraintValidator _constraintValidator;
-    private readonly IEntityMetadata _entityMetadata;
-    private readonly ChangeTracker _tracker = new();
 
     public Table(IEntityMetadata entityMetadata)
     {
-        _entityMetadata = entityMetadata;
-        _constraintValidator = new(this);
+        Metadata = entityMetadata;
+        _constraintValidator = new ConstraintValidator(this);
     }
 
-    public string Name => _entityMetadata.Name;
-    internal IEntityMetadata Metadata => _entityMetadata;
-    internal ChangeTracker Tracker => _tracker;
+    public string Name => Metadata.Name;
+    internal IEntityMetadata Metadata { get; }
+
+    internal ChangeTracker Tracker { get; } = new();
 
     public void Delete(IValueBuffer buffer, long txId)
     {
@@ -36,17 +36,17 @@ internal sealed class Table
         IChange existing = GetChangeOrThrow(txId, primaryKey);
 
         IChange change = ChangeFactory.Delete(existing, buffer, txId);
-        _tracker.PendChange(change);
+        Tracker.PendChange(change);
     }
 
     public override bool Equals(object? obj)
     {
-        return obj is Table other && other._entityMetadata.Equals(_entityMetadata);
+        return obj is Table other && other.Metadata.Equals(Metadata);
     }
 
     public override int GetHashCode()
     {
-        return _entityMetadata.GetHashCode();
+        return Metadata.GetHashCode();
     }
 
     public void Insert(IValueBuffer buffer, long txId)
@@ -54,14 +54,15 @@ internal sealed class Table
         AssertBufferValuesAreSimple(buffer);
 
         object primaryKey = buffer.PrimaryKey;
-        if (_tracker.TryGetChange(primaryKey, txId, out _))
+        if (Tracker.TryGetChange(primaryKey, txId, out _))
         {
             throw new ConstraintException(Strings.PrimaryKeyConstraintViolation(Name, primaryKey));
         }
+
         _constraintValidator.ValidateBuffer(buffer, txId);
 
         IChange change = ChangeFactory.NewChange(buffer, txId);
-        _tracker.PendChange(change);
+        Tracker.PendChange(change);
     }
 
     public void Update(IValueBuffer buffer, long txId)
@@ -75,7 +76,7 @@ internal sealed class Table
         IChange existing = GetChangeOrThrow(txId, primaryKey);
 
         IChange change = ChangeFactory.Update(existing, buffer, txId);
-        _tracker.PendChange(change);
+        Tracker.PendChange(change);
     }
 
     internal void Load(ResultSet resultSet, long txId)
@@ -86,14 +87,17 @@ internal sealed class Table
             return;
         }
 
-        IReadOnlyCollection<IColumnMetadata> schemaColumns = _entityMetadata.Columns;
+        IReadOnlyCollection<IColumnMetadata> schemaColumns = Metadata.Columns;
 
         while (resultSet.MoveNext())
         {
             ValueBuffer rowBuffer = new();
             foreach ((string columnName, object columnValue) in resultSet.Current)
             {
-                IColumnMetadata schemaColumn = schemaColumns.First(col => col.Name == columnName); // This might throw an exception when migrating
+                IColumnMetadata
+                    schemaColumn =
+                        schemaColumns.First(col =>
+                            col.Name == columnName); // This might throw an exception when migrating
                 if (columnValue is string columnValueStr)
                 {
                     rowBuffer[schemaColumn] = ColumnDataTypeHelper.Parse(
@@ -108,7 +112,7 @@ internal sealed class Table
             }
 
             IChange initChange = ChangeFactory.Initial(rowBuffer, txId);
-            _tracker.PendChange(initChange);
+            Tracker.PendChange(initChange);
         }
     }
 
@@ -133,7 +137,7 @@ internal sealed class Table
     private IChange GetChangeOrThrow(long txId, object primaryKey)
     {
         if (
-            _tracker.TryGetChange(primaryKey, txId, out IChange? change)
+            Tracker.TryGetChange(primaryKey, txId, out IChange? change)
             && change.RowAction != RowAction.Delete
         )
         {

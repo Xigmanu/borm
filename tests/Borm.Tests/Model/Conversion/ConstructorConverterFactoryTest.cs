@@ -18,15 +18,14 @@ public sealed class ConstructorConverterFactoryTest
     {
         // Arrange
         Constructor constructor = new(
-            isDefault: true,
+            true,
             [],
-            e => throw new NotImplementedException()
+            _ => throw new NotImplementedException()
         );
-        IEnumerable<IColumnMetadata> columns = [];
+        IReadOnlyList<IColumnMetadata> columns = [];
 
         // Act
-        Exception? exception = Record.Exception(
-            () => _ = new ConstructorConverterFactory(constructor, columns)
+        Exception? exception = Record.Exception(() => _ = new ConstructorConverterFactory(constructor, columns)
         );
 
         // Assert
@@ -39,15 +38,14 @@ public sealed class ConstructorConverterFactoryTest
     {
         // Arrange
         Constructor constructor = new(
-            isDefault: true,
+            true,
             [],
-            e => throw new NotImplementedException()
+            _ => throw new NotImplementedException()
         );
-        IEnumerable<IColumnMetadata> columns = _graph[typeof(AddressEntity)]!.Metadata.Columns;
+        IReadOnlyList<IColumnMetadata> columns = _graph[typeof(AddressEntity)]!.Metadata.Columns;
 
         // Act
-        Exception? exception = Record.Exception(
-            () => _ = new ConstructorConverterFactory(constructor, columns)
+        Exception? exception = Record.Exception(() => _ = new ConstructorConverterFactory(constructor, columns)
         );
 
         // Assert
@@ -61,18 +59,18 @@ public sealed class ConstructorConverterFactoryTest
         // Arrange
         List<MappingMember> ctorParams =
         [
-            new MappingMember("id", new NullableType(typeof(int), isNullable: false), null),
-            new MappingMember("address", new NullableType(typeof(string), isNullable: false), null),
-            new MappingMember(
+            new("id", new NullableType(typeof(int), false), null),
+            new("address", new NullableType(typeof(string), false), null),
+            new(
                 "address_1",
-                new NullableType(typeof(string), isNullable: true),
+                new NullableType(typeof(string), true),
                 null
             ),
-            new MappingMember("city", new NullableType(typeof(string), isNullable: false), null),
+            new("city", new NullableType(typeof(string), false), null)
         ];
         Type type = typeof(AddressEntity);
         Constructor constructor = new(
-            isDefault: false,
+            false,
             ctorParams,
             args => Expression.New(type.GetConstructors()[0], args)
         );

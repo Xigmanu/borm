@@ -2,7 +2,9 @@
 
 internal sealed class InMemoryCommandExecutor : IDbCommandExecutor
 {
-    public void ExecuteBatch(DbCommandDefinition command) { }
+    public void ExecuteBatch(DbCommandDefinition command)
+    {
+    }
 
     public Task ExecuteBatchAsync(DbCommandDefinition command, CancellationToken cancellationToken)
     {

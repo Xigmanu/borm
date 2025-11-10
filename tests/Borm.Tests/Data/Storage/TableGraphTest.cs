@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using Borm.Data;
 using Borm.Data.Storage;
-using Borm.Model.Metadata;
+using Borm.Model;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
 
@@ -74,11 +74,11 @@ public sealed class TableGraphTest
         Table expectedChild = _graph[typeof(PersonEntity)]!;
 
         // Act
-        IEnumerable<Table> children = _graph.GetChildren(table);
+        List<Table> children = _graph.GetChildren(table).ToList();
 
         // Assert
         Assert.Single(children);
-        Assert.Equal(expectedChild, children.First());
+        Assert.Equal(expectedChild, children[0]);
     }
 
     [Fact]
@@ -102,11 +102,11 @@ public sealed class TableGraphTest
         Table expectedParent = _graph[typeof(AddressEntity)]!;
 
         // Act
-        IEnumerable<Table> parents = _graph.GetParents(table);
+        List<Table> parents = _graph.GetParents(table).ToList();
 
         // Assert
         Assert.Single(parents);
-        Assert.Equal(expectedParent, parents.First());
+        Assert.Equal(expectedParent, parents[0]);
     }
 
     [Fact]
@@ -129,9 +129,9 @@ public sealed class TableGraphTest
             table.Name,
             new ReadOnlyCollection<ColumnInfo>(tableColumns),
             tableColumns[0],
-            new Dictionary<ColumnInfo, TableInfo>()
+            new Dictionary<ColumnInfo, TableInfo>
             {
-                [tableColumns[^1]] = addressTableSchema,
+                [tableColumns[^1]] = addressTableSchema
             }.AsReadOnly()
         );
 
@@ -216,18 +216,11 @@ public sealed class TableGraphTest
     private static List<ColumnInfo> CreateTestColumns(Table table)
     {
         List<ColumnInfo> columns = [];
-        foreach (IColumnMetadata columnMetadata in table.Metadata.Columns)
-        {
-            ColumnInfo columnSchema = new(
-                columnMetadata.Name,
-                columnMetadata.DataType.UnderlyingType == columnMetadata.Reference
-                    ? typeof(int)
-                    : columnMetadata.DataType.UnderlyingType,
-                columnMetadata.Constraints.HasFlag(Borm.Model.Constraints.Unique),
-                columnMetadata.Constraints.HasFlag(Borm.Model.Constraints.AllowDbNull)
-            );
-            columns.Add(columnSchema);
-        }
+        columns.AddRange(table.Metadata.Columns.Select(columnMetadata => new ColumnInfo(columnMetadata.Name,
+            columnMetadata.DataType.UnderlyingType == columnMetadata.Reference
+                ? typeof(int)
+                : columnMetadata.DataType.UnderlyingType, columnMetadata.Constraints.HasFlag(Constraints.Unique),
+            columnMetadata.Constraints.HasFlag(Constraints.AllowDbNull))));
 
         return columns;
     }

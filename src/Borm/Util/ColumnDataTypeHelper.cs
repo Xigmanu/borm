@@ -9,20 +9,20 @@ internal static class ColumnDataTypeHelper
     {
         switch (dataType)
         {
-            case Type _ when dataType == typeof(ushort):
-            case Type _ when dataType == typeof(short):
-            case Type _ when dataType == typeof(ulong):
-            case Type _ when dataType == typeof(long):
-            case Type _ when dataType == typeof(uint):
-            case Type _ when dataType == typeof(int):
-            case Type _ when dataType == typeof(float):
-            case Type _ when dataType == typeof(double):
-            case Type _ when dataType == typeof(decimal):
-            case Type _ when dataType == typeof(char):
-            case Type _ when dataType == typeof(bool):
-            case Type _ when dataType == typeof(string):
-            case Type _ when dataType == typeof(Guid):
-            case Type _ when dataType == typeof(DateTime):
+            case not null when dataType == typeof(ushort):
+            case not null when dataType == typeof(short):
+            case not null when dataType == typeof(ulong):
+            case not null when dataType == typeof(long):
+            case not null when dataType == typeof(uint):
+            case not null when dataType == typeof(int):
+            case not null when dataType == typeof(float):
+            case not null when dataType == typeof(double):
+            case not null when dataType == typeof(decimal):
+            case not null when dataType == typeof(char):
+            case not null when dataType == typeof(bool):
+            case not null when dataType == typeof(string):
+            case not null when dataType == typeof(Guid):
+            case not null when dataType == typeof(DateTime):
                 return true;
             default:
                 return false;
@@ -33,9 +33,9 @@ internal static class ColumnDataTypeHelper
     {
         return targetType switch
         {
-            Type _ when targetType == typeof(Guid) => Guid.Parse(value),
-            Type _ when targetType == typeof(DateTime) => Convert.ToDateTime(value),
-            _ => value,
+            not null when targetType == typeof(Guid) => Guid.Parse(value),
+            not null when targetType == typeof(DateTime) => Convert.ToDateTime(value),
+            _ => value
         };
     }
 }

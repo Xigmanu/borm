@@ -6,15 +6,15 @@ using Borm.Properties;
 namespace Borm.Model.Metadata;
 
 [DebuggerTypeProxy(typeof(EntityInfoDebugView))]
-[DebuggerDisplay("Name = {Name}, Type = {Type.FullName}")]
+[DebuggerDisplay("Name = {Name}, Type = {Type}")]
 internal sealed class EntityMetadata : IEntityMetadata
 {
-    private readonly IReadOnlyList<IColumnMetadata> _columns;
-    private readonly string _name;
     private readonly Action<object>? _validate;
 
     public EntityMetadata(string name, Type dataType, IReadOnlyList<IColumnMetadata> columns)
-        : this(name, dataType, columns, EntityBufferConversion.Empty, null) { }
+        : this(name, dataType, columns, EntityBufferConversion.Empty, null)
+    {
+    }
 
     public EntityMetadata(
         string name,
@@ -29,38 +29,40 @@ internal sealed class EntityMetadata : IEntityMetadata
             throw new ArgumentException(Strings.EmptyColumnCollection(name), nameof(columns));
         }
 
-        _columns = columns;
-        _name = name;
+        Columns = columns;
+        Name = name;
         _validate = validate;
         Type = dataType;
         Conversion = conversion;
     }
 
-    public IReadOnlyList<IColumnMetadata> Columns => _columns;
+    public IReadOnlyList<IColumnMetadata> Columns { get; }
+
     public IEntityBufferConversion Conversion { get; }
-    public string Name => _name;
+    public string Name { get; }
+
     public IColumnMetadata PrimaryKey
     {
         get
         {
-            return _columns.FirstOrDefault(column => column.Constraints == Constraints.PrimaryKey)
-                ?? throw new InvalidOperationException(Strings.MissingPrimaryKey(_name));
+            return Columns.FirstOrDefault(column => column.Constraints == Constraints.PrimaryKey)
+                   ?? throw new InvalidOperationException(Strings.MissingPrimaryKey(Name));
         }
     }
 
     public Type Type { get; }
 
+    public void Validate(object entity) => _validate?.Invoke(entity);
+
     public override bool Equals(object? obj)
     {
-        return obj is EntityMetadata other && _name == other.Name;
+        return obj is EntityMetadata other && Name == other.Name;
     }
 
     public override int GetHashCode()
     {
-        return _name.GetHashCode();
+        return Name.GetHashCode();
     }
-
-    public void Validate(object entity) => _validate?.Invoke(entity);
 
     [ExcludeFromCodeCoverage(Justification = "Debugger display proxy")]
     internal sealed class EntityInfoDebugView
