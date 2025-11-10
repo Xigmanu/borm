@@ -1,13 +1,11 @@
 ﻿namespace Borm.Data;
 
 /// <summary>
-/// Represents metadata about a column in a database table.
+///     Represents metadata about a column in a database table.
 /// </summary>
-///
 public sealed class ColumnInfo
 {
     /// <summary>
-    ///
     /// </summary>
     /// <param name="name">Column name</param>
     /// <param name="dataType">Column's data type</param>
@@ -29,10 +27,10 @@ public sealed class ColumnInfo
     public override bool Equals(object? obj)
     {
         return obj is ColumnInfo other
-            && Name.Equals(other.Name)
-            && DataType.Equals(other.DataType)
-            && IsUnique == other.IsUnique
-            && IsNullable == other.IsNullable;
+               && Name.Equals(other.Name)
+               && DataType == other.DataType
+               && IsUnique == other.IsUnique
+               && IsNullable == other.IsNullable;
     }
 
     public override int GetHashCode()

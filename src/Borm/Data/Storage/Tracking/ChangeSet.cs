@@ -11,17 +11,29 @@ internal sealed class ChangeSet : IEnumerable<IChange>
     private readonly HashSet<object> _danglingKeys;
 
     public ChangeSet()
-        : this([], []) { }
+        : this([], [])
+    {
+    }
 
-    public ChangeSet(Dictionary<object, IChange> changePkMap, HashSet<object> danglingKeyCache)
+    private ChangeSet(Dictionary<object, IChange> changePkMap, HashSet<object> danglingKeyCache)
     {
         _changes = changePkMap;
         _danglingKeys = danglingKeyCache;
     }
 
-    internal event EventHandler<RecordRemovedEventArgs>? RecordRemoved;
-
     public int Count => _changes.Count;
+
+    public IEnumerator<IChange> GetEnumerator()
+    {
+        return _changes.Values.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
+    }
+
+    internal event EventHandler<RecordRemovedEventArgs>? RecordRemoved;
 
     public static ChangeSet Merge(ChangeSet existing, ChangeSet incoming)
     {
@@ -52,11 +64,12 @@ internal sealed class ChangeSet : IEnumerable<IChange>
                 if (
                     incoming._danglingKeys.Contains(primaryKey)
                     || incomingChange.RowAction != RowAction.Insert
-                        && incomingChange.WriteId != Transaction.InitId
+                    && incomingChange.WriteId != Transaction.InitId
                 )
                 {
                     throw new InvalidOperationException(Strings.ModificationOfNonExistingRow());
                 }
+
                 resultMap[primaryKey] = incomingChange;
             }
         }
@@ -78,19 +91,16 @@ internal sealed class ChangeSet : IEnumerable<IChange>
             {
                 _changes[primaryKey] = merged;
             }
+
             return;
         }
+
         _changes[primaryKey] = incoming;
     }
 
-    public IEnumerator<IChange> GetEnumerator()
+    public ChangeSet Copy()
     {
-        return _changes.Values.GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
+        return new ChangeSet(new Dictionary<object, IChange>(_changes), [.. _danglingKeys]);
     }
 
     public void MarkAsWritten()
@@ -101,8 +111,10 @@ internal sealed class ChangeSet : IEnumerable<IChange>
             {
                 _changes.Remove(primaryKey);
             }
+
             change.MarkAsWritten();
         }
+
         _danglingKeys.Clear();
     }
 
@@ -115,11 +127,6 @@ internal sealed class ChangeSet : IEnumerable<IChange>
         }
 
         _danglingKeys.UnionWith(changes._danglingKeys);
-    }
-
-    public ChangeSet Copy()
-    {
-        return new ChangeSet(new Dictionary<object, IChange>(_changes), [.. _danglingKeys]);
     }
 
     internal void OnRecordRemoved(object? sender, RecordRemovedEventArgs e)

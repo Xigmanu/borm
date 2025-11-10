@@ -178,7 +178,7 @@ public sealed class TableTest
             ["id"] = 1,
             ["address"] = "address",
             ["address_1"] = DBNull.Value,
-            ["city"] = "city",
+            ["city"] = "city"
         };
         resultSet.AddRow(row);
         long initTxId = -1;

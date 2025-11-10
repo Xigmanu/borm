@@ -105,7 +105,7 @@ public sealed class SqliteCommandExecutor : IDbCommandExecutor
 
     public bool TableExists(string tableName)
     {
-        string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name='{0}'";
+        const string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name='{0}'";
         using SqliteConnection connection = new(_connectionString);
         using SqliteCommand sqliteCommand = connection.CreateCommand();
         sqliteCommand.CommandText = string.Format(sql, tableName);

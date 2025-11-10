@@ -1,5 +1,4 @@
-﻿using System.Data;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Borm.Model.Conversion;
 using Borm.Reflection;
 
@@ -13,9 +12,9 @@ internal static class EntityMetadataFactory
             ? typeInfo.Name
             : CreateDefaultName(typeInfo.Type.Name);
 
-        IEnumerable<IColumnMetadata> columns = typeInfo
+        List<ColumnMetadata> columns = typeInfo
             .Properties.Select(CreateColumnInfo)
-            .OrderBy(column => column.Index);
+            .OrderBy(column => column.Index).ToList();
         ColumnMetadataList columnCollection = new(columns);
 
         IEntityBufferConversion conversion = EntityBufferConversionFactory.Create(
@@ -37,7 +36,7 @@ internal static class EntityMetadataFactory
     {
         MappingInfo? mapping = property.Mapping;
         Debug.Assert(mapping != null);
-        string? columnName = mapping.ColumnName ?? CreateDefaultName(property.MemberName);
+        string columnName = mapping.ColumnName ?? CreateDefaultName(property.MemberName);
 
         Constraints constraints = GetConstraints(property);
 
@@ -49,11 +48,13 @@ internal static class EntityMetadataFactory
             constraints
         );
 
-        if (mapping.Reference != null)
+        if (mapping.Reference == null)
         {
-            columnMetadata.Reference = mapping.Reference;
-            columnMetadata.OnDelete = mapping.OnDelete;
+            return columnMetadata;
         }
+
+        columnMetadata.Reference = mapping.Reference;
+        columnMetadata.OnDelete = mapping.OnDelete;
 
         return columnMetadata;
     }
@@ -67,6 +68,7 @@ internal static class EntityMetadataFactory
                 ? char.ToLower(first).ToString()
                 : char.ToLower(first) + memberName[1..];
         }
+
         return memberName;
     }
 
@@ -82,6 +84,7 @@ internal static class EntityMetadataFactory
         {
             constraints |= Constraints.AllowDbNull;
         }
+
         if (mapping.IsUnique)
         {
             constraints |= Constraints.Unique;

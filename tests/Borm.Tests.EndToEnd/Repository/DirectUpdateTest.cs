@@ -31,7 +31,7 @@ public sealed class DirectUpdateTest
         Assert.NotNull(inner);
         Assert.IsType<InvalidOperationException>(inner);
 
-        IEnumerable<AddressEntity> addresses = repository.Select();
+        IEnumerable<AddressEntity> addresses = repository.Select().ToList();
         Assert.Single(addresses);
         Assert.Equal(address, addresses.First());
     }
@@ -78,12 +78,12 @@ public sealed class DirectUpdateTest
         personRepo.Update(newPerson);
 
         // Assert
-        IEnumerable<AddressEntity> addresses = addressRepo.Select();
+        IEnumerable<AddressEntity> addresses = addressRepo.Select().ToList();
 
         Assert.Single(addresses);
         Assert.Equal(address, addresses.First());
 
-        IEnumerable<PersonEntity> persons = personRepo.Select();
+        IEnumerable<PersonEntity> persons = personRepo.Select().ToList();
         Assert.Single(persons);
         Assert.Equal(newPerson, persons.First());
     }
@@ -113,12 +113,12 @@ public sealed class DirectUpdateTest
         Exception? exception = Record.Exception(() => personRepo.Update(newPerson));
 
         // Assert
-        IEnumerable<AddressEntity> addresses = addressRepo.Select();
+        IEnumerable<AddressEntity> addresses = addressRepo.Select().ToList();
 
         Assert.Single(addresses);
         Assert.Equal(address, addresses.First());
 
-        IEnumerable<PersonEntity> persons = personRepo.Select();
+        IEnumerable<PersonEntity> persons = personRepo.Select().ToList();
         Assert.Single(persons);
         Assert.Equal(person, persons.First());
 
@@ -147,7 +147,7 @@ public sealed class DirectUpdateTest
         Exception? exception = Record.Exception(() => repository.Update(newAddress));
 
         // Assert
-        IEnumerable<AddressEntity> addresses = repository.Select();
+        IEnumerable<AddressEntity> addresses = repository.Select().ToList();
 
         Assert.Single(addresses);
         Assert.Equal(address, addresses.First());
@@ -178,7 +178,7 @@ public sealed class DirectUpdateTest
         repository.Update(newAddress);
 
         // Assert
-        IEnumerable<AddressEntity> addresses = repository.Select();
+        IEnumerable<AddressEntity> addresses = repository.Select().ToList();
 
         Assert.Single(addresses);
         Assert.Equal(newAddress, addresses.First());
@@ -201,7 +201,7 @@ public sealed class DirectUpdateTest
         repository.Update(newAddress);
 
         // Assert
-        IEnumerable<AddressEntity> addresses = repository.Select();
+        IEnumerable<AddressEntity> addresses = repository.Select().ToList();
 
         Assert.Single(addresses);
         Assert.Equal(newAddress, addresses.First());
@@ -219,13 +219,13 @@ public sealed class DirectUpdateTest
         {
             Id = 1,
             Person = person.Id,
-            IsActive = true,
+            IsActive = true
         };
         EmployeeEntity newEmployee = new()
         {
             Id = 1,
             Person = person.Id,
-            IsActive = false,
+            IsActive = false
         };
         IEntityRepository<PersonEntity> personRepo = context.GetRepository<PersonEntity>();
         IEntityRepository<EmployeeEntity> employeeRepo = context.GetRepository<EmployeeEntity>();
@@ -238,7 +238,7 @@ public sealed class DirectUpdateTest
         employeeRepo.Update(newEmployee);
 
         // Assert
-        IEnumerable<EmployeeEntity> employees = employeeRepo.Select();
+        IEnumerable<EmployeeEntity> employees = employeeRepo.Select().ToList();
 
         Assert.Single(employees);
         Assert.Equal(newEmployee, employees.First());
@@ -256,13 +256,13 @@ public sealed class DirectUpdateTest
         {
             Id = 1,
             Person = person.Id,
-            IsActive = true,
+            IsActive = true
         };
         EmployeeEntity newEmployee = new()
         {
             Id = 2,
             Person = person.Id,
-            IsActive = false,
+            IsActive = false
         };
         IEntityRepository<PersonEntity> personRepo = context.GetRepository<PersonEntity>();
         IEntityRepository<EmployeeEntity> employeeRepo = context.GetRepository<EmployeeEntity>();

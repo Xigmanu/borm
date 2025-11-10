@@ -12,7 +12,7 @@ public sealed class ValueBufferTest
     [Fact]
     public void Indexer_ReturnsColumnValue_WithColumnMetadata()
     {
-        TestBufferColumnValue((buffer, columns) => buffer[columns[^1]], (values) => values[^1]);
+        TestBufferColumnValue((buffer, columns) => buffer[columns[^1]], values => values[^1]);
     }
 
     [Fact]
@@ -20,14 +20,14 @@ public sealed class ValueBufferTest
     {
         TestBufferColumnValue(
             (buffer, columns) => buffer[columns[^1].Name],
-            (values) => values[^1]
+            values => values[^1]
         );
     }
 
     [Fact]
     public void PrimaryKey_ReturnsValueOfPrimaryKeyColumn()
     {
-        TestBufferColumnValue((buffer, _) => buffer.PrimaryKey, (values) => values[0]);
+        TestBufferColumnValue((buffer, _) => buffer.PrimaryKey, values => values[0]);
     }
 
     private void TestBufferColumnValue(

@@ -23,6 +23,12 @@ internal sealed class Change : IChange
     public RowAction RowAction { get; private set; }
     public long WriteId { get; }
 
+    public void MarkAsWritten()
+    {
+        IsWrittenToDataSource = true;
+        RowAction = RowAction.None;
+    }
+
     public override bool Equals(object? obj)
     {
         return obj is Change other && Record.PrimaryKey.Equals(other.Record.PrimaryKey);
@@ -31,11 +37,5 @@ internal sealed class Change : IChange
     public override int GetHashCode()
     {
         return Record.PrimaryKey.GetHashCode();
-    }
-
-    public void MarkAsWritten()
-    {
-        IsWrittenToDataSource = true;
-        RowAction = RowAction.None;
     }
 }

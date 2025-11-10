@@ -4,5 +4,5 @@ public enum ReferentialAction
 {
     NoAction,
     Cascade,
-    SetNull,
+    SetNull
 }

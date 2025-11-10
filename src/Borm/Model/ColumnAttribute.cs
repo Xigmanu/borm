@@ -3,31 +3,31 @@
 namespace Borm.Model;
 
 /// <summary>
-/// Specifies that a property describes a table column.
+///     Specifies that a property describes a table column.
 /// </summary>
 /// <remarks>
 ///     <para>
 ///         Applying this attribute to a property, that is not declared in a class marked with
-///         <see cref="EntityAttribute"/> will have no effect.
+///         <see cref="EntityAttribute" /> will have no effect.
 ///     </para>
 ///     <para>
-///         Each column in a table must have a unique name. 
+///         Each column in a table must have a unique name.
 ///         If no name is specified, the property name is used instead.
 ///     </para>
 /// </remarks>
-[AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
+[AttributeUsage(AttributeTargets.Property)]
 public class ColumnAttribute : Attribute
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="ColumnAttribute"/> class
-    /// with the specified column index.
+    ///     Initializes a new instance of the <see cref="ColumnAttribute" /> class
+    ///     with the specified column index.
     /// </summary>
     /// <param name="index">
-    /// Zero-based index of a column in a table.
-    /// Must be greater than or equal to zero.
+    ///     Zero-based index of a column in a table.
+    ///     Must be greater than or equal to zero.
     /// </param>
     /// <exception cref="ArgumentException">
-    /// Thrown when <paramref name="index"/> is less than zero.
+    ///     Thrown when <paramref name="index" /> is less than zero.
     /// </exception>
     public ColumnAttribute(int index)
     {
@@ -35,15 +35,15 @@ public class ColumnAttribute : Attribute
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ColumnAttribute"/> class
-    /// with the specified column index and name.
+    ///     Initializes a new instance of the <see cref="ColumnAttribute" /> class
+    ///     with the specified column index and name.
     /// </summary>
     /// <param name="index">
-    /// Zero-based index of a column in a table.
-    /// Must be greater than or equal to zero.
+    ///     Zero-based index of a column in a table.
+    ///     Must be greater than or equal to zero.
     /// </param>
     /// <param name="name">
-    /// The name of the column in the table.
+    ///     The name of the column in the table.
     /// </param>
     public ColumnAttribute(int index, string name)
         : this(index)
@@ -53,18 +53,18 @@ public class ColumnAttribute : Attribute
     }
 
     /// <summary>
-    /// Index of the column.
+    ///     Index of the column.
     /// </summary>
     public int Index { get; }
 
     /// <summary>
-    /// Name of the column.
+    ///     Name of the column.
     /// </summary>
     public string? Name { get; }
 
     /// <summary>
-    /// Flag, that indicates whether the values in this column are unique across the entire table.
-    /// Default is <see langword="false"/>.
+    ///     Flag, that indicates whether the values in this column are unique across the entire table.
+    ///     Default is <see langword="false" />.
     /// </summary>
-    public bool IsUnique { get; set; } = false;
+    public bool IsUnique { get; set; }
 }

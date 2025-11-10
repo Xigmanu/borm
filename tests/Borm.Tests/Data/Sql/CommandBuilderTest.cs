@@ -24,8 +24,8 @@ public sealed class CommandBuilderTest
     public void BuildUpdateCommands_BuildsCommandForTable_Delete()
     {
         // Arrange
-        long initialTxId = -1;
-        long txId = 0;
+        const long initialTxId = -1;
+        const long txId = 0;
         CommandBuilder builder = new(_graph, CommandFactory);
         Table table = _graph[typeof(AddressEntity)]!;
 

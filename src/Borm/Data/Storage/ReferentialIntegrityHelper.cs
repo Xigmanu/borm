@@ -55,6 +55,7 @@ internal sealed class ReferentialIntegrityHelper
                 childBuffer[foreignKey] = DBNull.Value;
                 child.Update(childBuffer, txId);
                 break;
+            case ReferentialAction.NoAction:
             default:
                 throw new NotSupportedException(
                     $"Unexpected {nameof(ReferentialAction)}: {foreignKey.OnDelete}"

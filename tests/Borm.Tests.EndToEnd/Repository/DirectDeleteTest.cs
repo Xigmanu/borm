@@ -46,10 +46,10 @@ public sealed class DirectDeleteTest
         personRepo.Delete(person);
 
         // Assert
-        IEnumerable<AddressEntity> addresses = addressRepo.Select();
+        List<AddressEntity> addresses = addressRepo.Select().ToList();
 
         Assert.Single(addresses);
-        Assert.Equal(address, addresses.First());
+        Assert.Equal(address, addresses[0]);
 
         IEnumerable<PersonEntity> persons = personRepo.Select();
         Assert.Empty(persons);
@@ -79,10 +79,10 @@ public sealed class DirectDeleteTest
         Assert.IsType<RecordNotFoundException>(inner);
         Assert.Equal(Strings.RowNotFound("persons", invalidPerson.Id), inner.Message);
 
-        IEnumerable<PersonEntity> persons = personRepo.Select();
+        List<PersonEntity> persons = personRepo.Select().ToList();
 
         Assert.Single(persons);
-        Assert.Equal(person, persons.First());
+        Assert.Equal(person, persons[0]);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public sealed class DirectDeleteTest
         {
             Id = 1,
             Person = person.Id,
-            IsActive = true,
+            IsActive = true
         };
 
         IEntityRepository<PersonEntity> personsRepo = context.GetRepository<PersonEntity>();
@@ -131,11 +131,11 @@ public sealed class DirectDeleteTest
 
         // Assert
         IEnumerable<EmployeeEntity> employees = employeeRepo.Select();
-        IEnumerable<PersonEntity> persons = personsRepo.Select();
+        List<PersonEntity> persons = personsRepo.Select().ToList();
 
         Assert.Empty(employees);
         Assert.Single(persons);
-        Assert.Equal(person, persons.First());
+        Assert.Equal(person, persons[0]);
     }
 
     [Fact]
@@ -156,12 +156,12 @@ public sealed class DirectDeleteTest
 
         // Assert
         IEnumerable<AddressEntity> addresses = addressRepo.Select();
-        IEnumerable<PersonEntity> persons = personRepo.Select();
+        List<PersonEntity> persons = personRepo.Select().ToList();
 
         Assert.Empty(addresses);
         Assert.Single(persons);
 
-        PersonEntity actual = persons.First();
+        PersonEntity actual = persons[0];
         Assert.Null(actual.Address);
     }
 
@@ -191,7 +191,7 @@ public sealed class DirectDeleteTest
         personRepo.Delete(person);
 
         // Assert
-        IEnumerable<AddressEntity> addresses = addressRepo.Select();
+        List<AddressEntity> addresses = addressRepo.Select().ToList();
         IEnumerable<PersonEntity> persons = personRepo.Select();
         IEnumerable<EmployeeEntity> employees = employeeRepo.Select();
 
@@ -199,6 +199,6 @@ public sealed class DirectDeleteTest
         Assert.Single(addresses);
         Assert.Empty(employees);
 
-        Assert.Equal(address, addresses.First());
+        Assert.Equal(address, addresses[0]);
     }
 }

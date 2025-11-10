@@ -10,24 +10,15 @@ internal static class ConstructorSelector
         HashSet<string> columnNames
     )
     {
-        if (constructors.Count == 1 && constructors[0].Parameters.Count == 0)
+        if (constructors is [{ Parameters.Count: 0 }])
         {
             return constructors[0];
         }
 
-        for (int i = 0; i < constructors.Count; i++)
-        {
-            Constructor current = constructors[i];
-            if (
-                columnNames.Count == current.Parameters.Count
-                && IsCtorParamListValid(current.Parameters, columnNames)
-            )
-            {
-                return current;
-            }
-        }
-
-        return null;
+        return constructors.FirstOrDefault(current =>
+            columnNames.Count == current.Parameters.Count
+            && IsCtorParamListValid(current.Parameters, columnNames)
+        );
     }
 
     private static bool IsCtorParamListValid(

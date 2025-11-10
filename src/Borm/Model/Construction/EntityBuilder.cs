@@ -9,13 +9,13 @@ public sealed class EntityBuilder<TEntity>
     private readonly List<MappingMember> _properties = [];
     private readonly IValidator<IReadOnlyList<MappingMember>> _validator;
 
+    private IValidator<TEntity>? _entityValidator;
+    private string? _name;
+
     internal EntityBuilder(IValidator<IReadOnlyList<MappingMember>> validator)
     {
         _validator = validator;
     }
-
-    private IValidator<TEntity>? _entityValidator;
-    private string? _name;
 
     public EntityInfo Build()
     {
@@ -23,7 +23,7 @@ public sealed class EntityBuilder<TEntity>
 
         IReadOnlyList<Constructor> constructors = ConstructorParser.ParseAll(typeof(TEntity));
         Action<object>? validatorAction =
-            _entityValidator != null ? (e) => _entityValidator.Validate((TEntity)e) : null;
+            _entityValidator != null ? e => _entityValidator.Validate((TEntity)e) : null;
 
         return new EntityInfo(
             _name,
@@ -49,6 +49,7 @@ public sealed class EntityBuilder<TEntity>
                 $"Column {column.MemberName} is already defined for entity of type {typeof(TEntity).FullName}"
             );
         }
+
         _properties.Add(column);
         return this;
     }

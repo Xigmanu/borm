@@ -30,6 +30,7 @@ internal sealed class ValueBuffer : IValueBuffer
             return _valueMap[_primaryKey];
         }
     }
+
     public object this[IColumnMetadata column]
     {
         get => _valueMap[column];
@@ -41,6 +42,7 @@ internal sealed class ValueBuffer : IValueBuffer
                 Debug.Assert(_primaryKey == null);
                 _primaryKey = column;
             }
+
             _valueMap[column] = value;
         }
     }
@@ -53,11 +55,6 @@ internal sealed class ValueBuffer : IValueBuffer
         return new ValueBuffer(this);
     }
 
-    public override bool Equals(object? obj)
-    {
-        return obj is ValueBuffer other && other._valueMap.Equals(_valueMap);
-    }
-
     public IEnumerator<KeyValuePair<IColumnMetadata, object>> GetEnumerator()
     {
         return _valueMap.GetEnumerator();
@@ -66,6 +63,11 @@ internal sealed class ValueBuffer : IValueBuffer
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is ValueBuffer other && other._valueMap.Equals(_valueMap);
     }
 
     public override int GetHashCode()

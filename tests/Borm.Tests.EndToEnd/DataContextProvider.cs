@@ -21,7 +21,7 @@ internal static class DataContextProvider
                 .Build(),
             EntityConfigurator<AddressEntity>.FromType(new AddressEntity.Validator()),
             EntityConfigurator<PersonEntity>.FromType(),
-            EntityConfigurator<EmployeeEntity>.FromType(),
+            EntityConfigurator<EmployeeEntity>.FromType()
         ];
 
         BormConfig config = new BormConfig.Builder().Model(model).InMemory().Build();

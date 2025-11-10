@@ -8,7 +8,7 @@ internal sealed class PropertyConverterFactory : ConverterFactory<Func<IValueBuf
 {
     private readonly Type _entityType;
 
-    public PropertyConverterFactory(Type entityType, IEnumerable<IColumnMetadata> columns)
+    public PropertyConverterFactory(Type entityType, IReadOnlyList<IColumnMetadata> columns)
         : base(columns)
     {
         _entityType = entityType;
@@ -20,12 +20,10 @@ internal sealed class PropertyConverterFactory : ConverterFactory<Func<IValueBuf
         ParameterExpression instanceVar = Expression.Variable(_entityType, "instance");
 
         List<Expression> block = [Expression.Assign(instanceVar, Expression.New(_entityType))];
-        foreach (IColumnMetadata column in columns)
-        {
-            Expression valueExpr = CreateBufferPropertyBinding(bufferParam, column);
-            MemberExpression propertyExpr = Expression.Property(instanceVar, column.PropertyName);
-            block.Add(Expression.Assign(propertyExpr, valueExpr));
-        }
+        block.AddRange(from column in Columns
+            let valueExpr = CreateBufferPropertyBinding(bufferParam, column)
+            let propertyExpr = Expression.Property(instanceVar, column.PropertyName)
+            select Expression.Assign(propertyExpr, valueExpr));
         block.Add(instanceVar);
 
         return Expression

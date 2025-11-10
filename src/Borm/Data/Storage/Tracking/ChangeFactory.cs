@@ -11,12 +11,12 @@ internal static class ChangeFactory
 
     public static IChange Initial(IValueBuffer buffer, long txId)
     {
-        return new Change(buffer, txId, txId, isWrittenToDataSource: true, RowAction.None);
+        return new Change(buffer, txId, txId, true, RowAction.None);
     }
 
     public static IChange NewChange(IValueBuffer buffer, long txId)
     {
-        return new Change(buffer, txId, txId, isWrittenToDataSource: false, RowAction.Insert);
+        return new Change(buffer, txId, txId, false, RowAction.Insert);
     }
 
     public static IChange Update(IChange existing, IValueBuffer buffer, long writeTxId)

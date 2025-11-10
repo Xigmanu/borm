@@ -1,5 +1,5 @@
-﻿using System.Reflection;
-using Borm.Properties;
+﻿using Borm.Properties;
+using System.Reflection;
 
 namespace Borm.Tests;
 

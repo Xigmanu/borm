@@ -1,7 +1,7 @@
-﻿using System.Reflection;
-using Borm.Model.Validators;
+﻿using Borm.Model.Validators;
 using Borm.Properties;
 using Borm.Reflection;
+using System.Reflection;
 
 namespace Borm.Model.Construction;
 

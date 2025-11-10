@@ -5,11 +5,9 @@ namespace Borm.Tests.Common;
 [Entity("employees")]
 public sealed class EmployeeEntity
 {
-    [PrimaryKey(0, "id")]
-    public int Id { get; set; }
+    [PrimaryKey(0, "id")] public int Id { get; set; }
 
-    [Column(2, "is_active")]
-    public bool IsActive { get; set; }
+    [Column(2, "is_active")] public bool IsActive { get; set; }
 
     [ForeignKey(
         1,
@@ -25,15 +23,15 @@ public sealed class EmployeeEntity
         {
             Id = (int)values[0],
             Person = (int)values[1],
-            IsActive = (bool)values[2],
+            IsActive = (bool)values[2]
         };
 
     public override bool Equals(object? obj)
     {
         return obj is EmployeeEntity other
-            && Id.Equals(other.Id)
-            && IsActive.Equals(other.IsActive)
-            && Person.Equals(other.Person);
+               && Id.Equals(other.Id)
+               && IsActive.Equals(other.IsActive)
+               && Person.Equals(other.Person);
     }
 
     public override int GetHashCode()

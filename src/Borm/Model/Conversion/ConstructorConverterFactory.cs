@@ -11,7 +11,7 @@ internal sealed class ConstructorConverterFactory : ConverterFactory<Func<IValue
 
     public ConstructorConverterFactory(
         Constructor constructor,
-        IEnumerable<IColumnMetadata> columns
+        IReadOnlyList<IColumnMetadata> columns
     )
         : base(columns)
     {
@@ -19,6 +19,7 @@ internal sealed class ConstructorConverterFactory : ConverterFactory<Func<IValue
         {
             throw new ArgumentException("Cannot use a default constructor for conversion");
         }
+
         _constructor = constructor;
     }
 
@@ -39,7 +40,7 @@ internal sealed class ConstructorConverterFactory : ConverterFactory<Func<IValue
 
     private IEnumerable<IColumnMetadata> GetOrderedColumns(IReadOnlyList<MappingMember> ctorParams)
     {
-        Dictionary<string, IColumnMetadata> colNames = columns.ToDictionary(col => col.Name);
+        Dictionary<string, IColumnMetadata> colNames = Columns.ToDictionary(col => col.Name);
         return ctorParams.Select(param => colNames[param.MemberName]);
     }
 }

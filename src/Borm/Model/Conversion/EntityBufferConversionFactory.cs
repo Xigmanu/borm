@@ -10,7 +10,7 @@ internal static class EntityBufferConversionFactory
     public static IEntityBufferConversion Create(
         Type entityType,
         IReadOnlyList<Constructor> constructors,
-        IEnumerable<IColumnMetadata> columns
+        IReadOnlyList<IColumnMetadata> columns
     )
     {
         ConverterFactory<Func<object, IValueBuffer>> bufferConverter =

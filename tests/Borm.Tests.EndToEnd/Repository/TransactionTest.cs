@@ -20,7 +20,7 @@ public sealed class TransactionTest
             { true, true },
             { true, false },
             { false, true },
-            { false, false },
+            { false, false }
         };
 
     [Theory]
@@ -47,8 +47,8 @@ public sealed class TransactionTest
             context.SaveChanges();
         }
 
-        using Transaction transaction0 = context.BeginTransaction();
-        using Transaction transaction1 = context.BeginTransaction();
+        Transaction transaction0 = context.BeginTransaction();
+        Transaction transaction1 = context.BeginTransaction();
 
         addressRepo.Update(addressUpdate, transaction0);
         addressRepo.Delete(address, transaction1);
@@ -86,8 +86,8 @@ public sealed class TransactionTest
             context.SaveChanges();
         }
 
-        using Transaction transaction0 = context.BeginTransaction();
-        using Transaction transaction1 = context.BeginTransaction();
+        Transaction transaction0 = context.BeginTransaction();
+        Transaction transaction1 = context.BeginTransaction();
 
         addressRepo.Update(addressUpdate, transaction0);
         addressRepo.Update(address, transaction1);
@@ -203,7 +203,7 @@ public sealed class TransactionTest
         }
 
         // Assert
-        IEnumerable<AddressEntity> addresses = repository.Select();
+        IEnumerable<AddressEntity> addresses = repository.Select().ToList();
 
         Assert.Single(addresses);
         Assert.Equal(addressUpdate, addresses.First());

@@ -20,7 +20,7 @@ internal sealed class EntityConfigurationValidator<TEntity>
 
         List<MappingMember> primaryKeys =
         [
-            .. properties.Where(c => c.Mapping?.IsPrimaryKey == true),
+            .. properties.Where(c => c.Mapping?.IsPrimaryKey == true)
         ];
         switch (primaryKeys.Count)
         {
@@ -50,6 +50,7 @@ internal sealed class EntityConfigurationValidator<TEntity>
                     Strings.DuplicateColumnIndex(mapping.ColumnIndex, entityName)
                 );
             }
+
             if (mapping.ColumnName != null && !columnNames.Add(mapping.ColumnName))
             {
                 throw new InvalidOperationException(

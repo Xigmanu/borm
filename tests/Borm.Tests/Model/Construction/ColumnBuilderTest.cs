@@ -10,6 +10,7 @@ public sealed class ColumnBuilderTest
 {
     private static readonly IValidator<ColumnBuilder<AddressEntity>.Configuration> TestAddressValidator =
         new TestColumnBuilderConfigurationValidator<AddressEntity>();
+
     private static readonly IValidator<ColumnBuilder<PersonEntity>.Configuration> TestPersonValidator =
         new TestColumnBuilderConfigurationValidator<PersonEntity>();
 
@@ -27,7 +28,7 @@ public sealed class ColumnBuilderTest
         // Act
         MappingMember column = builder
             .Index(idx)
-            .Mapping((e) => e.Id, name)
+            .Mapping(e => e.Id, name)
             .PrimaryKey()
             .Unique()
             .Build();
@@ -58,7 +59,7 @@ public sealed class ColumnBuilderTest
         // Act
         MappingMember column = builder
             .Index(idx)
-            .Mapping((e) => e.Address, name)
+            .Mapping(e => e.Address, name)
             .References(type)
             .OnDelete(action)
             .Build();
@@ -114,7 +115,7 @@ public sealed class ColumnBuilderTest
         ColumnBuilder<AddressEntity> builder = new(TestAddressValidator);
 
         // Act
-        Exception? exception = Record.Exception(() => _ = builder.Mapping((e) => e.Address, name));
+        Exception? exception = Record.Exception(() => _ = builder.Mapping(e => e.Address, name));
 
         // Assert
         Assert.NotNull(exception);
@@ -156,8 +157,7 @@ public sealed class ColumnBuilderTest
         ColumnBuilder<AddressEntity> builder = new(TestAddressValidator);
 
         // Act
-        Exception? exception = Record.Exception(
-            () => _ = builder.References(typeof(AddressEntity))
+        Exception? exception = Record.Exception(() => _ = builder.References(typeof(AddressEntity))
         );
 
         // Assert
@@ -169,6 +169,8 @@ public sealed class ColumnBuilderTest
         : IValidator<ColumnBuilder<TEntity>.Configuration>
         where TEntity : class
     {
-        public void Validate(ColumnBuilder<TEntity>.Configuration value) { }
+        public void Validate(ColumnBuilder<TEntity>.Configuration value)
+        {
+        }
     }
 }

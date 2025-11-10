@@ -1,20 +1,20 @@
-﻿using System.Linq.Expressions;
-using Borm.Model.Metadata;
+﻿using Borm.Model.Metadata;
+using System.Linq.Expressions;
 
 namespace Borm.Model.Conversion;
 
 internal abstract class ConverterFactory<T>
     where T : Delegate
 {
-    private protected readonly IEnumerable<IColumnMetadata> columns;
+    private protected readonly IReadOnlyList<IColumnMetadata> Columns;
 
-    protected ConverterFactory(IEnumerable<IColumnMetadata> columns)
+    protected ConverterFactory(IReadOnlyList<IColumnMetadata> columns)
     {
         if (!columns.Any())
         {
             throw new ArgumentException("No columns were provided");
         }
-        this.columns = columns;
+        Columns = columns;
     }
 
     public abstract T Create();

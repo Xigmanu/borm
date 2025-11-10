@@ -11,21 +11,23 @@ public class SqliteTypeHelperTest
         [typeof(ulong)],
         [typeof(long)],
         [typeof(uint)],
-        [typeof(int)],
+        [typeof(int)]
     ];
+
     public static readonly IEnumerable<object[]> RealTypesData =
     [
         [typeof(float)],
         [typeof(double)],
-        [typeof(decimal)],
+        [typeof(decimal)]
     ];
+
     public static readonly IEnumerable<object[]> TextTypesData =
     [
         [typeof(char)],
         [typeof(bool)],
         [typeof(string)],
         [typeof(Guid)],
-        [typeof(DateTime)],
+        [typeof(DateTime)]
     ];
 
     [Theory]
@@ -77,11 +79,11 @@ public class SqliteTypeHelperTest
         Type unsupported = typeof(Convert);
 
         // Act
-        Exception exception = Record.Exception(
-            () => _ = SqliteTypeHelper.ToSqliteType(unsupported)
+        Exception? exception = Record.Exception(() => _ = SqliteTypeHelper.ToSqliteType(unsupported)
         );
 
         // Assert
+        Assert.NotNull(exception);
         Assert.IsType<NotSupportedException>(exception);
     }
 }

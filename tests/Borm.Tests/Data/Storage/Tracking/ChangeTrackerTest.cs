@@ -19,7 +19,7 @@ public sealed class ChangeTrackerTest
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
-        long txId = 0;
+        const long txId = 0;
         IChange incoming = ChangeFactory.NewChange(buffer, txId);
         tracker.PendChange(incoming);
 

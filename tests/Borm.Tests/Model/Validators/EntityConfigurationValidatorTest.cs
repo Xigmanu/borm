@@ -1,4 +1,5 @@
-﻿using Borm.Model.Validators;
+﻿using Borm.Model;
+using Borm.Model.Validators;
 using Borm.Reflection;
 using Borm.Tests.Common;
 
@@ -42,26 +43,26 @@ public sealed class EntityConfigurationValidatorTest
         // Arrange
         MappingMember property0 = new(
             "foo",
-            new NullableType(typeof(int), isNullable: false),
+            new NullableType(typeof(int), false),
             new MappingInfo(
                 0,
                 "foo",
-                IsPrimaryKey: true,
-                IsUnique: false,
+                true,
+                false,
                 null,
-                Borm.Model.ReferentialAction.NoAction
+                ReferentialAction.NoAction
             )
         );
         MappingMember property1 = new(
             "bar",
-            new NullableType(typeof(int), isNullable: false),
+            new NullableType(typeof(int), false),
             new MappingInfo(
                 0,
                 "bar",
-                IsPrimaryKey: false,
-                IsUnique: false,
+                false,
+                false,
                 null,
-                Borm.Model.ReferentialAction.NoAction
+                ReferentialAction.NoAction
             )
         );
         IReadOnlyList<MappingMember> properties = [property0, property1];
@@ -81,26 +82,26 @@ public sealed class EntityConfigurationValidatorTest
         // Arrange
         MappingMember property0 = new(
             "foo",
-            new NullableType(typeof(int), isNullable: false),
+            new NullableType(typeof(int), false),
             new MappingInfo(
                 0,
                 "foo",
-                IsPrimaryKey: true,
-                IsUnique: false,
+                true,
+                false,
                 null,
-                Borm.Model.ReferentialAction.NoAction
+                ReferentialAction.NoAction
             )
         );
         MappingMember property1 = new(
             "foo",
-            new NullableType(typeof(int), isNullable: false),
+            new NullableType(typeof(int), false),
             new MappingInfo(
                 1,
                 "foo",
-                IsPrimaryKey: false,
-                IsUnique: false,
+                false,
+                false,
                 null,
-                Borm.Model.ReferentialAction.NoAction
+                ReferentialAction.NoAction
             )
         );
         IReadOnlyList<MappingMember> properties = [property0, property1];
@@ -120,26 +121,26 @@ public sealed class EntityConfigurationValidatorTest
         // Arrange
         MappingMember property0 = new(
             "foo",
-            new NullableType(typeof(int), isNullable: false),
+            new NullableType(typeof(int), false),
             new MappingInfo(
                 0,
                 "foo",
-                IsPrimaryKey: true,
-                IsUnique: false,
+                true,
+                false,
                 null,
-                Borm.Model.ReferentialAction.NoAction
+                ReferentialAction.NoAction
             )
         );
         MappingMember property1 = new(
             "bar",
-            new NullableType(typeof(int), isNullable: false),
+            new NullableType(typeof(int), false),
             new MappingInfo(
                 1,
                 "bar",
-                IsPrimaryKey: true,
-                IsUnique: false,
+                true,
+                false,
                 null,
-                Borm.Model.ReferentialAction.NoAction
+                ReferentialAction.NoAction
             )
         );
         IReadOnlyList<MappingMember> properties = [property0, property1];
@@ -159,14 +160,14 @@ public sealed class EntityConfigurationValidatorTest
         // Arrange
         MappingMember property = new(
             "foo",
-            new NullableType(typeof(string), isNullable: false),
+            new NullableType(typeof(string), false),
             new MappingInfo(
                 0,
                 "foo",
-                IsPrimaryKey: false,
-                IsUnique: false,
+                false,
+                false,
                 null,
-                Borm.Model.ReferentialAction.NoAction
+                ReferentialAction.NoAction
             )
         );
         IReadOnlyList<MappingMember> properties = [property];

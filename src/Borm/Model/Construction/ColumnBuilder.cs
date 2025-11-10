@@ -1,8 +1,8 @@
-﻿using System.Linq.Expressions;
-using System.Reflection;
-using Borm.Model.Validators;
+﻿using Borm.Model.Validators;
 using Borm.Properties;
 using Borm.Reflection;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Borm.Model.Construction;
 

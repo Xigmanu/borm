@@ -13,7 +13,7 @@ public sealed class ColumnConfigurationValidatorTest
         // Arrange
         ColumnBuilder<AddressEntity>.Configuration configuration = new(
             "bar",
-            new NullableType(typeof(object), isNullable: false),
+            new NullableType(typeof(object), false),
             true,
             null
         );
@@ -34,7 +34,7 @@ public sealed class ColumnConfigurationValidatorTest
         // Arrange
         ColumnBuilder<AddressEntity>.Configuration configuration = new(
             "bar",
-            new NullableType(typeof(int), isNullable: false),
+            new NullableType(typeof(int), false),
             true,
             typeof(object)
         );
@@ -55,7 +55,7 @@ public sealed class ColumnConfigurationValidatorTest
         // Arrange
         ColumnBuilder<AddressEntity>.Configuration configuration = new(
             "bar",
-            new NullableType(typeof(int), isNullable: true),
+            new NullableType(typeof(int), true),
             true,
             null
         );

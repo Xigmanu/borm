@@ -14,12 +14,12 @@ public sealed class ModelRelationsValidatorTest
         // Arrange
         MappingMember property = new(
             "address",
-            new NullableType(typeof(AddressEntity), isNullable: false),
+            new NullableType(typeof(AddressEntity), false),
             new MappingInfo(
                 0,
                 "address",
-                IsPrimaryKey: false,
-                IsUnique: false,
+                false,
+                false,
                 null,
                 ReferentialAction.SetNull
             )
@@ -56,12 +56,12 @@ public sealed class ModelRelationsValidatorTest
         // Arrange
         MappingMember property = new(
             "address",
-            new NullableType(typeof(AddressEntity), isNullable: false),
+            new NullableType(typeof(AddressEntity), false),
             new MappingInfo(
                 0,
                 "address",
-                IsPrimaryKey: false,
-                IsUnique: false,
+                false,
+                false,
                 typeof(AddressEntity),
                 ReferentialAction.SetNull
             )
@@ -85,12 +85,12 @@ public sealed class ModelRelationsValidatorTest
         // Arrange
         MappingMember property0 = new(
             "address",
-            new NullableType(typeof(string), isNullable: false),
+            new NullableType(typeof(string), false),
             new MappingInfo(
                 0,
                 "address",
-                IsPrimaryKey: false,
-                IsUnique: false,
+                false,
+                false,
                 typeof(AddressEntity),
                 ReferentialAction.SetNull
             )
@@ -98,12 +98,12 @@ public sealed class ModelRelationsValidatorTest
         EntityInfo entity0 = new(null, typeof(PersonEntity), [property0], [], null);
         MappingMember property1 = new(
             "id",
-            new NullableType(typeof(int), isNullable: false),
+            new NullableType(typeof(int), false),
             new MappingInfo(
                 0,
                 "id",
-                IsPrimaryKey: true,
-                IsUnique: false,
+                true,
+                false,
                 null,
                 ReferentialAction.NoAction
             )

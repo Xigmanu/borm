@@ -30,8 +30,7 @@ public sealed class EntityFactoryTest
     public void Create_ThrowsMemberException_WithInvalidEntityType()
     {
         // Act
-        Exception? exception = Record.Exception(
-            () => _ = EntityFactory<object>.Create(TestValidator)
+        Exception? exception = Record.Exception(() => _ = EntityFactory<object>.Create(TestValidator)
         );
 
         // Assert
@@ -41,6 +40,8 @@ public sealed class EntityFactoryTest
 
     private sealed class TestPropertyValidator : IValidator<IReadOnlyList<MappingMember>>
     {
-        public void Validate(IReadOnlyList<MappingMember> value) { }
+        public void Validate(IReadOnlyList<MappingMember> value)
+        {
+        }
     }
 }

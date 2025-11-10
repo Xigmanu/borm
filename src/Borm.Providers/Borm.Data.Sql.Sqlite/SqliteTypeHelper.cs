@@ -11,25 +11,25 @@ internal static class SqliteTypeHelper
     {
         switch (type)
         {
-            case Type _ when type == typeof(ushort):
-            case Type _ when type == typeof(short):
-            case Type _ when type == typeof(ulong):
-            case Type _ when type == typeof(long):
-            case Type _ when type == typeof(uint):
-            case Type _ when type == typeof(int):
+            case not null when type == typeof(ushort):
+            case not null when type == typeof(short):
+            case not null when type == typeof(ulong):
+            case not null when type == typeof(long):
+            case not null when type == typeof(uint):
+            case not null when type == typeof(int):
                 return SqliteType.Integer;
-            case Type _ when type == typeof(float):
-            case Type _ when type == typeof(double):
-            case Type _ when type == typeof(decimal):
+            case not null when type == typeof(float):
+            case not null when type == typeof(double):
+            case not null when type == typeof(decimal):
                 return SqliteType.Real;
-            case Type _ when type == typeof(char):
-            case Type _ when type == typeof(bool):
-            case Type _ when type == typeof(string):
-            case Type _ when type == typeof(Guid):
-            case Type _ when type == typeof(DateTime):
+            case not null when type == typeof(char):
+            case not null when type == typeof(bool):
+            case not null when type == typeof(string):
+            case not null when type == typeof(Guid):
+            case not null when type == typeof(DateTime):
                 return SqliteType.Text;
             default:
-                throw new NotSupportedException(Strings.TypeNotSupported(type.FullName!));
+                throw new NotSupportedException(Strings.TypeNotSupported(type?.FullName!));
         }
     }
 }

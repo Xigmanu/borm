@@ -15,12 +15,11 @@ public sealed class PropertyConverterFactoryTest
     public void Constructor_ThrowsArgumentException_WhenColumnsAreEmpty()
     {
         // Arrange
-        IEnumerable<IColumnMetadata> columns = [];
+        IReadOnlyList<IColumnMetadata> columns = [];
         Type type = typeof(AddressEntity);
 
         // Act
-        Exception? exception = Record.Exception(
-            () => _ = new PropertyConverterFactory(type, columns)
+        Exception? exception = Record.Exception(() => _ = new PropertyConverterFactory(type, columns)
         );
 
         // Assert

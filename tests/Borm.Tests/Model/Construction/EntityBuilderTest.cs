@@ -36,11 +36,10 @@ public sealed class EntityBuilderTest
         EntityBuilder<AddressEntity> builder = new(TestValidator);
 
         // Act
-        Exception? exception = Record.Exception(
-            () =>
-                _ = builder
-                    .Column(b => b.Index(1).Mapping(e => e.Id))
-                    .Column(b => b.Index(2).Mapping(e => e.Id))
+        Exception? exception = Record.Exception(() =>
+            _ = builder
+                .Column(b => b.Index(1).Mapping(e => e.Id))
+                .Column(b => b.Index(2).Mapping(e => e.Id))
         );
 
         // Assert
@@ -94,6 +93,8 @@ public sealed class EntityBuilderTest
 
     private sealed class TestPropertyValidator : IValidator<IReadOnlyList<MappingMember>>
     {
-        public void Validate(IReadOnlyList<MappingMember> value) { }
+        public void Validate(IReadOnlyList<MappingMember> value)
+        {
+        }
     }
 }

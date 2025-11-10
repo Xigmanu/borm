@@ -1,5 +1,6 @@
 ﻿using Borm.Model;
 using Borm.Model.Metadata;
+using Borm.Reflection;
 using Moq;
 
 namespace Borm.Tests.Mocks.Builders;
@@ -17,7 +18,7 @@ internal sealed class ColumnMetadataImplBuilder
 
     public ColumnMetadataImplBuilder DataType(Type type, bool isNullable)
     {
-        _mock.SetupGet(c => c.DataType).Returns(new Borm.Reflection.NullableType(type, isNullable));
+        _mock.SetupGet(c => c.DataType).Returns(new NullableType(type, isNullable));
         return this;
     }
 
@@ -39,6 +40,7 @@ internal sealed class ColumnMetadataImplBuilder
         {
             throw new InvalidOperationException("Primary keys cannot be nullable");
         }
+
         _constraints |= Constraints.AllowDbNull;
 
         return this;
@@ -50,6 +52,7 @@ internal sealed class ColumnMetadataImplBuilder
         {
             throw new InvalidOperationException("Primary keys cannot be nullable");
         }
+
         _constraints |= Constraints.PrimaryKey;
 
         return this;

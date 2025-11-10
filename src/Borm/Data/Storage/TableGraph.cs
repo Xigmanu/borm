@@ -8,19 +8,14 @@ namespace Borm.Data.Storage;
 [DebuggerDisplay("TableCount = {TableCount}")]
 internal sealed class TableGraph
 {
-    private readonly Dictionary<Table, HashSet<Table>> _children;
-    private readonly Dictionary<Table, HashSet<Table>> _parents;
-    private readonly HashSet<Table> _tables;
-
-    public TableGraph()
-    {
-        (_tables, _parents, _children) = ([], [], []);
-    }
+    private readonly Dictionary<Table, HashSet<Table>> _children = [];
+    private readonly Dictionary<Table, HashSet<Table>> _parents = [];
+    private readonly HashSet<Table> _tables = [];
 
     public int TableCount => _tables.Count;
 
     public Table? this[Type entityType] =>
-        _tables.FirstOrDefault(t => t.Metadata.Type.Equals(entityType));
+        _tables.FirstOrDefault(t => t.Metadata.Type == entityType);
 
     public void AddEdge(Table parent, Table child)
     {
@@ -60,20 +55,21 @@ internal sealed class TableGraph
             ColumnInfo columnInfo;
             if (column.Reference == null)
             {
-                columnInfo = new(columnName, column.DataType.UnderlyingType, isUnique, isNullable);
+                columnInfo = new ColumnInfo(columnName, column.DataType.UnderlyingType, isUnique, isNullable);
                 columns.Add(columnInfo);
 
                 if (column.Constraints.HasFlag(Constraints.PrimaryKey))
                 {
                     primaryKey = columnInfo;
                 }
+
                 continue;
             }
 
             Table? parent = this[column.Reference!];
             Debug.Assert(parent is not null);
 
-            columnInfo = new(
+            columnInfo = new ColumnInfo(
                 columnName,
                 parent.Metadata.PrimaryKey.DataType.UnderlyingType,
                 isUnique,
@@ -99,6 +95,13 @@ internal sealed class TableGraph
         List<Table> result = [];
         HashSet<Table> visited = [];
 
+        foreach (Table table in _tables)
+        {
+            Visit(table);
+        }
+
+        return result;
+
         void Visit(Table table)
         {
             if (!visited.Add(table))
@@ -116,13 +119,6 @@ internal sealed class TableGraph
 
             result.Add(table);
         }
-
-        foreach (Table table in _tables)
-        {
-            Visit(table);
-        }
-
-        return result;
     }
 
     private static HashSet<Table> GetEdges(Table table, Dictionary<Table, HashSet<Table>> edgeMap)

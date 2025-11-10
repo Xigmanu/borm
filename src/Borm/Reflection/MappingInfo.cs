@@ -19,11 +19,20 @@ public sealed record MappingInfo(
         Type? reference = null;
         ReferentialAction action = ReferentialAction.NoAction;
 
-        if (attribute is ForeignKeyAttribute fKAttribute)
+        if (attribute is not ForeignKeyAttribute fKAttribute)
         {
-            action = fKAttribute.OnDelete;
-            reference = fKAttribute.Reference;
+            return new MappingInfo(
+                idx,
+                name,
+                attribute is PrimaryKeyAttribute,
+                attribute.IsUnique,
+                reference,
+                action
+            );
         }
+
+        action = fKAttribute.OnDelete;
+        reference = fKAttribute.Reference;
 
         return new MappingInfo(
             idx,

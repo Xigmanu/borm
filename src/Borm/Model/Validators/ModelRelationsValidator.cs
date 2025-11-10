@@ -12,10 +12,9 @@ internal sealed class ModelRelationsValidator : IValidator<IReadOnlyList<EntityI
         ArgumentNullException.ThrowIfNull(model);
         Debug.Assert(model.Count != 0);
 
-        foreach (EntityInfo entity in model)
+        foreach ((_, Type entityType, IReadOnlyList<MappingMember> readOnlyList, _, _) in model)
         {
-            Type entityType = entity.Type;
-            foreach (MappingMember property in entity.Properties)
+            foreach (MappingMember property in readOnlyList)
             {
                 ValidateProperty(entityType.FullName ?? entityType.Name, property, model);
             }
@@ -37,7 +36,7 @@ internal sealed class ModelRelationsValidator : IValidator<IReadOnlyList<EntityI
         }
 
         Type reference = mapping.Reference;
-        EntityInfo? parent =
+        EntityInfo parent =
             model.FirstOrDefault(e => e.Type == reference)
             ?? throw new EntityNotFoundException(
                 Strings.EntityDependencyNotFound(reference.FullName ?? reference.Name),

@@ -39,7 +39,7 @@ public sealed class MappingInfoTest
         ForeignKeyAttribute attribute = new(index, name, reference)
         {
             OnDelete = action,
-            IsUnique = true,
+            IsUnique = true
         };
 
         // Act

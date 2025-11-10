@@ -1,16 +1,13 @@
 ﻿using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Borm.Data;
 
 /// <summary>
-/// Represents the schema of a database table.
+///     Represents the schema of a database table.
 /// </summary>
 public sealed class TableInfo
 {
-
     /// <summary>
-    /// 
     /// </summary>
     /// <param name="name">Name of the table.</param>
     /// <param name="columns">Table columns.</param>
@@ -42,11 +39,11 @@ public sealed class TableInfo
         }
 
         return Name.Equals(other.Name)
-            && Columns.SequenceEqual(other.Columns)
-            && ForeignKeyRelations.SequenceEqual(
-                other.ForeignKeyRelations,
-                new RelationDictionaryEqualityComparer()
-            );
+               && Columns.SequenceEqual(other.Columns)
+               && ForeignKeyRelations.SequenceEqual(
+                   other.ForeignKeyRelations,
+                   new RelationDictionaryEqualityComparer()
+               );
     }
 
     public override int GetHashCode()
@@ -65,7 +62,7 @@ public sealed class TableInfo
             return x.Key.Equals(y.Key) && x.Value.Equals(y.Value);
         }
 
-        public int GetHashCode([DisallowNull] KeyValuePair<ColumnInfo, TableInfo> obj)
+        public int GetHashCode(KeyValuePair<ColumnInfo, TableInfo> obj)
         {
             return HashCode.Combine(obj.Key, obj.Value);
         }

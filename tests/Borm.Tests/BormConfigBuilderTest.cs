@@ -102,7 +102,7 @@ public sealed class BormConfigBuilderTest
         List<EntityInfo> model = [];
 
         // Act
-        BormConfig config = builder.Model(model).InMemory().Build();
+        BormConfig config = builder.Model([]).InMemory().Build();
 
         // Assert
         Assert.IsType<InMemoryCommandExecutor>(config.CommandExecutor);

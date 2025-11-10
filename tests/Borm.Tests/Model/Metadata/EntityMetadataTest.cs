@@ -13,11 +13,11 @@ public sealed class EntityMetadataTest
         ColumnMetadataList columns = new([]);
 
         // Act
-        Exception exception = Record.Exception(
-            () => _ = new EntityMetadata("foo", typeof(object), columns)
+        Exception? exception = Record.Exception(() => _ = new EntityMetadata("foo", typeof(object), columns)
         );
 
         // Assert
+        Assert.NotNull(exception);
         Assert.IsType<ArgumentException>(exception);
     }
 
@@ -29,7 +29,7 @@ public sealed class EntityMetadataTest
             0,
             "id",
             "Id",
-            new NullableType(typeof(int), isNullable: false),
+            new NullableType(typeof(int), false),
             Constraints.PrimaryKey
         );
         ColumnMetadataList columns = new([pkColumn]);
@@ -53,7 +53,7 @@ public sealed class EntityMetadataTest
             0,
             "id",
             "Id",
-            new NullableType(typeof(int), isNullable: false),
+            new NullableType(typeof(int), false),
             Constraints.PrimaryKey
         );
         ColumnMetadataList columns = new([pkColumn]);
@@ -74,7 +74,7 @@ public sealed class EntityMetadataTest
             0,
             "id",
             "Id",
-            new NullableType(typeof(int), isNullable: false),
+            new NullableType(typeof(int), false),
             Constraints.PrimaryKey
         );
         ColumnMetadataList columns = new([pkColumn]);
@@ -96,7 +96,7 @@ public sealed class EntityMetadataTest
             0,
             "id",
             "Id",
-            new NullableType(typeof(int), isNullable: false),
+            new NullableType(typeof(int), false),
             Constraints.PrimaryKey
         );
         ColumnMetadataList columns = new([pkColumn]);
@@ -117,16 +117,17 @@ public sealed class EntityMetadataTest
             0,
             "id",
             "Id",
-            new NullableType(typeof(int), isNullable: false),
+            new NullableType(typeof(int), false),
             Constraints.None
         );
         ColumnMetadataList columns = new([pkColumn]);
         EntityMetadata info = new("foo", typeof(object), columns);
 
         // Act
-        Exception exception = Record.Exception(() => _ = info.PrimaryKey);
+        Exception? exception = Record.Exception(() => _ = info.PrimaryKey);
 
         // Assert
+        Assert.NotNull(exception);
         Assert.IsType<InvalidOperationException>(exception);
     }
 }

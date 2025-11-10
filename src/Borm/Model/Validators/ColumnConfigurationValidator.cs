@@ -28,11 +28,13 @@ internal sealed class ColumnConfigurationValidator<TEntity>
             {
                 throw new InvalidOperationException(Strings.PrimaryKeyAsForeignKey(entityName));
             }
+
             if (dataType.IsNullable)
             {
                 throw new InvalidOperationException(Strings.NullablePrimaryKey(entityName));
             }
         }
+
         if (reference == null && !ColumnDataTypeHelper.IsSupported(dataType.UnderlyingType))
         {
             throw new NotSupportedException(
