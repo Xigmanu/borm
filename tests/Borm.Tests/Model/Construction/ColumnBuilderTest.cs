@@ -1,6 +1,6 @@
 ﻿using Borm.Model;
 using Borm.Model.Construction;
-using Borm.Model.Validators;
+using Borm.Model.Validation;
 using Borm.Reflection;
 using Borm.Tests.Common;
 
@@ -8,10 +8,10 @@ namespace Borm.Tests.Model.Construction;
 
 public sealed class ColumnBuilderTest
 {
-    private static readonly IValidator<ColumnBuilder<AddressEntity>.Configuration> TestAddressValidator =
+    private static readonly IConfigurationValidator<ColumnBuilder<AddressEntity>.Configuration> TestAddressValidator =
         new TestColumnBuilderConfigurationValidator<AddressEntity>();
 
-    private static readonly IValidator<ColumnBuilder<PersonEntity>.Configuration> TestPersonValidator =
+    private static readonly IConfigurationValidator<ColumnBuilder<PersonEntity>.Configuration> TestPersonValidator =
         new TestColumnBuilderConfigurationValidator<PersonEntity>();
 
     [Fact]
@@ -166,7 +166,7 @@ public sealed class ColumnBuilderTest
     }
 
     private sealed class TestColumnBuilderConfigurationValidator<TEntity>
-        : IValidator<ColumnBuilder<TEntity>.Configuration>
+        : IConfigurationValidator<ColumnBuilder<TEntity>.Configuration>
         where TEntity : class
     {
         public void Validate(ColumnBuilder<TEntity>.Configuration value)

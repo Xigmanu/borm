@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Borm.Model.Conversion;
+using Borm.Model.Validation;
 using Borm.Properties;
 
 namespace Borm.Model.Metadata;
@@ -9,7 +10,7 @@ namespace Borm.Model.Metadata;
 [DebuggerDisplay("Name = {Name}, Type = {Type}")]
 internal sealed class EntityMetadata : IEntityMetadata
 {
-    private readonly Action<object>? _validate;
+    private readonly Func<object, ValidationResult>? _validate;
 
     public EntityMetadata(string name, Type dataType, IReadOnlyList<IColumnMetadata> columns)
         : this(name, dataType, columns, EntityBufferConversion.Empty, null)
@@ -21,7 +22,7 @@ internal sealed class EntityMetadata : IEntityMetadata
         Type dataType,
         IReadOnlyList<IColumnMetadata> columns,
         IEntityBufferConversion conversion,
-        Action<object>? validate
+        Func<object, ValidationResult>? validate
     )
     {
         if (columns.Count == 0)
@@ -52,7 +53,19 @@ internal sealed class EntityMetadata : IEntityMetadata
 
     public Type Type { get; }
 
-    public void Validate(object entity) => _validate?.Invoke(entity);
+    public void Validate(object entity)
+    {
+        if (_validate == null)
+        {
+            return;
+        }
+
+        ValidationResult result = _validate(entity);
+        if (result.IsError)
+        {
+            throw result.BuildException();
+        }
+    }
 
     public override bool Equals(object? obj)
     {

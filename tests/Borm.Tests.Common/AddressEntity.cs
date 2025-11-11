@@ -1,5 +1,5 @@
 ﻿using Borm.Model;
-using Borm.Model.Validators;
+using Borm.Model.Validation;
 
 namespace Borm.Tests.Common;
 
@@ -40,14 +40,13 @@ public sealed class AddressEntity(int id, string address, string? address_1, str
         return HashCode.Combine(Id, Address, Address_1, City);
     }
 
-    public sealed class Validator : IValidator<AddressEntity>
+    public sealed class Validator : IObjectValidator<AddressEntity>
     {
-        public void Validate(AddressEntity entity)
+        public ValidationResult Validate(AddressEntity entity)
         {
-            if (string.IsNullOrWhiteSpace(entity.Address))
-            {
-                throw new InvalidOperationException();
-            }
+            return string.IsNullOrWhiteSpace(entity.Address)
+                ? ValidationResult.Error(entity.Address)
+                : ValidationResult.Ok;
         }
     }
 }

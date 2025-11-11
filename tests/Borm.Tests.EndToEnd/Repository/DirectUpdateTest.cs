@@ -1,5 +1,6 @@
 ﻿using Borm.Data;
 using Borm.Data.Storage;
+using Borm.Model.Validation;
 using Borm.Properties;
 using Borm.Tests.Common;
 
@@ -29,7 +30,7 @@ public sealed class DirectUpdateTest
 
         Exception? inner = exception.InnerException;
         Assert.NotNull(inner);
-        Assert.IsType<InvalidOperationException>(inner);
+        Assert.IsType<InvalidObjectException>(inner);
 
         IEnumerable<AddressEntity> addresses = repository.Select().ToList();
         Assert.Single(addresses);

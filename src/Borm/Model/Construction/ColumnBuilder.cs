@@ -1,8 +1,8 @@
-﻿using Borm.Model.Validators;
-using Borm.Properties;
+﻿using Borm.Properties;
 using Borm.Reflection;
 using System.Linq.Expressions;
 using System.Reflection;
+using Borm.Model.Validation;
 
 namespace Borm.Model.Construction;
 
@@ -10,7 +10,7 @@ public sealed class ColumnBuilder<TEntity>
     where TEntity : class
 {
     private readonly Type _entityType = typeof(TEntity);
-    private readonly IValidator<Configuration> _validator;
+    private readonly IConfigurationValidator<Configuration> _validator;
     private string? _columnName;
     private NullableType? _dataType;
     private int _index;
@@ -27,7 +27,7 @@ public sealed class ColumnBuilder<TEntity>
         Type? Reference
     );
 
-    internal ColumnBuilder(IValidator<Configuration> validator)
+    internal ColumnBuilder(IConfigurationValidator<Configuration> validator)
     {
         _validator = validator;
     }

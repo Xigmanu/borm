@@ -1,4 +1,4 @@
-﻿using Borm.Model.Validators;
+﻿using Borm.Model.Validation;
 using Borm.Reflection;
 
 namespace Borm.Model.Construction;
@@ -7,12 +7,12 @@ public sealed class EntityBuilder<TEntity>
     where TEntity : class
 {
     private readonly List<MappingMember> _properties = [];
-    private readonly IValidator<IReadOnlyList<MappingMember>> _validator;
+    private readonly IConfigurationValidator<IReadOnlyList<MappingMember>> _validator;
 
-    private IValidator<TEntity>? _entityValidator;
+    private Func<object, ValidationResult>? _entityValidator;
     private string? _name;
 
-    internal EntityBuilder(IValidator<IReadOnlyList<MappingMember>> validator)
+    internal EntityBuilder(IConfigurationValidator<IReadOnlyList<MappingMember>> validator)
     {
         _validator = validator;
     }
@@ -22,15 +22,13 @@ public sealed class EntityBuilder<TEntity>
         _validator.Validate(_properties);
 
         IReadOnlyList<Constructor> constructors = ConstructorParser.ParseAll(typeof(TEntity));
-        Action<object>? validatorAction =
-            _entityValidator != null ? e => _entityValidator.Validate((TEntity)e) : null;
 
         return new EntityInfo(
             _name,
             typeof(TEntity),
             _properties.AsReadOnly(),
             constructors,
-            validatorAction
+            _entityValidator
         );
     }
 
@@ -61,10 +59,17 @@ public sealed class EntityBuilder<TEntity>
         return this;
     }
 
-    public EntityBuilder<TEntity> Validator(IValidator<TEntity> validator)
+    public EntityBuilder<TEntity> Validator(IObjectValidator<TEntity> validator)
     {
         ArgumentNullException.ThrowIfNull(validator);
-        _entityValidator = validator;
+        _entityValidator = ValidatorFunctionWrapper.Wrap(validator);
+        return this;
+    }
+
+    public EntityBuilder<TEntity> Validator(Func<TEntity, ValidationResult> validatorFunc)
+    {
+        ArgumentNullException.ThrowIfNull(validatorFunc);
+        _entityValidator = ValidatorFunctionWrapper.Wrap(validatorFunc);
         return this;
     }
 }

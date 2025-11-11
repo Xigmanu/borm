@@ -1,6 +1,6 @@
 ﻿using Borm.Model;
 using Borm.Model.Construction;
-using Borm.Model.Validators;
+using Borm.Model.Validation;
 using Borm.Reflection;
 using Borm.Tests.Common;
 
@@ -8,7 +8,7 @@ namespace Borm.Tests.Model.Construction;
 
 public sealed class EntityBuilderTest
 {
-    private static readonly IValidator<IReadOnlyList<MappingMember>> TestValidator =
+    private static readonly IConfigurationValidator<IReadOnlyList<MappingMember>> TestValidator =
         new TestPropertyValidator();
 
     [Fact]
@@ -84,14 +84,18 @@ public sealed class EntityBuilderTest
         EntityBuilder<AddressEntity> builder = new(TestValidator);
 
         // Act
-        Exception? exception = Record.Exception(() => _ = builder.Validator(null!));
+        Exception? exception0 = Record.Exception(() => _ = builder.Validator((IObjectValidator<AddressEntity>)null!));
+        Exception? exception1 =
+            Record.Exception(() => _ = builder.Validator((Func<AddressEntity, ValidationResult>)null!));
 
         // Assert
-        Assert.NotNull(exception);
-        Assert.IsType<ArgumentNullException>(exception);
+        Assert.NotNull(exception0);
+        Assert.IsType<ArgumentNullException>(exception0);
+        Assert.NotNull(exception1);
+        Assert.IsType<ArgumentNullException>(exception1);
     }
 
-    private sealed class TestPropertyValidator : IValidator<IReadOnlyList<MappingMember>>
+    private sealed class TestPropertyValidator : IConfigurationValidator<IReadOnlyList<MappingMember>>
     {
         public void Validate(IReadOnlyList<MappingMember> value)
         {

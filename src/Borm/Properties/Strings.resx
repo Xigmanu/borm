@@ -204,4 +204,13 @@
   <data name="NoPublicPropertyDeclared" xml:space="preserve">
     <value>No public property '{0}' is declared in a type '{1}'.</value>
   </data>
+  <data name="MissingArgumentExpressionString" xml:space="preserve">
+    <value>Argument expression was not provided.</value>
+  </data>
+  <data name="EntityValidationFailed" xml:space="preserve">
+    <value>Validation failed for '{0}' object.</value>
+  </data>
+  <data name="EntityValidationFailedWithUserMessage" xml:space="preserve">
+    <value>Validation failed for '{0}' object with the following message: \"{1}\".</value>
+  </data>
 </root>

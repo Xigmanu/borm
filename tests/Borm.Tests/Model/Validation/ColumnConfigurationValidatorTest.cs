@@ -1,9 +1,9 @@
 ﻿using Borm.Model.Construction;
-using Borm.Model.Validators;
+using Borm.Model.Validation;
 using Borm.Reflection;
 using Borm.Tests.Common;
 
-namespace Borm.Tests.Model.Validators;
+namespace Borm.Tests.Model.Validation;
 
 public sealed class ColumnConfigurationValidatorTest
 {

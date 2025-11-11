@@ -2,10 +2,10 @@
 using Borm.Properties;
 using Borm.Reflection;
 
-namespace Borm.Model.Validators;
+namespace Borm.Model.Validation;
 
 internal sealed class EntityConfigurationValidator<TEntity>
-    : IValidator<IReadOnlyList<MappingMember>>
+    : IConfigurationValidator<IReadOnlyList<MappingMember>>
     where TEntity : class
 {
     public void Validate(IReadOnlyList<MappingMember> properties)
