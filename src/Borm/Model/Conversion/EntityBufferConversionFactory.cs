@@ -16,10 +16,10 @@ internal static class EntityBufferConversionFactory
         ConverterFactory<Func<object, IValueBuffer>> bufferConverter =
             new ValueBufferConverterFactory(entityType, columns);
 
-        Constructor? conversionCtor =
+        Constructor conversionCtor =
             ConstructorSelector.FindMappingCtor(constructors, [.. columns.Select(col => col.Name)])
             ?? throw new MissingMethodException(
-                Strings.InvalidEntityTypeConstructor(entityType.FullName!)
+                Strings.InvalidEntityTypeConstructor(entityType.FullName ?? entityType.Name)
             );
 
         ConverterFactory<Func<IValueBuffer, object>> materializer = conversionCtor.IsDefault

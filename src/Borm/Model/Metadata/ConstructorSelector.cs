@@ -10,7 +10,12 @@ internal static class ConstructorSelector
         HashSet<string> columnNames
     )
     {
-        if (constructors is [{ Parameters.Count: 0 }])
+        if (columnNames.Count == 0)
+        {
+            throw new ArgumentException("Column name set is empty");
+        }
+
+        if (constructors is [{ IsDefault: true }])
         {
             return constructors[0];
         }

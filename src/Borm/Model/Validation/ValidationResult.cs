@@ -6,7 +6,7 @@ namespace Borm.Model.Validation;
 
 public readonly struct ValidationResult
 {
-    public static readonly ValidationResult Ok = new(string.Empty, string.Empty, false);
+    public static readonly ValidationResult Ok = new(null, string.Empty, false);
 
     private ValidationResult(string? message, string memberName, bool isError)
     {
@@ -27,7 +27,7 @@ public readonly struct ValidationResult
     )
     {
         Debug.Assert(value != null || value == null);
-        if (string.IsNullOrEmpty(expression))
+        if (string.IsNullOrWhiteSpace(expression))
         {
             throw new ArgumentException(
                 Strings.MissingArgumentExpressionString(),
