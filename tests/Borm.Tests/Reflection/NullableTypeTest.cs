@@ -5,6 +5,23 @@ namespace Borm.Tests.Reflection;
 
 public sealed class NullableTypeTest
 {
+    [Theory]
+    [InlineData(typeof(int), false, true)]
+    [InlineData(typeof(int?), true, false)]
+    [InlineData(typeof(string), true, false)]
+    public void Equals_ReturnsIfInstancesAreEqual(Type type, bool isNullable, bool expected)
+    {
+        // Arrange
+        NullableType nullableType = new(typeof(int), false);
+        NullableType other = new(type, isNullable);
+
+        // Act
+        bool equals = nullableType.Equals(other);
+
+        // Assert
+        Assert.Equal(expected, equals);
+    }
+
     [Fact]
     public void UnderlyingType_ReturnsType_WhenTypeIsReferenceType()
     {
@@ -109,7 +126,6 @@ public sealed class NullableTypeTest
         Assert.NotNull(exception);
         Assert.IsType<NotSupportedException>(exception);
     }
-
 #pragma warning disable S3459
     private sealed class TestClass
     {
