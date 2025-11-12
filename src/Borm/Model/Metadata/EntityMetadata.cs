@@ -63,7 +63,7 @@ internal sealed class EntityMetadata : IEntityMetadata
         ValidationResult result = _validate(entity);
         if (result.IsError)
         {
-            throw result.BuildException();
+            throw new InvalidObjectException(result);
         }
     }
 
