@@ -1,6 +1,7 @@
 ﻿using System.Data;
 using Borm.Data;
 using Borm.Data.Storage;
+using Borm.Model.Validation;
 using Borm.Properties;
 using Borm.Tests.Common;
 
@@ -55,7 +56,7 @@ public sealed class DirectInsertTest
 
         Exception? inner = exception.InnerException;
         Assert.NotNull(inner);
-        Assert.IsType<InvalidOperationException>(inner);
+        Assert.IsType<InvalidObjectException>(inner);
 
         IEnumerable<AddressEntity> addresses = repository.Select();
         Assert.Empty(addresses);
@@ -161,7 +162,7 @@ public sealed class DirectInsertTest
 
         Exception? inner = exception.InnerException;
         Assert.NotNull(inner);
-        Assert.IsType<InvalidOperationException>(inner);
+        Assert.IsType<InvalidObjectException>(inner);
 
         Assert.Empty(addresses);
         Assert.Empty(persons);

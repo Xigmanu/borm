@@ -1,4 +1,5 @@
-﻿using Borm.Reflection;
+﻿using Borm.Model.Validation;
+using Borm.Reflection;
 
 namespace Borm.Model;
 
@@ -7,5 +8,5 @@ public sealed record EntityInfo(
     Type Type,
     IReadOnlyList<MappingMember> Properties,
     IReadOnlyList<Constructor> Constructors,
-    Action<object>? Validate
+    Func<object, ValidationResult>? Validate
 );

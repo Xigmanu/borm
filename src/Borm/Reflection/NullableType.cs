@@ -42,12 +42,25 @@ public sealed class NullableType
                 parameter.ParameterType,
                 IsNullable(context.Create(parameter))
             ),
-            _ => throw new NotSupportedException($"Member {member} is not supported")
+            _ => throw new NotSupportedException($"Member {member} is not supported"),
         };
 
         static bool IsNullable(NullabilityInfo info)
         {
             return info.ReadState == NullabilityState.Nullable;
         }
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is NullableType other
+            && Type == other.Type
+            && UnderlyingType == other.UnderlyingType
+            && IsNullable == other.IsNullable;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Type, UnderlyingType, IsNullable);
     }
 }

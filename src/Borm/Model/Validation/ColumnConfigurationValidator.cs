@@ -4,10 +4,10 @@ using Borm.Properties;
 using Borm.Reflection;
 using Borm.Util;
 
-namespace Borm.Model.Validators;
+namespace Borm.Model.Validation;
 
 internal sealed class ColumnConfigurationValidator<TEntity>
-    : IValidator<ColumnBuilder<TEntity>.Configuration>
+    : IConfigurationValidator<ColumnBuilder<TEntity>.Configuration>
     where TEntity : class
 {
     public void Validate(ColumnBuilder<TEntity>.Configuration configuration)

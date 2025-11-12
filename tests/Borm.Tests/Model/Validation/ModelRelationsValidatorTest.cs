@@ -1,10 +1,10 @@
 ﻿using Borm.Model;
 using Borm.Model.Metadata;
-using Borm.Model.Validators;
+using Borm.Model.Validation;
 using Borm.Reflection;
 using Borm.Tests.Common;
 
-namespace Borm.Tests.Model.Validators;
+namespace Borm.Tests.Model.Validation;
 
 public sealed class ModelRelationsValidatorTest
 {

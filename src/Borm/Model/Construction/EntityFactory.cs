@@ -1,32 +1,29 @@
-﻿using Borm.Model.Validators;
-using Borm.Properties;
+﻿using Borm.Properties;
 using Borm.Reflection;
 using System.Reflection;
+using Borm.Model.Validation;
 
 namespace Borm.Model.Construction;
 
 internal static class EntityFactory<TEntity>
     where TEntity : class
 {
-    public static EntityInfo Create(IValidator<IReadOnlyList<MappingMember>> validator)
+    public static EntityInfo Create(IConfigurationValidator<IReadOnlyList<MappingMember>> configurationValidator)
     {
-        return InternalCreate(validator, null);
+        return InternalCreate(configurationValidator, null);
     }
 
     public static EntityInfo Create(
-        IValidator<IReadOnlyList<MappingMember>> validator,
-        IValidator<TEntity> entityValidator
+        IConfigurationValidator<IReadOnlyList<MappingMember>> configurationValidator,
+        Func<object, ValidationResult> entityValidator
     )
     {
-        Action<object>? validate =
-            entityValidator != null ? (e) => entityValidator.Validate((TEntity)e) : null;
-
-        return InternalCreate(validator, validate);
+        return InternalCreate(configurationValidator, entityValidator);
     }
 
     private static EntityInfo InternalCreate(
-        IValidator<IReadOnlyList<MappingMember>> validator,
-        Action<object>? validate
+        IConfigurationValidator<IReadOnlyList<MappingMember>> configurationValidator,
+        Func<object, ValidationResult>? validate
     )
     {
         Type entityType = typeof(TEntity);
@@ -44,7 +41,7 @@ internal static class EntityFactory<TEntity>
             );
 
         List<MappingMember> properties = ParseProperties(entityType);
-        validator.Validate(properties);
+        configurationValidator.Validate(properties);
 
         IReadOnlyList<Constructor> constructors = ConstructorParser.ParseAll(entityType);
 

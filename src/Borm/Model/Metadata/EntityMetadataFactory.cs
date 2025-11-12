@@ -6,7 +6,15 @@ namespace Borm.Model.Metadata;
 
 internal static class EntityMetadataFactory
 {
-    public static IEntityMetadata Create(EntityInfo typeInfo)
+    public static IEntityMetadata Create(
+        EntityInfo typeInfo,
+        Func<
+            Type,
+            IReadOnlyList<Constructor>,
+            IReadOnlyList<IColumnMetadata>,
+            IEntityBufferConversion
+        > conversionSupplierFunc
+    )
     {
         string name = !string.IsNullOrWhiteSpace(typeInfo.Name)
             ? typeInfo.Name
@@ -14,10 +22,11 @@ internal static class EntityMetadataFactory
 
         List<ColumnMetadata> columns = typeInfo
             .Properties.Select(CreateColumnInfo)
-            .OrderBy(column => column.Index).ToList();
+            .OrderBy(column => column.Index)
+            .ToList();
         ColumnMetadataList columnCollection = new(columns);
 
-        IEntityBufferConversion conversion = EntityBufferConversionFactory.Create(
+        IEntityBufferConversion conversion = conversionSupplierFunc(
             typeInfo.Type,
             typeInfo.Constructors,
             columns

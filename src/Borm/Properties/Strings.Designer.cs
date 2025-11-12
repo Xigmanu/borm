@@ -53,6 +53,17 @@ public static class Strings
     public static string EntityTypeNotDecorated(string typeName, string attributeName) => GetString([typeName, attributeName]);
 
     /// <summary>
+    /// Validation failed for '{objectName}' object.
+    /// </summary>
+    public static string EntityValidationFailed(string objectName) => GetString([objectName]);
+
+    /// <summary>
+    /// Validation failed for '{objectName}' object with the following message: \"{message}\".
+    /// </summary>
+    public static string EntityValidationFailedWithUserMessage(string objectName, string message) =>
+        GetString([objectName, message]);
+
+    /// <summary>
     /// Column index cannot be lesser than zero.
     /// </summary>
     public static string InvalidColumnIndex() => GetString();
@@ -71,6 +82,11 @@ public static class Strings
     /// Only member expressions: `e => e.Property` are allowed.
     /// </summary>
     public static string InvalidMemberExpression() => GetString();
+
+    /// <summary>
+    /// Argument expression was not provided.
+    /// </summary>
+    public static string MissingArgumentExpressionString() => GetString();
 
     /// <summary>
     /// Command executor is missing. Call '{firstMethod}' or '{secondMethod}'.

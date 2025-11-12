@@ -3,9 +3,9 @@ using Borm.Model.Metadata;
 using Borm.Properties;
 using Borm.Reflection;
 
-namespace Borm.Model.Validators;
+namespace Borm.Model.Validation;
 
-internal sealed class ModelRelationsValidator : IValidator<IReadOnlyList<EntityInfo>>
+internal sealed class ModelRelationsValidator : IConfigurationValidator<IReadOnlyList<EntityInfo>>
 {
     public void Validate(IReadOnlyList<EntityInfo> model)
     {

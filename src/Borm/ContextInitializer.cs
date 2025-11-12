@@ -1,16 +1,17 @@
 ﻿using Borm.Data.Storage;
 using Borm.Model;
+using Borm.Model.Conversion;
 using Borm.Model.Metadata;
-using Borm.Model.Validators;
+using Borm.Model.Validation;
 
 namespace Borm;
 
 internal sealed class ContextInitializer
 {
-    private readonly IValidator<IReadOnlyList<EntityInfo>> _modelValidator;
+    private readonly IConfigurationValidator<IReadOnlyList<EntityInfo>> _modelValidator;
     private bool _isInitialized;
 
-    public ContextInitializer(IValidator<IReadOnlyList<EntityInfo>> modelValidator)
+    public ContextInitializer(IConfigurationValidator<IReadOnlyList<EntityInfo>> modelValidator)
     {
         _modelValidator = modelValidator;
         _isInitialized = false;
@@ -26,7 +27,12 @@ internal sealed class ContextInitializer
 
         _modelValidator.Validate(model);
 
-        List<IEntityMetadata> metadata = [.. model.Select(EntityMetadataFactory.Create)];
+        List<IEntityMetadata> metadata =
+        [
+            .. model.Select(typeInfo =>
+                EntityMetadataFactory.Create(typeInfo, EntityBufferConversionFactory.Create)
+            ),
+        ];
 
         new TableGraphBuilder(metadata).Build(context.TableGraph);
         context.DataSynchronizer.SyncSchemaWithDataSource();
