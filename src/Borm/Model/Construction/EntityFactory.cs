@@ -1,29 +1,15 @@
-﻿using Borm.Properties;
-using Borm.Reflection;
-using System.Reflection;
+﻿using System.Reflection;
 using Borm.Model.Validation;
+using Borm.Properties;
+using Borm.Reflection;
 
 namespace Borm.Model.Construction;
 
 internal static class EntityFactory<TEntity>
     where TEntity : class
 {
-    public static EntityInfo Create(IConfigurationValidator<IReadOnlyList<MappingMember>> configurationValidator)
-    {
-        return InternalCreate(configurationValidator, null);
-    }
-
     public static EntityInfo Create(
-        IConfigurationValidator<IReadOnlyList<MappingMember>> configurationValidator,
-        Func<object, ValidationResult> entityValidator
-    )
-    {
-        return InternalCreate(configurationValidator, entityValidator);
-    }
-
-    private static EntityInfo InternalCreate(
-        IConfigurationValidator<IReadOnlyList<MappingMember>> configurationValidator,
-        Func<object, ValidationResult>? validate
+        IConfigurationValidator<IReadOnlyList<MappingMember>> configurationValidator
     )
     {
         Type entityType = typeof(TEntity);
@@ -45,12 +31,18 @@ internal static class EntityFactory<TEntity>
 
         IReadOnlyList<Constructor> constructors = ConstructorParser.ParseAll(entityType);
 
+        ValidatorAttribute? validatorAttribute = entityType.GetCustomAttribute<
+            ValidatorAttribute
+        >();
+
         return new EntityInfo(
             entityAttribute.Name,
             entityType,
             properties.AsReadOnly(),
             constructors,
-            validate
+            validatorAttribute != null
+                ? ParseValidator(validatorAttribute.ValidatorType)
+                : null
         );
     }
 
@@ -74,5 +66,26 @@ internal static class EntityFactory<TEntity>
         }
 
         return properties;
+    }
+
+    private static Func<object, ValidationResult> ParseValidator(Type validatorType)
+    {
+        Type iFaceType = typeof(IObjectValidator<TEntity>);
+        if (!validatorType.IsAssignableTo(iFaceType))
+        {
+            throw new ArgumentException(
+                $"Validator type '{validatorType.FullName}' must implement '{iFaceType.FullName}'.",
+                nameof(validatorType));
+        }
+
+        if (validatorType.GetConstructor(Type.EmptyTypes) == null)
+        {
+            throw new ArgumentException($"Validator '{validatorType.FullName}' must have a parameterless constructor.",
+                nameof(validatorType));
+        }
+
+        IObjectValidator<TEntity> validator = (IObjectValidator<TEntity>)Activator.CreateInstance(validatorType)!;
+
+        return ValidatorFunctionWrapper.Wrap(validator);
     }
 }
