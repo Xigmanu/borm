@@ -125,31 +125,6 @@ public sealed class ColumnBuilder<TEntity>
         return this;
     }
 
-    private ConditionalExpression BuildIfBlock()
-    {
-        Debug.Assert(_validationExpression != null && _property != null);
-
-        UnaryExpression negatedCondition = Expression.Not(_validationExpression.Body);
-        MethodInfo? errorMethod = typeof(ValidationResult).GetMethod(
-            nameof(ValidationResult.Error)
-        );
-        Debug.Assert(
-            errorMethod != null,
-            $"Static method 'Error' was not found in type {nameof(ValidationResult)}"
-        );
-
-        ParameterExpression lambdaParam = _validationExpression.Parameters[0];
-        MemberExpression arg = Expression.Property(lambdaParam, _property);
-        MethodCallExpression errMethodCall = Expression.Call(
-            errorMethod,
-            arg,
-            Expression.Constant(null, typeof(string)),
-            Expression.Constant($"{lambdaParam.Name}.{_property.Name}")
-        );
-
-        return Expression.IfThen(negatedCondition, errMethodCall);
-    }
-
     private void ResolvePropertyFromExpression<TProperty>(
         Expression<Func<TEntity, TProperty>> propProvider
     )

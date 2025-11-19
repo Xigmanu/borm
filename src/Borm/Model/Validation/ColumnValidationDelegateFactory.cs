@@ -1,43 +1,52 @@
-﻿using System.Diagnostics;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using System.Reflection;
 using Borm.Reflection;
 
 namespace Borm.Model.Validation;
 
 // TODO Merge conditional expressions on the same property
-// TODO Use common delegate for validations
-internal static class ColumnValidationDelegateFactory
+internal sealed class ColumnValidationDelegateFactory
 {
-    private const string CommonEntityVarName = "eObj";
+    private const string CommonEntityVarName = "e";
+    private readonly Type _entityType;
+    private readonly MethodInfo _errorMethod;
+    private readonly IReadOnlyList<MappingMember> _properties;
 
-    public static Func<object, ValidationResult> Create(
-        Type entityType,
-        IReadOnlyList<MappingMember> properties
-    )
+    public ColumnValidationDelegateFactory(Type entityType, IReadOnlyList<MappingMember> properties)
     {
+        _entityType = entityType;
+        _properties = properties;
+        _errorMethod =
+            typeof(ValidationResult).GetMethod(nameof(ValidationResult.Error))
+            ?? throw new InvalidOperationException(
+                $"Method {nameof(ValidationResult.Error)} was not found on {nameof(ValidationResult)}"
+            );
+    }
+
+    public ValidatorFunc Create()
+    {
+        Type validationResultType = typeof(ValidationResult);
         ParameterExpression boxedEntityParameter = Expression.Parameter(typeof(object), "obj");
 
         ParameterExpression unboxedEntityVar = Expression.Variable(
-            entityType,
+            _entityType,
             CommonEntityVarName
         );
-        ParameterExpression defRetVar = Expression.Variable(typeof(ValidationResult), "ok");
+        ParameterExpression defRetVar = Expression.Variable(validationResultType, "result");
 
-        MethodInfo? errorMethod = typeof(ValidationResult).GetMethod(
-            nameof(ValidationResult.Error)
-        );
-        Debug.Assert(
-            errorMethod != null,
-            $"Static method 'Error' was not found in type {nameof(ValidationResult)}"
-        );
-
-        List<Expression> block =
+        List<Expression> expressions =
         [
-            Expression.Assign(unboxedEntityVar, Expression.Convert(boxedEntityParameter, entityType)),
-            Expression.Assign(defRetVar, Expression.Field(null, typeof(ValidationResult), nameof(ValidationResult.Ok)))
+            Expression.Assign(
+                unboxedEntityVar,
+                Expression.Convert(boxedEntityParameter, _entityType)
+            ),
+            Expression.Assign(
+                defRetVar,
+                Expression.Field(null, validationResultType, nameof(ValidationResult.Ok))
+            )
         ];
-        foreach (MappingMember property in properties)
+
+        foreach (MappingMember property in _properties)
         {
             ValidatorExpressionInfo? validation = property.Validation;
             if (validation == null)
@@ -45,24 +54,46 @@ internal static class ColumnValidationDelegateFactory
                 continue;
             }
 
-            (Expression adjustedBody, Expression adjustedPropAccess) =
-                ValidatorExpressionInfo.AdjustToCommonParameter(validation, unboxedEntityVar);
-
-            MethodCallExpression errMethodCall = Expression.Call(
-                errorMethod,
-                adjustedPropAccess,
-                Expression.Constant(null, typeof(string)),
-                Expression.Constant($"{CommonEntityVarName}.{property.MemberName}")
+            ConditionalExpression ifThen = CreateIfThenExpression(
+                validation,
+                property.MemberName,
+                unboxedEntityVar,
+                defRetVar
             );
-            UnaryExpression negated = Expression.Not(adjustedBody);
-
-            block.Add(Expression.IfThen(negated, Expression.Assign(defRetVar, errMethodCall)));
+            expressions.Add(ifThen);
         }
 
-        block.Add(defRetVar);
+        expressions.Add(defRetVar);
 
-        return Expression.Lambda<Func<object, ValidationResult>>(Expression.Block([unboxedEntityVar, defRetVar], block),
-                boxedEntityParameter)
+        return Expression
+            .Lambda<ValidatorFunc>(
+                Expression.Block([unboxedEntityVar, defRetVar], expressions),
+                boxedEntityParameter
+            )
             .Compile();
+    }
+
+    private ConditionalExpression CreateIfThenExpression(
+        ValidatorExpressionInfo validation,
+        string memberName,
+        ParameterExpression unboxedEntityVar,
+        ParameterExpression defRetVar
+    )
+    {
+        (Expression conditionBody, Expression propAccess) =
+            ValidatorExpressionInfo.AdjustToCommonParameter(validation, unboxedEntityVar);
+
+        MethodCallExpression errMethodCall = Expression.Call(
+            _errorMethod,
+            Expression.Convert(propAccess, typeof(object)),
+            Expression.Constant(null, typeof(string)),
+            Expression.Constant($"{CommonEntityVarName}.{memberName}")
+        );
+
+        ConditionalExpression ifThen = Expression.IfThen(
+            Expression.Not(conditionBody),
+            Expression.Assign(defRetVar, errMethodCall)
+        );
+        return ifThen;
     }
 }

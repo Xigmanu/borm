@@ -8,5 +8,5 @@ public sealed record EntityInfo(
     Type Type,
     IReadOnlyList<MappingMember> Properties,
     IReadOnlyList<Constructor> Constructors,
-    Func<object, ValidationResult>? Validate
+    ValidatorFunc? Validate
 );

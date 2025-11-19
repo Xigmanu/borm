@@ -68,7 +68,7 @@ internal static class EntityFactory<TEntity>
         return properties;
     }
 
-    private static Func<object, ValidationResult> ParseValidator(Type validatorType)
+    private static ValidatorFunc ParseValidator(Type validatorType)
     {
         Type iFaceType = typeof(IObjectValidator<TEntity>);
         if (!validatorType.IsAssignableTo(iFaceType))

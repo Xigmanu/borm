@@ -10,7 +10,7 @@ namespace Borm.Model.Metadata;
 [DebuggerDisplay("Name = {Name}, Type = {Type}")]
 internal sealed class EntityMetadata : IEntityMetadata
 {
-    private readonly Func<object, ValidationResult>? _validate;
+    private readonly ValidatorFunc? _validate;
 
     public EntityMetadata(string name, Type dataType, IReadOnlyList<IColumnMetadata> columns)
         : this(name, dataType, columns, EntityBufferConversion.Empty, null)
@@ -22,7 +22,7 @@ internal sealed class EntityMetadata : IEntityMetadata
         Type dataType,
         IReadOnlyList<IColumnMetadata> columns,
         IEntityBufferConversion conversion,
-        Func<object, ValidationResult>? validate
+        ValidatorFunc? validate
     )
     {
         if (columns.Count == 0)
@@ -55,15 +55,10 @@ internal sealed class EntityMetadata : IEntityMetadata
 
     public void Validate(object entity)
     {
-        if (_validate == null)
+        ValidationResult? result = _validate?.Invoke(entity);
+        if (result is { IsError: true })
         {
-            return;
-        }
-
-        ValidationResult result = _validate(entity);
-        if (result.IsError)
-        {
-            throw new InvalidObjectException(result);
+            throw new InvalidObjectException(result.Value);
         }
     }
 
