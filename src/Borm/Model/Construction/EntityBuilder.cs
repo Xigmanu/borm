@@ -28,7 +28,7 @@ public sealed class EntityBuilder<TEntity>
             typeof(TEntity),
             _properties.AsReadOnly(),
             constructors,
-            _entityValidator
+            _entityValidator ?? ColumnValidationDelegateFactory.Create(typeof(TEntity), _properties)
         );
     }
 

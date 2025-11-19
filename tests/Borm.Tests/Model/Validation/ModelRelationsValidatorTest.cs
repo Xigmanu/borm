@@ -22,8 +22,7 @@ public sealed class ModelRelationsValidatorTest
                 false,
                 null,
                 ReferentialAction.SetNull
-            )
-        );
+            ), null);
         EntityInfo entity = new(null, typeof(PersonEntity), [property], [], null);
         List<EntityInfo> model = [entity];
 
@@ -64,8 +63,7 @@ public sealed class ModelRelationsValidatorTest
                 false,
                 typeof(AddressEntity),
                 ReferentialAction.SetNull
-            )
-        );
+            ), null);
         EntityInfo entity = new(null, typeof(PersonEntity), [property], [], null);
         List<EntityInfo> model = [entity];
 
@@ -93,8 +91,7 @@ public sealed class ModelRelationsValidatorTest
                 false,
                 typeof(AddressEntity),
                 ReferentialAction.SetNull
-            )
-        );
+            ), null);
         EntityInfo entity0 = new(null, typeof(PersonEntity), [property0], [], null);
         MappingMember property1 = new(
             "id",
@@ -106,8 +103,7 @@ public sealed class ModelRelationsValidatorTest
                 false,
                 null,
                 ReferentialAction.NoAction
-            )
-        );
+            ), null);
         EntityInfo entity1 = new(null, typeof(AddressEntity), [property1], [], null);
         List<EntityInfo> model = [entity0, entity1];
 

@@ -60,7 +60,7 @@ internal static class EntityFactory<TEntity>
             }
 
             NullableType type = NullableType.WrapMemberType(current);
-            MappingMember property = new(current.Name, type, MappingInfo.FromAttribute(attribute));
+            MappingMember property = new(current.Name, type, MappingInfo.FromAttribute(attribute), null);
 
             properties.Add(property);
         }

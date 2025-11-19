@@ -17,7 +17,11 @@ internal static class DataContextProvider
                 .Column(b => b.Index(0).Mapping(e => e.Id).PrimaryKey())
                 .Column(b => b.Index(1).Mapping(e => e.Begin, "begin_date"))
                 .Column(b => b.Index(2).Mapping(e => e.End, "end_date"))
-                .Column(b => b.Index(3).Mapping(e => e.Metadata, "meta"))
+                .Column(b =>
+                    b.Index(3)
+                        .Mapping(e => e.Metadata, "meta")
+                        .ValidWhen(e => e.Metadata!.StartsWith("m__"))
+                )
                 .Build(),
             EntityConfigurator<AddressEntity>.FromType(),
             EntityConfigurator<PersonEntity>.FromType(),

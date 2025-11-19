@@ -11,7 +11,7 @@ public sealed class ConstructorSelectorTest
     {
         // Arrange
         const string mappingName = "foo";
-        MappingMember parameter = new(mappingName, new NullableType(typeof(int), false), null);
+        MappingMember parameter = new(mappingName, new NullableType(typeof(int), false), null, null);
         Constructor constructor = new(false, [parameter], _ => Expression.Empty());
         HashSet<string> columnNames = [mappingName];
 
@@ -42,7 +42,7 @@ public sealed class ConstructorSelectorTest
     public void FindMappingCtor_ReturnsNull_WhenNoMappingConstructorWasFound()
     {
         // Arrange
-        MappingMember parameter = new("bar", new NullableType(typeof(int), false), null);
+        MappingMember parameter = new("bar", new NullableType(typeof(int), false), null, null);
         Constructor constructor = new(false, [parameter], _ => Expression.Empty());
         HashSet<string> columnNames = ["foo"];
 
