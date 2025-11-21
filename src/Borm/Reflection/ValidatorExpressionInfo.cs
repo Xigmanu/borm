@@ -1,5 +1,5 @@
 ﻿using System.Linq.Expressions;
-using Borm.Model.Validation;
+using Borm.Model.Validation.Expressions;
 
 namespace Borm.Reflection;
 

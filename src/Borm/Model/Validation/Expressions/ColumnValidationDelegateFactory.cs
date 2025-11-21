@@ -2,7 +2,7 @@
 using System.Reflection;
 using Borm.Reflection;
 
-namespace Borm.Model.Validation;
+namespace Borm.Model.Validation.Expressions;
 
 // TODO Merge conditional expressions on the same property
 internal sealed class ColumnValidationDelegateFactory

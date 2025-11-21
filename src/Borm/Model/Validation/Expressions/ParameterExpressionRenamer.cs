@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace Borm.Model.Validation;
+namespace Borm.Model.Validation.Expressions;
 
 internal sealed class ParameterExpressionRenamer : ExpressionVisitor
 {
