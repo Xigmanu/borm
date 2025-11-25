@@ -23,7 +23,7 @@ internal sealed class ColumnValidationDelegateFactory
             );
     }
 
-    public ValidatorFunc Create()
+    public ValidatorFunc? Create()
     {
         Type validationResultType = typeof(ValidationResult);
         ParameterExpression boxedEntityParameter = Expression.Parameter(typeof(object), "obj");
@@ -45,6 +45,7 @@ internal sealed class ColumnValidationDelegateFactory
                 Expression.Field(null, validationResultType, nameof(ValidationResult.Ok))
             )
         ];
+        int initialCount = expressions.Count;
 
         foreach (MappingMember property in _properties)
         {
@@ -61,6 +62,11 @@ internal sealed class ColumnValidationDelegateFactory
                 defRetVar
             );
             expressions.Add(ifThen);
+        }
+
+        if (expressions.Count == initialCount)
+        {
+            return null;
         }
 
         expressions.Add(defRetVar);

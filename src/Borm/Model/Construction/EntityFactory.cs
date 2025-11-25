@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Borm.Model.Validation;
+using Borm.Model.Validation.Expressions;
 using Borm.Properties;
 using Borm.Reflection;
 
@@ -31,19 +32,31 @@ internal static class EntityFactory<TEntity>
 
         IReadOnlyList<Constructor> constructors = ConstructorParser.ParseAll(entityType);
 
-        ValidatorAttribute? validatorAttribute = entityType.GetCustomAttribute<
-            ValidatorAttribute
-        >();
+        ValidatorFunc? validator = CreateValidatorFunc(entityType, properties);
 
         return new EntityInfo(
             entityAttribute.Name,
             entityType,
             properties.AsReadOnly(),
             constructors,
-            validatorAttribute != null
-                ? ParseValidator(validatorAttribute.ValidatorType)
-                : null
+            validator
         );
+    }
+
+    private static ValidatorFunc? CreateValidatorFunc(
+        Type entityType,
+        IReadOnlyList<MappingMember> properties
+    )
+    {
+        ValidatorAttribute? validatorAttribute =
+            entityType.GetCustomAttribute<ValidatorAttribute>();
+
+        if (validatorAttribute != null)
+        {
+            return ParseValidator(validatorAttribute.ValidatorType);
+        }
+
+        return new ColumnValidationDelegateFactory(entityType, properties).Create();
     }
 
     private static List<MappingMember> ParseProperties(Type entityType)
@@ -60,8 +73,15 @@ internal static class EntityFactory<TEntity>
             }
 
             NullableType type = NullableType.WrapMemberType(current);
-            MappingMember property = new(current.Name, type, MappingInfo.FromAttribute(attribute), null);
+            ValidWhenAttribute? validationAttribute =
+                current.GetCustomAttribute<ValidWhenAttribute>();
 
+            MappingMember property = new(
+                current.Name,
+                type,
+                MappingInfo.FromAttribute(attribute),
+                validationAttribute?.GetValidatorInfo<TEntity>(current)
+            );
             properties.Add(property);
         }
 
@@ -75,16 +95,20 @@ internal static class EntityFactory<TEntity>
         {
             throw new ArgumentException(
                 $"Validator type '{validatorType.FullName}' must implement '{iFaceType.FullName}'.",
-                nameof(validatorType));
+                nameof(validatorType)
+            );
         }
 
         if (validatorType.GetConstructor(Type.EmptyTypes) == null)
         {
-            throw new ArgumentException($"Validator '{validatorType.FullName}' must have a parameterless constructor.",
-                nameof(validatorType));
+            throw new ArgumentException(
+                $"Validator '{validatorType.FullName}' must have a parameterless constructor.",
+                nameof(validatorType)
+            );
         }
 
-        IObjectValidator<TEntity> validator = (IObjectValidator<TEntity>)Activator.CreateInstance(validatorType)!;
+        IObjectValidator<TEntity> validator =
+            (IObjectValidator<TEntity>)Activator.CreateInstance(validatorType)!;
 
         return ValidatorFunctionWrapper.Wrap(validator);
     }

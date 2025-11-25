@@ -1,8 +1,9 @@
 ﻿using System.Linq.Expressions;
-using Borm.Model.Validation.Expressions;
+using Borm.Model.Validation.Expressions.Visitors;
 
 namespace Borm.Reflection;
 
+// TODO Check if this actually does anything
 internal sealed record ValidatorExpressionInfo(
     LambdaExpression ValidationLambda,
     MemberExpression PropertyAccess

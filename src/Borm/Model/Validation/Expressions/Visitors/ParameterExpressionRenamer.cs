@@ -1,7 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
-namespace Borm.Model.Validation.Expressions;
+namespace Borm.Model.Validation.Expressions.Visitors;
 
 internal sealed class ParameterExpressionRenamer : ExpressionVisitor
 {
@@ -21,7 +20,6 @@ internal sealed class ParameterExpressionRenamer : ExpressionVisitor
         _new = @new;
     }
 
-    [return: NotNullIfNotNull("node")]
-    public override Expression? Visit(Expression? node) =>
-        node is ParameterExpression param && param.Equals(_old) ? _new : base.Visit(node);
+    protected override Expression VisitParameter(ParameterExpression node) =>
+        node.Equals(_old) ? _new : base.VisitParameter(node);
 }
