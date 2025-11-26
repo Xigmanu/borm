@@ -32,7 +32,7 @@ internal static class EntityFactory<TEntity>
 
         IReadOnlyList<Constructor> constructors = ConstructorParser.ParseAll(entityType);
 
-        ValidatorFunc? validator = CreateValidatorFunc(entityType, properties);
+        ObjectValidator? validator = CreateValidatorFunc(entityType, properties);
 
         return new EntityInfo(
             entityAttribute.Name,
@@ -43,7 +43,7 @@ internal static class EntityFactory<TEntity>
         );
     }
 
-    private static ValidatorFunc? CreateValidatorFunc(
+    private static ObjectValidator? CreateValidatorFunc(
         Type entityType,
         IReadOnlyList<MappingMember> properties
     )
@@ -88,7 +88,7 @@ internal static class EntityFactory<TEntity>
         return properties;
     }
 
-    private static ValidatorFunc ParseValidator(Type validatorType)
+    private static ObjectValidator ParseValidator(Type validatorType)
     {
         Type iFaceType = typeof(IObjectValidator<TEntity>);
         if (!validatorType.IsAssignableTo(iFaceType))

@@ -10,7 +10,7 @@ public sealed class EntityBuilder<TEntity>
     private readonly List<MappingMember> _properties = [];
     private readonly IConfigurationValidator<IReadOnlyList<MappingMember>> _validator;
 
-    private ValidatorFunc? _entityValidator;
+    private ObjectValidator? _entityValidator;
     private string? _name;
 
     internal EntityBuilder(IConfigurationValidator<IReadOnlyList<MappingMember>> validator)

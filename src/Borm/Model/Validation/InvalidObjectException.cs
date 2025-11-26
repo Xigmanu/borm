@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text;
 using Borm.Properties;
 
 namespace Borm.Model.Validation;
@@ -22,10 +23,13 @@ public sealed class InvalidObjectException : InvalidOperationException
             "Attempting to build an exception for an OK validation result."
         );
 
-        string message = string.IsNullOrWhiteSpace(result.Message)
-            ? Strings.EntityValidationFailed(result.MemberName)
-            : Strings.EntityValidationFailedWithUserMessage(result.MemberName, result.Message);
+        StringBuilder messageBuilder = new();
+        if (!string.IsNullOrWhiteSpace(result.Column) && !string.IsNullOrWhiteSpace(result.Entity))
+        {
+            messageBuilder.Append($"Validation failed for column '{result.Column}' of entity '{result.Entity}'. ");
+        }
+        messageBuilder.Append(result.Message);
 
-        return message;
+        return messageBuilder.ToString();
     }
 }

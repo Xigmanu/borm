@@ -12,9 +12,10 @@ internal sealed class ModelRelationsValidator : IConfigurationValidator<IReadOnl
         ArgumentNullException.ThrowIfNull(model);
         Debug.Assert(model.Count != 0);
 
-        foreach ((_, Type entityType, IReadOnlyList<MappingMember> readOnlyList, _, _) in model)
+        foreach (EntityInfo entity in model)
         {
-            foreach (MappingMember property in readOnlyList)
+            Type entityType = entity.Type;
+            foreach (MappingMember property in entity.Properties)
             {
                 ValidateProperty(entityType.FullName ?? entityType.Name, property, model);
             }
@@ -43,9 +44,8 @@ internal sealed class ModelRelationsValidator : IConfigurationValidator<IReadOnl
                 reference
             );
 
-        MappingMember parentPK = parent.Properties.First(p => p.Mapping!.IsPrimaryKey);
-        bool isTypeValid =
-            propType.Equals(parent.Type) || propType.Equals(parentPK.Type.UnderlyingType);
+        MappingMember parentPk = parent.Properties.First(p => p.Mapping!.IsPrimaryKey);
+        bool isTypeValid = propType == parent.Type || propType == parentPk.Type.UnderlyingType;
 
         if (!isTypeValid)
         {

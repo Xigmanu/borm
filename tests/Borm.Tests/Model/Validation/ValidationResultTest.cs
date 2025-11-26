@@ -5,21 +5,6 @@ namespace Borm.Tests.Model.Validation;
 
 public sealed class ValidationResultTest
 {
-    [Fact]
-    public void Error_ReturnsErrorResult_WithValidArguments()
-    {
-        // Arrange
-        AddressEntity entity = new(1, "foo", null, "bar");
-
-        // Act
-        ValidationResult result = ValidationResult.Error(entity.Address);
-
-        // Assert
-        Assert.True(result.IsError);
-        Assert.Equal(nameof(entity.Address), result.MemberName);
-        Assert.Null(result.Message);
-    }
-
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -42,21 +27,5 @@ public sealed class ValidationResultTest
         //Assert
         Assert.NotNull(exception);
         Assert.IsType<ArgumentException>(exception);
-    }
-
-    [Fact]
-    public void Ok_HasDefaultProperties()
-    {
-        // Arrange
-        string? message = null;
-        string memberName = string.Empty;
-
-        // Act
-        ValidationResult result = ValidationResult.Ok;
-
-        // Assert
-        Assert.Equal(message, result.Message);
-        Assert.Equal(memberName, result.MemberName);
-        Assert.False(result.IsError);
     }
 }

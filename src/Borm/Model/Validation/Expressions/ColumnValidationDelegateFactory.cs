@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
+using Borm.Model.Metadata;
 using Borm.Reflection;
 
 namespace Borm.Model.Validation.Expressions;
@@ -8,6 +9,9 @@ namespace Borm.Model.Validation.Expressions;
 internal sealed class ColumnValidationDelegateFactory
 {
     private const string CommonEntityVarName = "e";
+    private readonly PropertyInfo _cMNameProperty;
+    private readonly MethodInfo _eMGetColumnMethod;
+    private readonly PropertyInfo _eMNameProperty;
     private readonly Type _entityType;
     private readonly MethodInfo _errorMethod;
     private readonly IReadOnlyList<MappingMember> _properties;
@@ -17,16 +21,25 @@ internal sealed class ColumnValidationDelegateFactory
         _entityType = entityType;
         _properties = properties;
         _errorMethod =
-            typeof(ValidationResult).GetMethod(nameof(ValidationResult.Error))
+            typeof(ValidationResult).GetMethod(
+                nameof(ValidationResult.Error),
+                BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.FlattenHierarchy
+            )
             ?? throw new InvalidOperationException(
                 $"Method {nameof(ValidationResult.Error)} was not found on {nameof(ValidationResult)}"
             );
+
+        Type metaType = typeof(IEntityMetadata);
+        _eMNameProperty = metaType.GetProperty(nameof(IEntityMetadata.Name))!;
+        _eMGetColumnMethod = metaType.GetMethod(nameof(IEntityMetadata.GetColumn))!;
+        _cMNameProperty = typeof(IColumnMetadata).GetProperty(nameof(IColumnMetadata.Name))!;
     }
 
-    public ValidatorFunc? Create()
+    public ObjectValidator? Create()
     {
         Type validationResultType = typeof(ValidationResult);
         ParameterExpression boxedEntityParameter = Expression.Parameter(typeof(object), "obj");
+        ParameterExpression metadataParam = Expression.Parameter(typeof(IEntityMetadata), "meta");
 
         ParameterExpression unboxedEntityVar = Expression.Variable(
             _entityType,
@@ -59,6 +72,7 @@ internal sealed class ColumnValidationDelegateFactory
                 validation,
                 property.MemberName,
                 unboxedEntityVar,
+                metadataParam,
                 defRetVar
             );
             expressions.Add(ifThen);
@@ -72,9 +86,10 @@ internal sealed class ColumnValidationDelegateFactory
         expressions.Add(defRetVar);
 
         return Expression
-            .Lambda<ValidatorFunc>(
+            .Lambda<ObjectValidator>(
                 Expression.Block([unboxedEntityVar, defRetVar], expressions),
-                boxedEntityParameter
+                boxedEntityParameter,
+                metadataParam
             )
             .Compile();
     }
@@ -83,17 +98,26 @@ internal sealed class ColumnValidationDelegateFactory
         ValidatorExpressionInfo validation,
         string memberName,
         ParameterExpression unboxedEntityVar,
+        ParameterExpression metadataParam,
         ParameterExpression defRetVar
     )
     {
         (Expression conditionBody, Expression propAccess) =
             ValidatorExpressionInfo.AdjustToCommonParameter(validation, unboxedEntityVar);
 
+        MemberExpression nameProp = Expression.Property(metadataParam, _eMNameProperty);
+        MethodCallExpression getColCall = Expression.Call(
+            metadataParam,
+            _eMGetColumnMethod,
+            Expression.Constant(memberName)
+        );
+        MemberExpression cName = Expression.Property(getColCall, _cMNameProperty);
+
         MethodCallExpression errMethodCall = Expression.Call(
             _errorMethod,
             Expression.Convert(propAccess, typeof(object)),
-            Expression.Constant(null, typeof(string)),
-            Expression.Constant($"{CommonEntityVarName}.{memberName}")
+            nameProp,
+            cName
         );
 
         ConditionalExpression ifThen = Expression.IfThen(
