@@ -13,6 +13,11 @@ public static class Strings
     private static readonly ResourceManager ResourceManager = new("Borm.Properties.Strings", typeof(Strings).Assembly);
 
     /// <summary>
+    /// Value '{value}' is invalid.
+    /// </summary>
+    public static string ColumnValueInvalid(object? value) => GetString([value]);
+
+    /// <summary>
     /// Data context is not initialized.
     /// </summary>
     public static string DataContextNotInitialized() => GetString();

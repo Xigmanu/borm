@@ -11,7 +11,7 @@ internal sealed class ParameterExpressionRenamer : ExpressionVisitor
     public ParameterExpressionRenamer(ParameterExpression old, ParameterExpression @new)
     {
         Debug.Assert(
-            old.Type != @new.Type,
+            old.Type == @new.Type,
             $"Parameter expression types do not match. {old.Type} != {@new.Type}"
         );
 

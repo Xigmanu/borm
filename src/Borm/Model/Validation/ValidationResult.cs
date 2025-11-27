@@ -1,4 +1,6 @@
-﻿namespace Borm.Model.Validation;
+﻿using Borm.Properties;
+
+namespace Borm.Model.Validation;
 
 public readonly struct ValidationResult
 {
@@ -25,9 +27,6 @@ public readonly struct ValidationResult
     public static ValidationResult Error(string message) =>
         new(message, string.Empty, string.Empty, true);
 
-    internal static ValidationResult Error(object? value, string entity, string column)
-    {
-        string message = $"Value '{value}' is invalid.";
-        return new ValidationResult(message, entity, column, true);
-    }
+    internal static ValidationResult Error(object? value, string entity, string column) =>
+        new(Strings.ColumnValueInvalid(value), entity, column, true);
 }

@@ -213,4 +213,7 @@
   <data name="ValidatorNoPublicDefaultCtor" xml:space="preserve">
     <value>Validator \"{0}\" must have a parameterless public constructor.</value>
   </data>
+  <data name="ColumnValueInvalid" xml:space="preserve">
+    <value>Value '{0}' is invalid.</value>
+  </data>
 </root>

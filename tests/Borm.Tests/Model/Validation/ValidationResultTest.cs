@@ -1,31 +1,46 @@
 ﻿using Borm.Model.Validation;
-using Borm.Tests.Common;
+using Borm.Properties;
 
 namespace Borm.Tests.Model.Validation;
 
 public sealed class ValidationResultTest
 {
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("  ")]
-    public void Error_ThrowsArgumentException_WhenMemberExpressionStringIsNullOrWhiteSpace(
-        string? expression
-    )
+    [Fact]
+    public void Error_CreatesValidationResult_WithCorrectPropertyValues()
     {
         // Arrange
-        string? message = null;
-        object? value = null;
+        string value = "foo";
+        string entity = "entity";
+        string column = "column";
+
+        string message = Strings.ColumnValueInvalid(value);
 
         // Act
-#pragma warning disable S3236
-        Exception? exception = Record.Exception(
-            () => _ = ValidationResult.Error(value, message, expression)
-        );
-#pragma warning restore S3236
+        ValidationResult result = ValidationResult.Error(value, entity, column);
 
-        //Assert
-        Assert.NotNull(exception);
-        Assert.IsType<ArgumentException>(exception);
+        // Assert
+        Assert.Equal(message, result.Message);
+        Assert.Equal(entity, result.Entity);
+        Assert.Equal(column, result.Column);
+        Assert.True(result.IsError);
+    }
+
+    [Fact]
+    public void Error_CreatesValidationResult_WithUserMessage()
+    {
+        // Arrange
+        string entity = string.Empty;
+        string column = string.Empty;
+
+        string message = "foo";
+
+        // Act
+        ValidationResult result = ValidationResult.Error(message);
+
+        // Assert
+        Assert.Equal(message, result.Message);
+        Assert.Equal(entity, result.Entity);
+        Assert.Equal(column, result.Column);
+        Assert.True(result.IsError);
     }
 }
