@@ -6,11 +6,6 @@ namespace Borm.Model.Validation;
 
 public sealed class InvalidObjectException : InvalidOperationException
 {
-    public InvalidObjectException(string? message)
-        : base(message)
-    {
-    }
-
     public InvalidObjectException(ValidationResult result)
         : base(BuildMessage(result))
     {
@@ -26,7 +21,7 @@ public sealed class InvalidObjectException : InvalidOperationException
         StringBuilder messageBuilder = new();
         if (!string.IsNullOrWhiteSpace(result.Column) && !string.IsNullOrWhiteSpace(result.Entity))
         {
-            messageBuilder.Append($"Validation failed for column '{result.Column}' of entity '{result.Entity}'. ");
+            messageBuilder.Append(Strings.ValidationFailedWithMetadata(result.Column, result.Entity)).Append(' ');
         }
         messageBuilder.Append(result.Message);
 

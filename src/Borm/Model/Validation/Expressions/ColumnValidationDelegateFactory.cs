@@ -20,14 +20,10 @@ internal sealed class ColumnValidationDelegateFactory
     {
         _entityType = entityType;
         _properties = properties;
-        _errorMethod =
-            typeof(ValidationResult).GetMethod(
-                nameof(ValidationResult.Error),
-                BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.FlattenHierarchy
-            )
-            ?? throw new InvalidOperationException(
-                $"Method {nameof(ValidationResult.Error)} was not found on {nameof(ValidationResult)}"
-            );
+        _errorMethod = typeof(ValidationResult).GetMethod(
+            nameof(ValidationResult.Error),
+            BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.FlattenHierarchy
+        )!;
 
         Type metaType = typeof(IEntityMetadata);
         _eMNameProperty = metaType.GetProperty(nameof(IEntityMetadata.Name))!;
@@ -38,23 +34,17 @@ internal sealed class ColumnValidationDelegateFactory
     public ObjectValidator? Create()
     {
         Type validationResultType = typeof(ValidationResult);
-        ParameterExpression boxedEntityParameter = Expression.Parameter(typeof(object), "obj");
-        ParameterExpression metadataParam = Expression.Parameter(typeof(IEntityMetadata), "meta");
+        ParameterExpression boxedEntity = Expression.Parameter(typeof(object), "obj");
+        ParameterExpression metadata = Expression.Parameter(typeof(IEntityMetadata), "meta");
 
-        ParameterExpression unboxedEntityVar = Expression.Variable(
-            _entityType,
-            CommonEntityVarName
-        );
-        ParameterExpression defRetVar = Expression.Variable(validationResultType, "result");
+        ParameterExpression unboxedEntity = Expression.Variable(_entityType, CommonEntityVarName);
+        ParameterExpression ret = Expression.Variable(validationResultType, "result");
 
         List<Expression> expressions =
         [
+            Expression.Assign(unboxedEntity, Expression.Convert(boxedEntity, _entityType)),
             Expression.Assign(
-                unboxedEntityVar,
-                Expression.Convert(boxedEntityParameter, _entityType)
-            ),
-            Expression.Assign(
-                defRetVar,
+                ret,
                 Expression.Field(null, validationResultType, nameof(ValidationResult.Ok))
             )
         ];
@@ -71,9 +61,9 @@ internal sealed class ColumnValidationDelegateFactory
             ConditionalExpression ifThen = CreateIfThenExpression(
                 validation,
                 property.MemberName,
-                unboxedEntityVar,
-                metadataParam,
-                defRetVar
+                unboxedEntity,
+                metadata,
+                ret
             );
             expressions.Add(ifThen);
         }
@@ -83,13 +73,13 @@ internal sealed class ColumnValidationDelegateFactory
             return null;
         }
 
-        expressions.Add(defRetVar);
+        expressions.Add(ret);
 
         return Expression
             .Lambda<ObjectValidator>(
-                Expression.Block([unboxedEntityVar, defRetVar], expressions),
-                boxedEntityParameter,
-                metadataParam
+                Expression.Block([unboxedEntity, ret], expressions),
+                boxedEntity,
+                metadata
             )
             .Compile();
     }
@@ -97,17 +87,17 @@ internal sealed class ColumnValidationDelegateFactory
     private ConditionalExpression CreateIfThenExpression(
         ValidatorExpressionInfo validation,
         string memberName,
-        ParameterExpression unboxedEntityVar,
-        ParameterExpression metadataParam,
-        ParameterExpression defRetVar
+        ParameterExpression unboxedEntity,
+        ParameterExpression metadata,
+        ParameterExpression ret
     )
     {
         (Expression conditionBody, Expression propAccess) =
-            ValidatorExpressionInfo.AdjustToCommonParameter(validation, unboxedEntityVar);
+            ValidatorExpressionInfo.AdjustToCommonParameter(validation, unboxedEntity);
 
-        MemberExpression nameProp = Expression.Property(metadataParam, _eMNameProperty);
+        MemberExpression nameProp = Expression.Property(metadata, _eMNameProperty);
         MethodCallExpression getColCall = Expression.Call(
-            metadataParam,
+            metadata,
             _eMGetColumnMethod,
             Expression.Constant(memberName)
         );
@@ -122,7 +112,7 @@ internal sealed class ColumnValidationDelegateFactory
 
         ConditionalExpression ifThen = Expression.IfThen(
             Expression.Not(conditionBody),
-            Expression.Assign(defRetVar, errMethodCall)
+            Expression.Assign(ret, errMethodCall)
         );
         return ifThen;
     }

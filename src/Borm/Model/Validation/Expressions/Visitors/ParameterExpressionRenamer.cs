@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.Diagnostics;
+using System.Linq.Expressions;
 
 namespace Borm.Model.Validation.Expressions.Visitors;
 
@@ -9,12 +10,10 @@ internal sealed class ParameterExpressionRenamer : ExpressionVisitor
 
     public ParameterExpressionRenamer(ParameterExpression old, ParameterExpression @new)
     {
-        if (old.Type != @new.Type)
-        {
-            throw new ArgumentException(
-                $"Parameter expression types do not match. {old.Type} != {@new.Type}"
-            );
-        }
+        Debug.Assert(
+            old.Type != @new.Type,
+            $"Parameter expression types do not match. {old.Type} != {@new.Type}"
+        );
 
         _old = old;
         _new = @new;

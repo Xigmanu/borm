@@ -1,5 +1,5 @@
-﻿using Borm.Properties;
-using System.Reflection;
+﻿using System.Reflection;
+using Borm.Properties;
 
 namespace Borm.Tests;
 
@@ -10,18 +10,18 @@ public sealed class StringsTest
     {
         // Arrange
         List<(MethodInfo, object[])> methodArgs = GetStaticMethods(typeof(Strings));
-        List<Exception?> exceptions = [];
+        Dictionary<MethodInfo, Exception?> exceptions = [];
 
         // Act
         foreach ((MethodInfo method, object[] args) in methodArgs)
         {
-            exceptions.Add(Record.Exception(() => method.Invoke(null, args)));
+            exceptions[method] = Record.Exception(() => method.Invoke(null, args));
         }
 
         // Assert
-        foreach (Exception? ex in exceptions.Where(ex => ex != null))
+        foreach ((MethodInfo method, Exception? ex) in exceptions.Where(ex => ex.Value != null))
         {
-            Assert.Fail(ex!.Message);
+            Assert.Fail($"Exception when calling \"{method.Name}\" with a message: {ex!.Message}");
         }
     }
 

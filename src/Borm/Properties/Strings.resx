@@ -204,13 +204,13 @@
   <data name="NoPublicPropertyDeclared" xml:space="preserve">
     <value>No public property '{0}' is declared in a type '{1}'.</value>
   </data>
-  <data name="MissingArgumentExpressionString" xml:space="preserve">
-    <value>Argument expression was not provided.</value>
+  <data name="ValidationFailedWithMetadata" xml:space="preserve">
+    <value>Validation failed for column \"{0}\" of entity \"{1}\".</value>
   </data>
-  <data name="EntityValidationFailed" xml:space="preserve">
-    <value>Validation failed for '{0}' object.</value>
+  <data name="ValidatorDoesNotImplementInterface" xml:space="preserve">
+    <value>Validator type \"{0}\" must implement \"{1}\".</value>
   </data>
-  <data name="EntityValidationFailedWithUserMessage" xml:space="preserve">
-    <value>Validation failed for '{0}' object with the following message: \"{1}\".</value>
+  <data name="ValidatorNoPublicDefaultCtor" xml:space="preserve">
+    <value>Validator \"{0}\" must have a parameterless public constructor.</value>
   </data>
 </root>

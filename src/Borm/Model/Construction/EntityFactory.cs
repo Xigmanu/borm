@@ -90,11 +90,13 @@ internal static class EntityFactory<TEntity>
 
     private static ObjectValidator ParseValidator(Type validatorType)
     {
-        Type iFaceType = typeof(IObjectValidator<TEntity>);
-        if (!validatorType.IsAssignableTo(iFaceType))
+        if (!validatorType.IsAssignableTo(typeof(IObjectValidator<TEntity>)))
         {
             throw new ArgumentException(
-                $"Validator type '{validatorType.FullName}' must implement '{iFaceType.FullName}'.",
+                Strings.ValidatorDoesNotImplementInterface(
+                    validatorType.FullName ?? validatorType.Name,
+                    nameof(IObjectValidator<TEntity>)
+                ),
                 nameof(validatorType)
             );
         }
@@ -102,7 +104,7 @@ internal static class EntityFactory<TEntity>
         if (validatorType.GetConstructor(Type.EmptyTypes) == null)
         {
             throw new ArgumentException(
-                $"Validator '{validatorType.FullName}' must have a parameterless constructor.",
+                Strings.ValidatorNoPublicDefaultCtor(validatorType.FullName ?? validatorType.Name),
                 nameof(validatorType)
             );
         }
