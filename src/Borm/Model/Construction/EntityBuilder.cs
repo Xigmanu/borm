@@ -1,4 +1,5 @@
 ﻿using Borm.Model.Validation;
+using Borm.Model.Validation.Expressions;
 using Borm.Reflection;
 
 namespace Borm.Model.Construction;
@@ -9,7 +10,7 @@ public sealed class EntityBuilder<TEntity>
     private readonly List<MappingMember> _properties = [];
     private readonly IConfigurationValidator<IReadOnlyList<MappingMember>> _validator;
 
-    private Func<object, ValidationResult>? _entityValidator;
+    private ObjectValidator? _entityValidator;
     private string? _name;
 
     internal EntityBuilder(IConfigurationValidator<IReadOnlyList<MappingMember>> validator)
@@ -29,6 +30,7 @@ public sealed class EntityBuilder<TEntity>
             _properties.AsReadOnly(),
             constructors,
             _entityValidator
+            ?? new ColumnValidationDelegateFactory(typeof(TEntity), _properties).Create()
         );
     }
 

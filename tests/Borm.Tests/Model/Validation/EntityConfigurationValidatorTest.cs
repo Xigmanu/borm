@@ -51,8 +51,7 @@ public sealed class EntityConfigurationValidatorTest
                 false,
                 null,
                 ReferentialAction.NoAction
-            )
-        );
+            ), null);
         MappingMember property1 = new(
             "bar",
             new NullableType(typeof(int), false),
@@ -63,8 +62,7 @@ public sealed class EntityConfigurationValidatorTest
                 false,
                 null,
                 ReferentialAction.NoAction
-            )
-        );
+            ), null);
         IReadOnlyList<MappingMember> properties = [property0, property1];
         EntityConfigurationValidator<AddressEntity> validator = new();
 
@@ -90,8 +88,7 @@ public sealed class EntityConfigurationValidatorTest
                 false,
                 null,
                 ReferentialAction.NoAction
-            )
-        );
+            ), null);
         MappingMember property1 = new(
             "foo",
             new NullableType(typeof(int), false),
@@ -102,8 +99,7 @@ public sealed class EntityConfigurationValidatorTest
                 false,
                 null,
                 ReferentialAction.NoAction
-            )
-        );
+            ), null);
         IReadOnlyList<MappingMember> properties = [property0, property1];
         EntityConfigurationValidator<AddressEntity> validator = new();
 
@@ -129,8 +125,7 @@ public sealed class EntityConfigurationValidatorTest
                 false,
                 null,
                 ReferentialAction.NoAction
-            )
-        );
+            ), null);
         MappingMember property1 = new(
             "bar",
             new NullableType(typeof(int), false),
@@ -141,8 +136,7 @@ public sealed class EntityConfigurationValidatorTest
                 false,
                 null,
                 ReferentialAction.NoAction
-            )
-        );
+            ), null);
         IReadOnlyList<MappingMember> properties = [property0, property1];
         EntityConfigurationValidator<AddressEntity> validator = new();
 
@@ -168,8 +162,7 @@ public sealed class EntityConfigurationValidatorTest
                 false,
                 null,
                 ReferentialAction.NoAction
-            )
-        );
+            ), null);
         IReadOnlyList<MappingMember> properties = [property];
         EntityConfigurationValidator<AddressEntity> validator = new();
 

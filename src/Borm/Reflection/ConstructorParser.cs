@@ -14,7 +14,7 @@ internal static class ConstructorParser
         ParameterInfo[] parameters = ctor.GetParameters();
         parsedParams.AddRange(from param in parameters
             let type = NullableType.WrapMemberType(param)
-            select new MappingMember(param.Name!, type, null));
+            select new MappingMember(param.Name!, type, null, null));
 
         return new Constructor(
             parameters.Length == 0,

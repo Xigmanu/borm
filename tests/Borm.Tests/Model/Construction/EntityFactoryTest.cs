@@ -14,11 +14,8 @@ public sealed class EntityFactoryTest
     [Fact]
     public void Create_ReturnsEntityInfo_WithValidEntityType()
     {
-        // Arrange
-        IObjectValidator<AddressEntity> validator = new AddressEntity.Validator();
-
         // Act
-        EntityInfo entity = EntityFactory<AddressEntity>.Create(TestValidator, o => validator.Validate((AddressEntity)o));
+        EntityInfo entity = EntityFactory<AddressEntity>.Create(TestValidator);
 
         // Assert
         Assert.Equal("addresses", entity.Name);

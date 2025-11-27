@@ -1,4 +1,5 @@
 ﻿using Borm.Model;
+using Borm.Model.Validation;
 
 namespace Borm.Tests.Common;
 
@@ -10,6 +11,7 @@ public sealed class PersonEntity(int id, string name, double salary, AddressEnti
 
     [PrimaryKey(0)] public int Id { get; } = id;
 
+    [StringLength(1, 5)]
     [Column(1, "name")] public string Name { get; } = name;
 
     [Column(2, "salary")] public double Salary { get; } = salary;

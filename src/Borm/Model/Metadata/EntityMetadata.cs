@@ -10,7 +10,7 @@ namespace Borm.Model.Metadata;
 [DebuggerDisplay("Name = {Name}, Type = {Type}")]
 internal sealed class EntityMetadata : IEntityMetadata
 {
-    private readonly Func<object, ValidationResult>? _validate;
+    private readonly ObjectValidator? _validate;
 
     public EntityMetadata(string name, Type dataType, IReadOnlyList<IColumnMetadata> columns)
         : this(name, dataType, columns, EntityBufferConversion.Empty, null)
@@ -22,7 +22,7 @@ internal sealed class EntityMetadata : IEntityMetadata
         Type dataType,
         IReadOnlyList<IColumnMetadata> columns,
         IEntityBufferConversion conversion,
-        Func<object, ValidationResult>? validate
+        ObjectValidator? validate
     )
     {
         if (columns.Count == 0)
@@ -53,28 +53,29 @@ internal sealed class EntityMetadata : IEntityMetadata
 
     public Type Type { get; }
 
-    public void Validate(object entity)
-    {
-        if (_validate == null)
-        {
-            return;
-        }
-
-        ValidationResult result = _validate(entity);
-        if (result.IsError)
-        {
-            throw new InvalidObjectException(result);
-        }
-    }
-
     public override bool Equals(object? obj)
     {
         return obj is EntityMetadata other && Name == other.Name;
     }
 
+    public IColumnMetadata GetColumn(string memberName)
+    {
+        return Columns.First(col => col.PropertyName == memberName);
+    }
+
     public override int GetHashCode()
     {
         return Name.GetHashCode();
+    }
+
+    public void Validate(object entity)
+    {
+        Debug.Assert(entity.GetType() == Type);
+        ValidationResult? result = _validate?.Invoke(entity, this);
+        if (result is { IsError: true })
+        {
+            throw new InvalidObjectException(result.Value);
+        }
     }
 
     [ExcludeFromCodeCoverage(Justification = "Debugger display proxy")]

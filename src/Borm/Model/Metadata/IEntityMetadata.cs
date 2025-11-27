@@ -9,5 +9,7 @@ internal interface IEntityMetadata
     string Name { get; }
     IColumnMetadata PrimaryKey { get; }
     Type Type { get; }
+
+    IColumnMetadata GetColumn(string memberName);
     void Validate(object entity);
 }

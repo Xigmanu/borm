@@ -4,6 +4,7 @@ using Borm.Model.Validation;
 namespace Borm.Tests.Common;
 
 [Entity("addresses")]
+[Validator(typeof(Validator))]
 public sealed class AddressEntity(int id, string address, string? address_1, string city)
 {
     [Column(1, "address")] public string Address { get; } = address;

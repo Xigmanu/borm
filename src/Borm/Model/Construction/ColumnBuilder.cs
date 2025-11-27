@@ -1,40 +1,39 @@
-﻿using Borm.Properties;
-using Borm.Reflection;
+﻿using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 using Borm.Model.Validation;
+using Borm.Properties;
+using Borm.Reflection;
 
 namespace Borm.Model.Construction;
 
 public sealed class ColumnBuilder<TEntity>
     where TEntity : class
 {
+    private readonly IConfigurationValidator<Configuration> _configurationValidator;
     private readonly Type _entityType = typeof(TEntity);
-    private readonly IConfigurationValidator<Configuration> _validator;
     private string? _columnName;
-    private NullableType? _dataType;
     private int _index;
     private bool _isPrimaryKey;
     private bool _isUnique;
-    private string? _propName;
+    private PropertyInfo? _property;
     private ReferentialAction _refAction;
     private Type? _reference;
+    private LambdaExpression? _validationExpression;
 
-    internal sealed record Configuration(
-        string? PropertyName,
-        NullableType? DataType,
-        bool IsPrimaryKey,
-        Type? Reference
-    );
-
-    internal ColumnBuilder(IConfigurationValidator<Configuration> validator)
+    internal ColumnBuilder(IConfigurationValidator<Configuration> configurationValidator)
     {
-        _validator = validator;
+        _configurationValidator = configurationValidator;
     }
 
     public MappingMember Build()
     {
-        _validator.Validate(new Configuration(_propName, _dataType, _isPrimaryKey, _reference));
+        NullableType? type =
+            _property?.PropertyType != null ? NullableType.WrapMemberType(_property) : null;
+        string? propertyName = _property?.Name;
+        _configurationValidator.Validate(
+            new Configuration(propertyName, type, _isPrimaryKey, _reference)
+        );
 
         MappingInfo mappingInfo = new(
             _index,
@@ -44,7 +43,22 @@ public sealed class ColumnBuilder<TEntity>
             _reference,
             _refAction
         );
-        return new MappingMember(_propName!, _dataType!, mappingInfo);
+        return new MappingMember(propertyName!, type!, mappingInfo, BuildValidationInfo());
+    }
+
+    private ValidatorExpressionInfo? BuildValidationInfo()
+    {
+        if (_validationExpression == null)
+        {
+            return null;
+        }
+
+        Debug.Assert(_property != null);
+
+        ParameterExpression lambdaParam = _validationExpression.Parameters[0];
+        MemberExpression propertyAccessExpression = Expression.Property(lambdaParam, _property);
+
+        return new ValidatorExpressionInfo(_validationExpression, propertyAccessExpression);
     }
 
     public ColumnBuilder<TEntity> Index(int index)
@@ -104,6 +118,13 @@ public sealed class ColumnBuilder<TEntity>
         return this;
     }
 
+    public ColumnBuilder<TEntity> ValidWhen(Expression<Func<TEntity, bool>> validationExpression)
+    {
+        ArgumentNullException.ThrowIfNull(validationExpression);
+        _validationExpression = validationExpression;
+        return this;
+    }
+
     private void ResolvePropertyFromExpression<TProperty>(
         Expression<Func<TEntity, TProperty>> propProvider
     )
@@ -121,7 +142,13 @@ public sealed class ColumnBuilder<TEntity>
                 )
             );
 
-        _propName = property.Name;
-        _dataType = NullableType.WrapMemberType(property);
+        _property = property;
     }
+
+    internal sealed record Configuration(
+        string? PropertyName,
+        NullableType? DataType,
+        bool IsPrimaryKey,
+        Type? Reference
+    );
 }

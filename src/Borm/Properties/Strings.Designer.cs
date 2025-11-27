@@ -13,6 +13,11 @@ public static class Strings
     private static readonly ResourceManager ResourceManager = new("Borm.Properties.Strings", typeof(Strings).Assembly);
 
     /// <summary>
+    /// Value '{value}' is invalid.
+    /// </summary>
+    public static string ColumnValueInvalid(object? value) => GetString([value]);
+
+    /// <summary>
     /// Data context is not initialized.
     /// </summary>
     public static string DataContextNotInitialized() => GetString();
@@ -53,17 +58,6 @@ public static class Strings
     public static string EntityTypeNotDecorated(string typeName, string attributeName) => GetString([typeName, attributeName]);
 
     /// <summary>
-    /// Validation failed for '{objectName}' object.
-    /// </summary>
-    public static string EntityValidationFailed(string objectName) => GetString([objectName]);
-
-    /// <summary>
-    /// Validation failed for '{objectName}' object with the following message: \"{message}\".
-    /// </summary>
-    public static string EntityValidationFailedWithUserMessage(string objectName, string message) =>
-        GetString([objectName, message]);
-
-    /// <summary>
     /// Column index cannot be lesser than zero.
     /// </summary>
     public static string InvalidColumnIndex() => GetString();
@@ -82,11 +76,6 @@ public static class Strings
     /// Only member expressions: `e => e.Property` are allowed.
     /// </summary>
     public static string InvalidMemberExpression() => GetString();
-
-    /// <summary>
-    /// Argument expression was not provided.
-    /// </summary>
-    public static string MissingArgumentExpressionString() => GetString();
 
     /// <summary>
     /// Command executor is missing. Call '{firstMethod}' or '{secondMethod}'.
@@ -172,6 +161,23 @@ public static class Strings
     /// The table '{tableName}' already contains a row where the value of the column '{columnName}' is '{columnValue}'.
     /// </summary>
     public static string UniqueConstraintViolation(string tableName, string columnName, object? columnValue) => GetString([tableName, columnName, columnValue]);
+
+    /// <summary>
+    /// Validation failed for column "{columnName}" of entity "{entityName}".
+    /// </summary>
+    public static string ValidationFailedWithMetadata(string columnName, string entityName) =>
+        GetString([columnName, entityName]);
+
+    /// <summary>
+    /// Validator type "{validatorTypeName}" must implement "{validatorIFaceName}".
+    /// </summary>
+    public static string ValidatorDoesNotImplementInterface(string validatorTypeName, string validatorIFaceName) =>
+        GetString([validatorTypeName, validatorIFaceName]);
+
+    /// <summary>
+    /// Validator "{validatorTypeName}" must have a parameterless public constructor.
+    /// </summary>
+    public static string ValidatorNoPublicDefaultCtor(string validatorTypeName) => GetString([validatorTypeName]);
 
     private static string GetString(object?[]? formatArgs, [CallerMemberName] string? resourceName = null)
     {

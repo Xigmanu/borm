@@ -1,29 +1,16 @@
-﻿using Borm.Properties;
-using Borm.Reflection;
-using System.Reflection;
+﻿using System.Reflection;
 using Borm.Model.Validation;
+using Borm.Model.Validation.Expressions;
+using Borm.Properties;
+using Borm.Reflection;
 
 namespace Borm.Model.Construction;
 
 internal static class EntityFactory<TEntity>
     where TEntity : class
 {
-    public static EntityInfo Create(IConfigurationValidator<IReadOnlyList<MappingMember>> configurationValidator)
-    {
-        return InternalCreate(configurationValidator, null);
-    }
-
     public static EntityInfo Create(
-        IConfigurationValidator<IReadOnlyList<MappingMember>> configurationValidator,
-        Func<object, ValidationResult> entityValidator
-    )
-    {
-        return InternalCreate(configurationValidator, entityValidator);
-    }
-
-    private static EntityInfo InternalCreate(
-        IConfigurationValidator<IReadOnlyList<MappingMember>> configurationValidator,
-        Func<object, ValidationResult>? validate
+        IConfigurationValidator<IReadOnlyList<MappingMember>> configurationValidator
     )
     {
         Type entityType = typeof(TEntity);
@@ -45,13 +32,31 @@ internal static class EntityFactory<TEntity>
 
         IReadOnlyList<Constructor> constructors = ConstructorParser.ParseAll(entityType);
 
+        ObjectValidator? validator = CreateValidatorFunc(entityType, properties);
+
         return new EntityInfo(
             entityAttribute.Name,
             entityType,
             properties.AsReadOnly(),
             constructors,
-            validate
+            validator
         );
+    }
+
+    private static ObjectValidator? CreateValidatorFunc(
+        Type entityType,
+        IReadOnlyList<MappingMember> properties
+    )
+    {
+        ValidatorAttribute? validatorAttribute =
+            entityType.GetCustomAttribute<ValidatorAttribute>();
+
+        if (validatorAttribute != null)
+        {
+            return ParseValidator(validatorAttribute.ValidatorType);
+        }
+
+        return new ColumnValidationDelegateFactory(entityType, properties).Create();
     }
 
     private static List<MappingMember> ParseProperties(Type entityType)
@@ -68,11 +73,45 @@ internal static class EntityFactory<TEntity>
             }
 
             NullableType type = NullableType.WrapMemberType(current);
-            MappingMember property = new(current.Name, type, MappingInfo.FromAttribute(attribute));
+            ValidWhenAttribute? validationAttribute =
+                current.GetCustomAttribute<ValidWhenAttribute>();
 
+            MappingMember property = new(
+                current.Name,
+                type,
+                MappingInfo.FromAttribute(attribute),
+                validationAttribute?.GetValidatorInfo<TEntity>(current)
+            );
             properties.Add(property);
         }
 
         return properties;
+    }
+
+    private static ObjectValidator ParseValidator(Type validatorType)
+    {
+        if (!validatorType.IsAssignableTo(typeof(IObjectValidator<TEntity>)))
+        {
+            throw new ArgumentException(
+                Strings.ValidatorDoesNotImplementInterface(
+                    validatorType.FullName ?? validatorType.Name,
+                    nameof(IObjectValidator<TEntity>)
+                ),
+                nameof(validatorType)
+            );
+        }
+
+        if (validatorType.GetConstructor(Type.EmptyTypes) == null)
+        {
+            throw new ArgumentException(
+                Strings.ValidatorNoPublicDefaultCtor(validatorType.FullName ?? validatorType.Name),
+                nameof(validatorType)
+            );
+        }
+
+        IObjectValidator<TEntity> validator =
+            (IObjectValidator<TEntity>)Activator.CreateInstance(validatorType)!;
+
+        return ValidatorFunctionWrapper.Wrap(validator);
     }
 }

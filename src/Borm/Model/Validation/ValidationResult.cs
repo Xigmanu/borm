@@ -1,43 +1,32 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using Borm.Properties;
+﻿using Borm.Properties;
 
 namespace Borm.Model.Validation;
 
 public readonly struct ValidationResult
 {
-    public static readonly ValidationResult Ok = new(null, string.Empty, false);
+    public static readonly ValidationResult Ok = new(
+        string.Empty,
+        string.Empty,
+        string.Empty,
+        false
+    );
 
-    private ValidationResult(string? message, string memberName, bool isError)
+    private ValidationResult(string message, string entity, string column, bool isError)
     {
         Message = message;
-        MemberName = memberName;
+        Entity = entity;
+        Column = column;
         IsError = isError;
     }
 
-    public string MemberName { get; }
-    public string? Message { get; }
+    public string Column { get; }
+    public string Entity { get; }
+    public string Message { get; }
     internal bool IsError { get; }
 
-    public static ValidationResult Error(
-        object? value,
-        string? message = null,
-        [CallerArgumentExpression(nameof(value))]
-        string? expression = null
-    )
-    {
-        Debug.Assert(value != null || value == null);
-        if (string.IsNullOrWhiteSpace(expression))
-        {
-            throw new ArgumentException(
-                Strings.MissingArgumentExpressionString(),
-                nameof(expression)
-            );
-        }
+    public static ValidationResult Error(string message) =>
+        new(message, string.Empty, string.Empty, true);
 
-        string[] split = expression.Split('.');
-        Debug.Assert(split.Length > 1);
-
-        return new ValidationResult(message, split[^1], true);
-    }
+    internal static ValidationResult Error(object? value, string entity, string column) =>
+        new(Strings.ColumnValueInvalid(value), entity, column, true);
 }

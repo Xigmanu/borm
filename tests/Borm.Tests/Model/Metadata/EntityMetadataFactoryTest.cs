@@ -19,23 +19,19 @@ public sealed class EntityMetadataFactoryTest
             new(
                 "Id",
                 new NullableType(typeof(int), false),
-                new MappingInfo(0, "id", true, false, null, ReferentialAction.NoAction)
-            ),
+                new MappingInfo(0, "id", true, false, null, ReferentialAction.NoAction), null),
             new(
                 "Address",
                 new NullableType(typeof(string), false),
-                new MappingInfo(1, "address", false, false, null, ReferentialAction.NoAction)
-            ),
+                new MappingInfo(1, "address", false, false, null, ReferentialAction.NoAction), null),
             new(
                 "Address_1",
                 new NullableType(typeof(string), true),
-                new MappingInfo(2, "address_1", false, false, null, ReferentialAction.NoAction)
-            ),
+                new MappingInfo(2, "address_1", false, false, null, ReferentialAction.NoAction), null),
             new(
                 "City",
                 new NullableType(typeof(string), false),
-                new MappingInfo(3, "city", false, true, null, ReferentialAction.NoAction)
-            ),
+                new MappingInfo(3, "city", false, true, null, ReferentialAction.NoAction), null),
         ];
 
         EntityInfo typeInfo = new(expected.Name, expected.Type, properties, [], null);

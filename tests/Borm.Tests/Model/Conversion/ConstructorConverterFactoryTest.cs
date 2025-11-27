@@ -59,14 +59,13 @@ public sealed class ConstructorConverterFactoryTest
         // Arrange
         List<MappingMember> ctorParams =
         [
-            new("id", new NullableType(typeof(int), false), null),
-            new("address", new NullableType(typeof(string), false), null),
+            new("id", new NullableType(typeof(int), false), null, null),
+            new("address", new NullableType(typeof(string), false), null, null),
             new(
                 "address_1",
                 new NullableType(typeof(string), true),
-                null
-            ),
-            new("city", new NullableType(typeof(string), false), null)
+                null, null),
+            new("city", new NullableType(typeof(string), false), null, null)
         ];
         Type type = typeof(AddressEntity);
         Constructor constructor = new(
