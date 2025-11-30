@@ -7,20 +7,25 @@ namespace Borm.Model.Construction;
 public sealed class EntityBuilder<TEntity>
     where TEntity : class
 {
+    private readonly IConfigurationValidator<IReadOnlyList<MappingMember>> _configValidator;
+    private readonly ColumnValidatorFactoryContext _factoryContext;
     private readonly List<MappingMember> _properties = [];
-    private readonly IConfigurationValidator<IReadOnlyList<MappingMember>> _validator;
 
     private ObjectValidator? _entityValidator;
     private string? _name;
 
-    internal EntityBuilder(IConfigurationValidator<IReadOnlyList<MappingMember>> validator)
+    internal EntityBuilder(
+        IConfigurationValidator<IReadOnlyList<MappingMember>> configValidator,
+        ColumnValidatorFactoryContext factoryContext
+    )
     {
-        _validator = validator;
+        _configValidator = configValidator;
+        _factoryContext = factoryContext;
     }
 
-    public EntityInfo Build()
+    internal EntityInfo Build()
     {
-        _validator.Validate(_properties);
+        _configValidator.Validate(_properties);
 
         IReadOnlyList<Constructor> constructors = ConstructorParser.ParseAll(typeof(TEntity));
 
@@ -30,7 +35,11 @@ public sealed class EntityBuilder<TEntity>
             _properties.AsReadOnly(),
             constructors,
             _entityValidator
-            ?? new ColumnValidationDelegateFactory(typeof(TEntity), _properties).Create()
+            ?? new ColumnValidatorFactory(
+                _factoryContext,
+                typeof(TEntity),
+                _properties
+            ).Create()
         );
     }
 

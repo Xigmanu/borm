@@ -1,5 +1,5 @@
 ﻿using Borm.Data.Sql;
-using Borm.Model;
+using Borm.Model.Construction;
 
 namespace Borm.Tests;
 
@@ -10,7 +10,7 @@ public sealed class BormConfigBuilderTest
     {
         // Arrange
         BormConfig.Builder builder = new();
-        builder.Model([]);
+        builder.Model(new ModelConfigurator());
         builder.CommandExecutor(new InMemoryCommandExecutor());
         builder.CommandDefinitionFactory(new InMemoryCommandDefinitionFactory());
 
@@ -26,7 +26,7 @@ public sealed class BormConfigBuilderTest
     {
         // Arrange
         BormConfig.Builder builder = new();
-        builder.Model([]);
+        builder.Model(new ModelConfigurator());
         builder.CommandExecutor(new InMemoryCommandExecutor());
 
         // Act
@@ -42,7 +42,7 @@ public sealed class BormConfigBuilderTest
     {
         // Arrange
         BormConfig.Builder builder = new();
-        builder.Model([]);
+        builder.Model(new ModelConfigurator());
 
         // Act
         Exception? exception = Record.Exception(() => builder.Build());
@@ -99,15 +99,14 @@ public sealed class BormConfigBuilderTest
     {
         // Arrange
         BormConfig.Builder builder = new();
-        List<EntityInfo> model = [];
 
         // Act
-        BormConfig config = builder.Model([]).InMemory().Build();
+        BormConfig config = builder.Model(new ModelConfigurator()).InMemory().Build();
 
         // Assert
         Assert.IsType<InMemoryCommandExecutor>(config.CommandExecutor);
         Assert.IsType<InMemoryCommandDefinitionFactory>(config.CommandDefinitionFactory);
-        Assert.Equal(model, config.Model);
+        Assert.Empty(config.Model);
     }
 
     [Fact]

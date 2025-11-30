@@ -1,6 +1,7 @@
 ﻿using Borm.Model;
 using Borm.Model.Construction;
 using Borm.Model.Validation;
+using Borm.Model.Validation.Expressions;
 using Borm.Reflection;
 using Borm.Tests.Common;
 
@@ -11,12 +12,14 @@ public sealed class EntityBuilderTest
     private static readonly IConfigurationValidator<IReadOnlyList<MappingMember>> TestValidator =
         new TestPropertyValidator();
 
+    private static readonly ColumnValidatorFactoryContext FactoryContext = new();
+
     [Fact]
     public void Build_BuildsEntity_WithValidConfiguration()
     {
         // Arrange
         string name = "addresses";
-        EntityBuilder<AddressEntity> builder = new(TestValidator);
+        EntityBuilder<AddressEntity> builder = new(TestValidator, FactoryContext);
 
         // Act
         EntityInfo entityInfo = builder
@@ -33,7 +36,7 @@ public sealed class EntityBuilderTest
     public void Column_ThrowsArgumentException_WhenColumnAlreadyExists()
     {
         // Arrange
-        EntityBuilder<AddressEntity> builder = new(TestValidator);
+        EntityBuilder<AddressEntity> builder = new(TestValidator, FactoryContext);
 
         // Act
         Exception? exception = Record.Exception(() =>
@@ -53,7 +56,7 @@ public sealed class EntityBuilderTest
     public void Name_ThrowsArgumentException_WithInvalidName(string name)
     {
         // Arrange
-        EntityBuilder<AddressEntity> builder = new(TestValidator);
+        EntityBuilder<AddressEntity> builder = new(TestValidator, FactoryContext);
 
         // Act
         Exception? exception = Record.Exception(() => _ = builder.Name(name));
@@ -67,7 +70,7 @@ public sealed class EntityBuilderTest
     public void Name_ThrowsArgumentNullException_WithNullName()
     {
         // Arrange
-        EntityBuilder<AddressEntity> builder = new(TestValidator);
+        EntityBuilder<AddressEntity> builder = new(TestValidator, FactoryContext);
 
         // Act
         Exception? exception = Record.Exception(() => _ = builder.Name(null!));
@@ -81,12 +84,14 @@ public sealed class EntityBuilderTest
     public void Validator_ThrowsArgumentNullException_WithNullValidator()
     {
         // Arrange
-        EntityBuilder<AddressEntity> builder = new(TestValidator);
+        EntityBuilder<AddressEntity> builder = new(TestValidator, FactoryContext);
 
         // Act
-        Exception? exception0 = Record.Exception(() => _ = builder.Validator((IObjectValidator<AddressEntity>)null!));
+        Exception? exception0 = Record.Exception(() => _ = builder.Validator((IObjectValidator<AddressEntity>)null!)
+        );
         Exception? exception1 =
-            Record.Exception(() => _ = builder.Validator((Func<AddressEntity, ValidationResult>)null!));
+            Record.Exception(() => _ = builder.Validator((Func<AddressEntity, ValidationResult>)null!)
+            );
 
         // Assert
         Assert.NotNull(exception0);
@@ -95,7 +100,8 @@ public sealed class EntityBuilderTest
         Assert.IsType<ArgumentNullException>(exception1);
     }
 
-    private sealed class TestPropertyValidator : IConfigurationValidator<IReadOnlyList<MappingMember>>
+    private sealed class TestPropertyValidator
+        : IConfigurationValidator<IReadOnlyList<MappingMember>>
     {
         public void Validate(IReadOnlyList<MappingMember> value)
         {
