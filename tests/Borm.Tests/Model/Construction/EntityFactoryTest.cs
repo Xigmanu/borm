@@ -9,7 +9,7 @@ namespace Borm.Tests.Model.Construction;
 
 public sealed class EntityFactoryTest
 {
-    private static readonly IConfigurationValidator<IReadOnlyList<MappingMember>> TestValidator =
+    private static readonly IConfigurationValidator<IReadOnlyList<IMappable>> TestValidator =
         new TestPropertyValidator();
 
     private static readonly ColumnValidatorFactoryContext FactoryContext = new();
@@ -44,9 +44,9 @@ public sealed class EntityFactoryTest
         Assert.IsType<MemberAccessException>(exception);
     }
 
-    private sealed class TestPropertyValidator : IConfigurationValidator<IReadOnlyList<MappingMember>>
+    private sealed class TestPropertyValidator : IConfigurationValidator<IReadOnlyList<IMappable>>
     {
-        public void Validate(IReadOnlyList<MappingMember> value)
+        public void Validate(IReadOnlyList<IMappable> value)
         {
         }
     }

@@ -17,7 +17,7 @@ public sealed class EntityBufferConversionFactoryTest
         IEntityMetadata entityMetadata = EntityMetadataMockFactory.CreateMockAddressEntity();
         IReadOnlyList<IColumnMetadata> columns = entityMetadata.Columns;
 
-        IReadOnlyList<Constructor> constructors = [];
+        IReadOnlyList<IConstructor> constructors = [];
 
         // Act
         Exception? exception = Record.Exception(

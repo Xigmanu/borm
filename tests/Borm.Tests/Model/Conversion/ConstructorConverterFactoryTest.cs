@@ -17,11 +17,7 @@ public sealed class ConstructorConverterFactoryTest
     public void Constructor_ThrowsArgumentException_WhenColumnEnumerationIsEmpty()
     {
         // Arrange
-        Constructor constructor = new(
-            true,
-            [],
-            _ => throw new NotImplementedException()
-        );
+        IConstructor constructor = new TestConstructor(true, []);
         IReadOnlyList<IColumnMetadata> columns = [];
 
         // Act
@@ -37,11 +33,7 @@ public sealed class ConstructorConverterFactoryTest
     public void Constructor_ThrowsArgumentException_WhenConstructorIsDefault()
     {
         // Arrange
-        Constructor constructor = new(
-            true,
-            [],
-            _ => throw new NotImplementedException()
-        );
+        IConstructor constructor = new TestConstructor(true, []);
         IReadOnlyList<IColumnMetadata> columns = _graph[typeof(AddressEntity)]!.Metadata.Columns;
 
         // Act
@@ -57,18 +49,15 @@ public sealed class ConstructorConverterFactoryTest
     public void Create_ReturnsConversionFunction_WithValidConstructorAndColumns()
     {
         // Arrange
-        List<MappingMember> ctorParams =
+        List<IMappable> ctorParams =
         [
-            new("id", new NullableType(typeof(int), false), null, null),
-            new("address", new NullableType(typeof(string), false), null, null),
-            new(
-                "address_1",
-                new NullableType(typeof(string), true),
-                null, null),
-            new("city", new NullableType(typeof(string), false), null, null)
+            new TestParameter("id", new NullableType(typeof(int), false)),
+            new TestParameter("address", new NullableType(typeof(string), false)),
+            new TestParameter("address_1", new NullableType(typeof(string), true)),
+            new TestParameter("city", new NullableType(typeof(string), false))
         ];
         Type type = typeof(AddressEntity);
-        Constructor constructor = new(
+        IConstructor constructor = new TestConstructor(
             false,
             ctorParams,
             args => Expression.New(type.GetConstructors()[0], args)

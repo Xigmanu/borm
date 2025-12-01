@@ -26,7 +26,7 @@ public sealed class ColumnBuilderTest
         ColumnBuilder<AddressEntity> builder = new(TestAddressValidator);
 
         // Act
-        MappingMember column = builder
+        IMappable column = builder
             .Index(idx)
             .Mapping(e => e.Id, name)
             .PrimaryKey()
@@ -35,7 +35,7 @@ public sealed class ColumnBuilderTest
 
         // Assert
         Assert.Equal(memberName, column.MemberName);
-        Assert.Equal(type, column.Type.Type);
+        Assert.Equal(type, column.DataType.RawType);
         Assert.NotNull(column.Mapping);
         Assert.Equal(idx, column.Mapping.ColumnIndex);
         Assert.Equal(name, column.Mapping.ColumnName);
@@ -57,7 +57,7 @@ public sealed class ColumnBuilderTest
         ColumnBuilder<PersonEntity> builder = new(TestPersonValidator);
 
         // Act
-        MappingMember column = builder
+        IMappable column = builder
             .Index(idx)
             .Mapping(e => e.Address, name)
             .References(type)
@@ -66,7 +66,7 @@ public sealed class ColumnBuilderTest
 
         // Assert
         Assert.Equal(memberName, column.MemberName);
-        Assert.Equal(type, column.Type.Type);
+        Assert.Equal(type, column.DataType.RawType);
         Assert.NotNull(column.Mapping);
         Assert.Equal(idx, column.Mapping.ColumnIndex);
         Assert.Equal(name, column.Mapping.ColumnName);

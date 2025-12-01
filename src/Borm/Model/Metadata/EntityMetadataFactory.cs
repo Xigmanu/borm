@@ -10,7 +10,7 @@ internal static class EntityMetadataFactory
         EntityInfo typeInfo,
         Func<
             Type,
-            IReadOnlyList<Constructor>,
+            IReadOnlyList<IConstructor>,
             IReadOnlyList<IColumnMetadata>,
             IEntityBufferConversion
         > conversionSupplierFunc
@@ -41,7 +41,7 @@ internal static class EntityMetadataFactory
         );
     }
 
-    private static ColumnMetadata CreateColumnInfo(MappingMember property)
+    private static ColumnMetadata CreateColumnInfo(IMappable property)
     {
         MappingInfo? mapping = property.Mapping;
         Debug.Assert(mapping != null);
@@ -53,7 +53,7 @@ internal static class EntityMetadataFactory
             mapping.ColumnIndex,
             columnName,
             property.MemberName,
-            property.Type,
+            property.DataType,
             constraints
         );
 
@@ -81,7 +81,7 @@ internal static class EntityMetadataFactory
         return memberName;
     }
 
-    private static Constraints GetConstraints(MappingMember property)
+    private static Constraints GetConstraints(IMappable property)
     {
         Constraints constraints = Constraints.None;
         MappingInfo mapping = property.Mapping!;
@@ -89,7 +89,7 @@ internal static class EntityMetadataFactory
         {
             constraints |= Constraints.PrimaryKey;
         }
-        else if (property.Type.IsNullable)
+        else if (property.DataType.IsNullable)
         {
             constraints |= Constraints.AllowDbNull;
         }

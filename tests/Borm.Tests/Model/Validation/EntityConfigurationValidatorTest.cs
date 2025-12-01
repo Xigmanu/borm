@@ -2,6 +2,7 @@
 using Borm.Model.Validation;
 using Borm.Reflection;
 using Borm.Tests.Common;
+using Borm.Tests.Mocks;
 
 namespace Borm.Tests.Model.Validation;
 
@@ -11,7 +12,7 @@ public sealed class EntityConfigurationValidatorTest
     public void Validate_ThrowsArgumentException_WithEmptyPropertyList()
     {
         // Arrange
-        IReadOnlyList<MappingMember> properties = [];
+        IReadOnlyList<IMappable> properties = [];
         EntityConfigurationValidator<AddressEntity> validator = new();
 
         // Act
@@ -26,7 +27,7 @@ public sealed class EntityConfigurationValidatorTest
     public void Validate_ThrowsArgumentNullException_WithNullArgument()
     {
         // Arrange
-        IReadOnlyList<MappingMember> properties = null!;
+        IReadOnlyList<IMappable> properties = null!;
         EntityConfigurationValidator<AddressEntity> validator = new();
 
         // Act
@@ -41,29 +42,17 @@ public sealed class EntityConfigurationValidatorTest
     public void Validate_ThrowsInvalidOperationException_WithDuplicateColumnIndexes()
     {
         // Arrange
-        MappingMember property0 = new(
+        IMappable property0 = new TestProperty(
             "foo",
             new NullableType(typeof(int), false),
-            new MappingInfo(
-                0,
-                "foo",
-                true,
-                false,
-                null,
-                ReferentialAction.NoAction
-            ), null);
-        MappingMember property1 = new(
+            new MappingInfo(0, "foo", true, false, null, ReferentialAction.NoAction)
+        );
+        IMappable property1 = new TestProperty(
             "bar",
             new NullableType(typeof(int), false),
-            new MappingInfo(
-                0,
-                "bar",
-                false,
-                false,
-                null,
-                ReferentialAction.NoAction
-            ), null);
-        IReadOnlyList<MappingMember> properties = [property0, property1];
+            new MappingInfo(0, "bar", false, false, null, ReferentialAction.NoAction)
+        );
+        IReadOnlyList<IMappable> properties = [property0, property1];
         EntityConfigurationValidator<AddressEntity> validator = new();
 
         // Act
@@ -78,29 +67,17 @@ public sealed class EntityConfigurationValidatorTest
     public void Validate_ThrowsInvalidOperationException_WithDuplicateColumnNames()
     {
         // Arrange
-        MappingMember property0 = new(
+        IMappable property0 = new TestProperty(
             "foo",
             new NullableType(typeof(int), false),
-            new MappingInfo(
-                0,
-                "foo",
-                true,
-                false,
-                null,
-                ReferentialAction.NoAction
-            ), null);
-        MappingMember property1 = new(
+            new MappingInfo(0, "foo", true, false, null, ReferentialAction.NoAction)
+        );
+        IMappable property1 = new TestProperty(
             "foo",
             new NullableType(typeof(int), false),
-            new MappingInfo(
-                1,
-                "foo",
-                false,
-                false,
-                null,
-                ReferentialAction.NoAction
-            ), null);
-        IReadOnlyList<MappingMember> properties = [property0, property1];
+            new MappingInfo(1, "foo", false, false, null, ReferentialAction.NoAction)
+        );
+        IReadOnlyList<IMappable> properties = [property0, property1];
         EntityConfigurationValidator<AddressEntity> validator = new();
 
         // Act
@@ -115,29 +92,17 @@ public sealed class EntityConfigurationValidatorTest
     public void Validate_ThrowsInvalidOperationException_WithDuplicatePrimaryKeys()
     {
         // Arrange
-        MappingMember property0 = new(
+        IMappable property0 = new TestProperty(
             "foo",
             new NullableType(typeof(int), false),
-            new MappingInfo(
-                0,
-                "foo",
-                true,
-                false,
-                null,
-                ReferentialAction.NoAction
-            ), null);
-        MappingMember property1 = new(
+            new MappingInfo(0, "foo", true, false, null, ReferentialAction.NoAction)
+        );
+        IMappable property1 = new TestProperty(
             "bar",
             new NullableType(typeof(int), false),
-            new MappingInfo(
-                1,
-                "bar",
-                true,
-                false,
-                null,
-                ReferentialAction.NoAction
-            ), null);
-        IReadOnlyList<MappingMember> properties = [property0, property1];
+            new MappingInfo(1, "bar", true, false, null, ReferentialAction.NoAction)
+        );
+        IReadOnlyList<IMappable> properties = [property0, property1];
         EntityConfigurationValidator<AddressEntity> validator = new();
 
         // Act
@@ -152,18 +117,12 @@ public sealed class EntityConfigurationValidatorTest
     public void Validate_ThrowsInvalidOperationException_WithNoPrimaryKeys()
     {
         // Arrange
-        MappingMember property = new(
+        IMappable property = new TestProperty(
             "foo",
             new NullableType(typeof(string), false),
-            new MappingInfo(
-                0,
-                "foo",
-                false,
-                false,
-                null,
-                ReferentialAction.NoAction
-            ), null);
-        IReadOnlyList<MappingMember> properties = [property];
+            new MappingInfo(0, "foo", false, false, null, ReferentialAction.NoAction)
+        );
+        IReadOnlyList<IMappable> properties = [property];
         EntityConfigurationValidator<AddressEntity> validator = new();
 
         // Act

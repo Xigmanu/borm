@@ -7,10 +7,10 @@ namespace Borm.Model.Conversion;
 
 internal sealed class ConstructorConverterFactory : ConverterFactory<Func<IValueBuffer, object>>
 {
-    private readonly Constructor _constructor;
+    private readonly IConstructor _constructor;
 
     public ConstructorConverterFactory(
-        Constructor constructor,
+        IConstructor constructor,
         IReadOnlyList<IColumnMetadata> columns
     )
         : base(columns)
@@ -38,7 +38,7 @@ internal sealed class ConstructorConverterFactory : ConverterFactory<Func<IValue
             .Compile();
     }
 
-    private IEnumerable<IColumnMetadata> GetOrderedColumns(IReadOnlyList<MappingMember> ctorParams)
+    private IEnumerable<IColumnMetadata> GetOrderedColumns(IReadOnlyList<IMappable> ctorParams)
     {
         Dictionary<string, IColumnMetadata> colNames = Columns.ToDictionary(col => col.Name);
         return ctorParams.Select(param => colNames[param.MemberName]);

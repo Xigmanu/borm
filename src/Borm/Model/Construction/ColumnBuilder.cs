@@ -4,6 +4,7 @@ using System.Reflection;
 using Borm.Model.Validation;
 using Borm.Properties;
 using Borm.Reflection;
+using Borm.Reflection.Internal;
 
 namespace Borm.Model.Construction;
 
@@ -26,7 +27,7 @@ public sealed class ColumnBuilder<TEntity>
         _configurationValidator = configurationValidator;
     }
 
-    public MappingMember Build()
+    internal IMappable Build()
     {
         NullableType? type =
             _property?.PropertyType != null ? NullableType.WrapMemberType(_property) : null;
@@ -43,10 +44,10 @@ public sealed class ColumnBuilder<TEntity>
             _reference,
             _refAction
         );
-        return new MappingMember(propertyName!, type!, mappingInfo, BuildValidationInfo());
+        return new Property(propertyName!, type!, mappingInfo, BuildValidationInfo());
     }
 
-    private ValidatorExpressionInfo? BuildValidationInfo()
+    private ValidationInfo? BuildValidationInfo()
     {
         if (_validationExpression == null)
         {
@@ -58,7 +59,7 @@ public sealed class ColumnBuilder<TEntity>
         ParameterExpression lambdaParam = _validationExpression.Parameters[0];
         MemberExpression propertyAccessExpression = Expression.Property(lambdaParam, _property);
 
-        return new ValidatorExpressionInfo(_validationExpression, propertyAccessExpression);
+        return new ValidationInfo(_validationExpression, propertyAccessExpression);
     }
 
     public ColumnBuilder<TEntity> Index(int index)

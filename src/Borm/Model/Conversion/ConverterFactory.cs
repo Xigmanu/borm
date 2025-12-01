@@ -30,14 +30,14 @@ internal abstract class ConverterFactory<T>
             Expression.Constant(column)
         );
 
-        UnaryExpression castValue = Expression.Convert(bufValue, column.DataType.Type);
+        UnaryExpression castValue = Expression.Convert(bufValue, column.DataType.RawType);
         if (!column.Constraints.HasFlag(Constraints.AllowDbNull))
         {
             return castValue;
         }
 
         BinaryExpression isDbNull = Expression.Equal(bufValue, Expression.Constant(DBNull.Value));
-        ConstantExpression nullValue = Expression.Constant(null, column.DataType.Type);
+        ConstantExpression nullValue = Expression.Constant(null, column.DataType.RawType);
 
         return Expression.Condition(isDbNull, nullValue, castValue);
     }

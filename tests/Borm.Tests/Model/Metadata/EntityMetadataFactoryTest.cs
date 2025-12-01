@@ -14,24 +14,28 @@ public sealed class EntityMetadataFactoryTest
     {
         // Arrange
         IEntityMetadata expected = EntityMetadataMockFactory.CreateMockAddressEntity();
-        List<MappingMember> properties =
+        List<IMappable> properties =
         [
-            new(
+            new TestProperty(
                 "Id",
                 new NullableType(typeof(int), false),
-                new MappingInfo(0, "id", true, false, null, ReferentialAction.NoAction), null),
-            new(
+                new MappingInfo(0, "id", true, false, null, ReferentialAction.NoAction)
+            ),
+            new TestProperty(
                 "Address",
                 new NullableType(typeof(string), false),
-                new MappingInfo(1, "address", false, false, null, ReferentialAction.NoAction), null),
-            new(
+                new MappingInfo(1, "address", false, false, null, ReferentialAction.NoAction)
+            ),
+            new TestProperty(
                 "Address_1",
                 new NullableType(typeof(string), true),
-                new MappingInfo(2, "address_1", false, false, null, ReferentialAction.NoAction), null),
-            new(
+                new MappingInfo(2, "address_1", false, false, null, ReferentialAction.NoAction)
+            ),
+            new TestProperty(
                 "City",
                 new NullableType(typeof(string), false),
-                new MappingInfo(3, "city", false, true, null, ReferentialAction.NoAction), null),
+                new MappingInfo(3, "city", false, true, null, ReferentialAction.NoAction)
+            )
         ];
 
         EntityInfo typeInfo = new(expected.Name, expected.Type, properties, [], null);

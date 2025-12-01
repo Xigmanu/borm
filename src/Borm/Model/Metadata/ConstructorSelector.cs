@@ -5,8 +5,8 @@ namespace Borm.Model.Metadata;
 
 internal static class ConstructorSelector
 {
-    public static Constructor? FindMappingCtor(
-        IReadOnlyList<Constructor> constructors,
+    public static IConstructor? FindMappingCtor(
+        IReadOnlyList<IConstructor> constructors,
         HashSet<string> columnNames
     )
     {
@@ -27,7 +27,7 @@ internal static class ConstructorSelector
     }
 
     private static bool IsCtorParamListValid(
-        IReadOnlyList<MappingMember> parameters,
+        IReadOnlyList<IMappable> parameters,
         HashSet<string> columnNames
     )
     {

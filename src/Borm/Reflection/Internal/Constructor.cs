@@ -1,14 +1,14 @@
 ﻿using System.Linq.Expressions;
 
-namespace Borm.Reflection;
+namespace Borm.Reflection.Internal;
 
-public sealed class Constructor
+public sealed class Constructor : IConstructor
 {
     private readonly Func<IEnumerable<Expression>, Expression> _instanceInitializer;
 
-    public Constructor(
+    internal Constructor(
         bool isDefault,
-        IReadOnlyList<MappingMember> parameters,
+        IReadOnlyList<IMappable> parameters,
         Func<IEnumerable<Expression>, Expression> instanceInitializer
     )
     {
@@ -18,7 +18,7 @@ public sealed class Constructor
     }
 
     public bool IsDefault { get; }
-    public IReadOnlyList<MappingMember> Parameters { get; }
+    public IReadOnlyList<IMappable> Parameters { get; }
 
     public Expression CreateNewInstanceExpression(IEnumerable<Expression> args) =>
         _instanceInitializer(args);

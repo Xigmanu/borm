@@ -9,14 +9,14 @@ internal static class EntityBufferConversionFactory
 {
     public static IEntityBufferConversion Create(
         Type entityType,
-        IReadOnlyList<Constructor> constructors,
+        IReadOnlyList<IConstructor> constructors,
         IReadOnlyList<IColumnMetadata> columns
     )
     {
         ConverterFactory<Func<object, IValueBuffer>> bufferConverter =
             new ValueBufferConverterFactory(entityType, columns);
 
-        Constructor conversionCtor =
+        IConstructor conversionCtor =
             ConstructorSelector.FindMappingCtor(constructors, [.. columns.Select(col => col.Name)])
             ?? throw new MissingMethodException(
                 Strings.InvalidEntityTypeConstructor(entityType.FullName ?? entityType.Name)

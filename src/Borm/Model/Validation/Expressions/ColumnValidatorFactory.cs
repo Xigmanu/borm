@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using Borm.Model.Metadata;
 using Borm.Reflection;
+using Borm.Reflection.Internal;
 
 namespace Borm.Model.Validation.Expressions;
 
@@ -9,12 +10,12 @@ internal sealed class ColumnValidatorFactory
 {
     private readonly ColumnValidatorFactoryContext _context;
     private readonly Type _entityType;
-    private readonly IReadOnlyList<MappingMember> _properties;
+    private readonly IReadOnlyList<IMappable> _properties;
 
     public ColumnValidatorFactory(
         ColumnValidatorFactoryContext context,
         Type entityType,
-        IReadOnlyList<MappingMember> properties
+        IReadOnlyList<IMappable> properties
     )
     {
         _entityType = entityType;
@@ -40,9 +41,9 @@ internal sealed class ColumnValidatorFactory
         ];
         int initialCount = expressions.Count;
 
-        foreach (MappingMember property in _properties)
+        foreach (IMappable property in _properties)
         {
-            ValidatorExpressionInfo? validation = property.Validation;
+            ValidationInfo? validation = ((Property)property).Validation;
             if (validation == null)
             {
                 continue;
@@ -75,7 +76,7 @@ internal sealed class ColumnValidatorFactory
     }
 
     private ConditionalExpression CreateIfThenExpression(
-        ValidatorExpressionInfo validation,
+        ValidationInfo validation,
         string memberName,
         ParameterExpression unboxedEntity,
         ParameterExpression metadata,
@@ -83,7 +84,7 @@ internal sealed class ColumnValidatorFactory
     )
     {
         (Expression conditionBody, Expression propAccess) =
-            ValidatorExpressionInfo.AdjustToCommonParameter(validation, unboxedEntity);
+            validation.AdjustToCommonParameter(unboxedEntity);
 
         MemberExpression nameProp = Expression.Property(metadata, _context.EMetaName);
         MethodCallExpression getColCall = Expression.Call(

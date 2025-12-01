@@ -1,20 +1,20 @@
 ﻿using System.Linq.Expressions;
 using System.Reflection;
+using Borm.Reflection.Internal;
 
 namespace Borm.Reflection;
 
 internal static class ConstructorParser
 {
-    public static IReadOnlyList<Constructor> ParseAll(Type entityType) =>
-        entityType.GetConstructors().Select(ParseConstructorInfo).ToList().AsReadOnly();
-
-    private static Constructor ParseConstructorInfo(ConstructorInfo ctor)
+    public static IConstructor Parse(ConstructorInfo ctor)
     {
-        List<MappingMember> parsedParams = [];
+        List<IMappable> parsedParams = [];
         ParameterInfo[] parameters = ctor.GetParameters();
-        parsedParams.AddRange(from param in parameters
+        parsedParams.AddRange(
+            from param in parameters
             let type = NullableType.WrapMemberType(param)
-            select new MappingMember(param.Name!, type, null, null));
+            select new Parameter(param.Name!, type)
+        );
 
         return new Constructor(
             parameters.Length == 0,
