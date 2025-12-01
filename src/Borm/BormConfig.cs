@@ -1,5 +1,6 @@
 ﻿using Borm.Data.Sql;
 using Borm.Model;
+using Borm.Model.Construction;
 using Borm.Properties;
 
 namespace Borm;
@@ -11,7 +12,7 @@ public sealed class BormConfig
 {
     private BormConfig(
         IDbCommandExecutor commandExecutor,
-        EntityInfo[] entities,
+        IReadOnlyList<EntityInfo> entities,
         IDbCommandDefinitionFactory commandDefinitionFactory
     )
     {
@@ -43,7 +44,7 @@ public sealed class BormConfig
     {
         private IDbCommandDefinitionFactory? _commandDefinitionFactory;
         private IDbCommandExecutor? _commandExecutor;
-        private EntityInfo[]? _entities;
+        private IReadOnlyList<EntityInfo>? _entities;
 
         /// <summary>
         ///     Builds a new <see cref="BormConfig" /> instance using the values set on this builder.
@@ -102,10 +103,10 @@ public sealed class BormConfig
             return this;
         }
 
-        public Builder Model(IEnumerable<EntityInfo> entities)
+        public Builder Model(ModelConfigurator configurator)
         {
-            ArgumentNullException.ThrowIfNull(entities);
-            _entities = [.. entities];
+            ArgumentNullException.ThrowIfNull(configurator);
+            _entities = configurator.Entities;
             return this;
         }
     }
