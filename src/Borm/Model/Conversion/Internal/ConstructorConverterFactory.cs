@@ -3,7 +3,7 @@ using Borm.Data.Storage;
 using Borm.Model.Metadata;
 using Borm.Reflection;
 
-namespace Borm.Model.Conversion;
+namespace Borm.Model.Conversion.Internal;
 
 internal sealed class ConstructorConverterFactory : ConverterFactory<Func<IValueBuffer, object>>
 {

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Borm.Model.Conversion;
+using Borm.Model.Metadata.Internal;
 using Borm.Reflection;
 
 namespace Borm.Model.Metadata;

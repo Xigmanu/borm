@@ -1,4 +1,4 @@
-﻿using Borm.Model.Conversion;
+﻿using Borm.Model.Conversion.Internal;
 using Borm.Model.Metadata;
 using Borm.Properties;
 using Borm.Reflection;

@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Borm.Reflection;
 
-namespace Borm.Model.Metadata;
+namespace Borm.Model.Metadata.Internal;
 
 [DebuggerTypeProxy(typeof(ColumnMetadataDebugView))]
 [DebuggerDisplay("Name = {Name}, DataType = {DataType}")]

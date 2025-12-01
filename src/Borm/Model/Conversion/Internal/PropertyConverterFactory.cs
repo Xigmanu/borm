@@ -2,7 +2,7 @@
 using Borm.Data.Storage;
 using Borm.Model.Metadata;
 
-namespace Borm.Model.Conversion;
+namespace Borm.Model.Conversion.Internal;
 
 internal sealed class PropertyConverterFactory : ConverterFactory<Func<IValueBuffer, object>>
 {

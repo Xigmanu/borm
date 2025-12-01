@@ -1,6 +1,6 @@
 ﻿using Borm.Data.Storage;
 
-namespace Borm.Model.Conversion;
+namespace Borm.Model.Conversion.Internal;
 
 internal sealed class EntityBufferConversion : IEntityBufferConversion
 {

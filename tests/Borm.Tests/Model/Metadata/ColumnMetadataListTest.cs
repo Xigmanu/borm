@@ -1,5 +1,6 @@
 ﻿using Borm.Data.Storage;
 using Borm.Model.Metadata;
+using Borm.Model.Metadata.Internal;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
 

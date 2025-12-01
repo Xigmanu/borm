@@ -1,10 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Borm.Model.Conversion;
+using Borm.Model.Conversion.Internal;
 using Borm.Model.Validation;
 using Borm.Properties;
 
-namespace Borm.Model.Metadata;
+namespace Borm.Model.Metadata.Internal;
 
 [DebuggerTypeProxy(typeof(EntityInfoDebugView))]
 [DebuggerDisplay("Name = {Name}, Type = {Type}")]

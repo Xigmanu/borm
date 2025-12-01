@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Borm.Data.Storage;
-using Borm.Model.Conversion;
+using Borm.Model.Conversion.Internal;
 using Borm.Model.Metadata;
 using Borm.Reflection;
 using Borm.Tests.Common;

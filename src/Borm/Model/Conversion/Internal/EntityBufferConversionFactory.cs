@@ -3,7 +3,7 @@ using Borm.Model.Metadata;
 using Borm.Properties;
 using Borm.Reflection;
 
-namespace Borm.Model.Conversion;
+namespace Borm.Model.Conversion.Internal;
 
 internal static class EntityBufferConversionFactory
 {

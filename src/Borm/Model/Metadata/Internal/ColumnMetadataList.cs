@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.ObjectModel;
 
-namespace Borm.Model.Metadata;
+namespace Borm.Model.Metadata.Internal;
 
 internal sealed class ColumnMetadataList : IReadOnlyList<IColumnMetadata>
 {
