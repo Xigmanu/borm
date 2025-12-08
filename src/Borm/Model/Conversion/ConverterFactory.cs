@@ -1,5 +1,5 @@
-﻿using Borm.Model.Metadata;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
+using Borm.Model.Metadata;
 
 namespace Borm.Model.Conversion;
 

@@ -9,16 +9,22 @@ internal sealed class ChangeSet : IEnumerable<IChange>
 {
     private readonly Dictionary<object, IChange> _changes;
     private readonly HashSet<object> _danglingKeys;
+    private readonly IMerger _merger;
 
-    public ChangeSet()
-        : this([], [])
+    public ChangeSet(IMerger merger)
+        : this([], [], merger)
     {
     }
 
-    private ChangeSet(Dictionary<object, IChange> changePkMap, HashSet<object> danglingKeyCache)
+    private ChangeSet(
+        Dictionary<object, IChange> changePkMap,
+        HashSet<object> danglingKeyCache,
+        IMerger merger
+    )
     {
         _changes = changePkMap;
         _danglingKeys = danglingKeyCache;
+        _merger = merger;
     }
 
     public int Count => _changes.Count;
@@ -35,20 +41,20 @@ internal sealed class ChangeSet : IEnumerable<IChange>
 
     internal event EventHandler<RecordRemovedEventArgs>? RecordRemoved;
 
-    public static ChangeSet Merge(ChangeSet existing, ChangeSet incoming)
+    public ChangeSet MergeWith(ChangeSet incoming)
     {
         if (incoming.Count == 0)
         {
             // Assume that all changes have been deleted
-            return new ChangeSet(existing._changes, incoming._danglingKeys);
+            return new ChangeSet(_changes, incoming._danglingKeys, _merger);
         }
 
-        Dictionary<object, IChange> resultMap = new(existing._changes);
+        Dictionary<object, IChange> resultMap = new(_changes);
         foreach ((object primaryKey, IChange incomingChange) in incoming._changes)
         {
-            if (existing._changes.TryGetValue(primaryKey, out IChange? existingChange))
+            if (_changes.TryGetValue(primaryKey, out IChange? existingChange))
             {
-                IChange? merged = Merger.CommitMerge(existingChange, incomingChange);
+                IChange? merged = _merger.Merge(existingChange, incomingChange, MergeMode.Commit);
                 resultMap.Remove(primaryKey);
                 if (merged != null)
                 {
@@ -56,7 +62,7 @@ internal sealed class ChangeSet : IEnumerable<IChange>
                 }
                 else
                 {
-                    existing.RaiseRecordRemoved(primaryKey);
+                    RaiseRecordRemoved(primaryKey);
                 }
             }
             else
@@ -74,7 +80,7 @@ internal sealed class ChangeSet : IEnumerable<IChange>
             }
         }
 
-        return new ChangeSet(resultMap, [.. incoming._danglingKeys]);
+        return new ChangeSet(resultMap, [.. incoming._danglingKeys], _merger);
     }
 
     public void Add(IChange incoming)
@@ -85,7 +91,7 @@ internal sealed class ChangeSet : IEnumerable<IChange>
             && incoming.WriteId == existing.WriteId
         )
         {
-            IChange? merged = Merger.Merge(existing, incoming);
+            IChange? merged = _merger.Merge(existing, incoming, MergeMode.Normal);
             _changes.Remove(primaryKey);
             if (merged is not null)
             {
@@ -100,7 +106,11 @@ internal sealed class ChangeSet : IEnumerable<IChange>
 
     public ChangeSet Copy()
     {
-        return new ChangeSet(new Dictionary<object, IChange>(_changes), [.. _danglingKeys]);
+        return new ChangeSet(
+            new Dictionary<object, IChange>(_changes),
+            [.. _danglingKeys],
+            _merger
+        );
     }
 
     public void MarkAsWritten()

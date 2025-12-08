@@ -3,25 +3,28 @@ using Borm.Model.Validation.Expressions.Visitors;
 
 namespace Borm.Reflection;
 
-internal sealed class ValidationInfo
+public sealed class ValidationInfo
 {
-    private readonly LambdaExpression _lambda;
-    private readonly MemberExpression _propertyAccess;
+    private readonly Expression _lambda;
+    private readonly Expression _propertyAccess;
 
-    public ValidationInfo(LambdaExpression lambda, MemberExpression propertyAccess)
+    internal ValidationInfo(Expression lambda, Expression propertyAccess)
     {
         _lambda = lambda;
         _propertyAccess = propertyAccess;
     }
 
-    public (Expression body, Expression propAccess) AdjustToCommonParameter(
+    internal (Expression body, Expression propAccess) AdjustToCommonParameter(
         ParameterExpression parameter
     )
     {
-        ParameterExpression oldParameter = _lambda.Parameters[0];
+        LambdaExpression lambda =
+            _lambda as LambdaExpression
+            ?? throw new InvalidOperationException("Provided expression is not a lambda expression.");
+        ParameterExpression oldParameter = lambda.Parameters[0];
 
         ParameterExpressionRemapper remapper = new(oldParameter, parameter);
 
-        return (body: remapper.Visit(_lambda.Body), propAccess: remapper.Visit(_propertyAccess));
+        return (body: remapper.Visit(lambda.Body), propAccess: remapper.Visit(_propertyAccess));
     }
 }

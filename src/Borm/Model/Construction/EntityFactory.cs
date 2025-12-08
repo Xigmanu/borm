@@ -42,14 +42,7 @@ internal sealed class EntityFactory<TEntity>
             );
 
         List<IMappable> properties = [];
-        for (int i = 0; i < _properties.Length; i++)
-        {
-            IMappable? property = ParseProperty(_properties[i]);
-            if (property != null)
-            {
-                properties.Add(property);
-            }
-        }
+        properties.AddRange(_properties.Select(ParseProperty).OfType<IMappable>());
 
         _configurationValidator.Validate(properties);
 
@@ -130,6 +123,11 @@ internal sealed class EntityFactory<TEntity>
             return ParseValidator(validatorAttribute.ValidatorType);
         }
 
-        return new ColumnValidatorFactory(_factoryContext, entityType, properties).Create();
+        return new ColumnValidatorFactory(
+            _factoryContext,
+            new ValidationExpressionBuilder(_factoryContext),
+            entityType,
+            properties
+        ).Create();
     }
 }

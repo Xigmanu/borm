@@ -94,4 +94,12 @@ public sealed class ChangeTrackerTest
         Assert.NotNull(actual);
         Assert.Equal(incoming1.Record, actual.Record);
     }
+
+    private sealed class TestMerger : IMerger
+    {
+        public IChange Merge(IChange existing, IChange incoming, MergeMode mode)
+        {
+            return incoming;
+        }
+    }
 }

@@ -26,9 +26,10 @@ public sealed class ChangeMergerTest
             MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         IChange incoming = ChangeFactory.Update(initChange, buffer, txId);
+        Merger merger = new();
 
         // Act
-        IChange? merged = Merger.CommitMerge(initChange, incoming);
+        IChange? merged = merger.Merge(initChange, incoming, MergeMode.Commit);
 
         // Assert
         Assert.NotNull(merged);
@@ -53,9 +54,10 @@ public sealed class ChangeMergerTest
             MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         IChange incoming = ChangeFactory.Update(initChange, buffer, initTxId);
+        Merger merger = new();
 
         // Act
-        IChange? merged = Merger.Merge(initChange, incoming);
+        IChange? merged = merger.Merge(initChange, incoming, MergeMode.Normal);
 
         // Assert
         Assert.NotNull(merged);
@@ -78,9 +80,10 @@ public sealed class ChangeMergerTest
             MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         IChange incoming = ChangeFactory.Update(initChange, buffer, txId);
+        Merger merger = new();
 
         // Act
-        IChange? merged = Merger.Merge(initChange, incoming);
+        IChange? merged = merger.Merge(initChange, incoming, MergeMode.Normal);
 
         // Assert
         Assert.NotNull(merged);
@@ -106,9 +109,10 @@ public sealed class ChangeMergerTest
             MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         IChange incoming = ChangeFactory.Update(initChange, buffer, txId);
+        Merger merger = new();
 
         // Act
-        IChange? merged = Merger.Merge(initChange, incoming);
+        IChange? merged = merger.Merge(initChange, incoming, MergeMode.Normal);
 
         // Assert
         Assert.NotNull(merged);
@@ -131,9 +135,10 @@ public sealed class ChangeMergerTest
 
         const long txId = 1;
         IChange incoming = ChangeFactory.Delete(initChange, initBuffer, txId);
+        Merger merger = new();
 
         // Act
-        IChange? merged = Merger.Merge(initChange, incoming);
+        IChange? merged = merger.Merge(initChange, incoming, MergeMode.Normal);
 
         // Assert
         Assert.Null(merged);
@@ -155,9 +160,11 @@ public sealed class ChangeMergerTest
             MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         IChange incoming = ChangeFactory.Initial(buffer, txId);
+        Merger merger = new();
 
         // Act
-        Exception? exception = Record.Exception(() => _ = Merger.Merge(initChange, incoming));
+        Exception? exception = Record.Exception(() => _ = merger.Merge(initChange, incoming, MergeMode.Normal)
+        );
 
         // Assert
         Assert.NotNull(exception);

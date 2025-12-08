@@ -6,10 +6,10 @@ internal sealed class Parameter : IMappable
     {
         MemberName = memberName;
         DataType = dataType;
-        Mapping = null;
     }
 
     public NullableType DataType { get; }
-    public MappingInfo? Mapping { get; }
+    public MappingInfo? Mapping => null;
     public string MemberName { get; }
+    public ValidationInfo? ValidationInfo => null;
 }

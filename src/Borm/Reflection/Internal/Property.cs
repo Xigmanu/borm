@@ -12,12 +12,11 @@ internal sealed class Property : IMappable
         MemberName = memberName;
         DataType = dataType;
         Mapping = mapping;
-        Validation = validation;
+        ValidationInfo = validation;
     }
-
-    internal ValidationInfo? Validation { get; }
 
     public NullableType DataType { get; }
     public MappingInfo Mapping { get; }
     public string MemberName { get; }
+    public ValidationInfo? ValidationInfo { get; }
 }

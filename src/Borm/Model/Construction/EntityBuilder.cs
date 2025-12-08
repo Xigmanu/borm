@@ -34,13 +34,18 @@ public sealed class EntityBuilder<TEntity>
             .Select(ConstructorParser.Parse)
             .ToList();
 
+        ColumnValidatorFactory validatorFactory = new(
+            _factoryContext,
+            new ValidationExpressionBuilder(_factoryContext),
+            _entityType,
+            _properties
+        );
         return new EntityInfo(
             _name,
             _entityType,
             _properties.AsReadOnly(),
             constructors,
-            _entityValidator
-            ?? new ColumnValidatorFactory(_factoryContext, _entityType, _properties).Create()
+            _entityValidator ?? validatorFactory.Create()
         );
     }
 

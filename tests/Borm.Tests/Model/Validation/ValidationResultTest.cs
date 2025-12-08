@@ -6,6 +6,24 @@ namespace Borm.Tests.Model.Validation;
 public sealed class ValidationResultTest
 {
     [Fact]
+    public void Constructor_InitializesNewInstanceAndSetsProperties()
+    {
+        // Arrange
+        string message = "message";
+        string column = "name";
+        string entity = "entity";
+
+        // Act
+        ValidationResult result = new(message, entity, column, true);
+
+        // Assert
+        Assert.Equal(message, result.Message);
+        Assert.Equal(entity, result.Entity);
+        Assert.Equal(column, result.Column);
+        Assert.True(result.IsError);
+    }
+
+    [Fact]
     public void Error_CreatesValidationResult_WithCorrectPropertyValues()
     {
         // Arrange
@@ -42,5 +60,21 @@ public sealed class ValidationResultTest
         Assert.Equal(entity, result.Entity);
         Assert.Equal(column, result.Column);
         Assert.True(result.IsError);
+    }
+
+    [Fact]
+    public void Ok_ReturnsDefaultResult()
+    {
+        // Arrange
+        string expected = string.Empty;
+
+        // Act
+        ValidationResult result = ValidationResult.Ok();
+
+        // Assert
+        Assert.Equal(expected, result.Message);
+        Assert.Equal(expected, result.Entity);
+        Assert.Equal(expected, result.Column);
+        Assert.False(result.IsError);
     }
 }

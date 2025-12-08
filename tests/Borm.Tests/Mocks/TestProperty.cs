@@ -11,7 +11,19 @@ internal sealed class TestProperty : IMappable
         Mapping = mapping;
     }
 
-    public string MemberName { get; }
+    public TestProperty(
+        string memberName,
+        NullableType dataType,
+        MappingInfo? mapping,
+        ValidationInfo? validationInfo
+    )
+        : this(memberName, dataType, mapping)
+    {
+        ValidationInfo = validationInfo;
+    }
+
     public NullableType DataType { get; }
     public MappingInfo? Mapping { get; }
+    public string MemberName { get; }
+    public ValidationInfo? ValidationInfo { get; }
 }

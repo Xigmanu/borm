@@ -9,9 +9,11 @@ internal sealed class TestParameter : IMappable
         MemberName = memberName;
         DataType = dataType;
         Mapping = null;
+        ValidationInfo = null;
     }
 
     public string MemberName { get; }
     public NullableType DataType { get; }
     public MappingInfo? Mapping { get; }
+    public ValidationInfo? ValidationInfo { get; }
 }
