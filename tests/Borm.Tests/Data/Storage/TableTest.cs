@@ -2,6 +2,7 @@
 using System.Data;
 using Borm.Data.Sql;
 using Borm.Data.Storage;
+using Borm.Data.Storage.Internal;
 using Borm.Data.Storage.Tracking;
 using Borm.Model.Metadata;
 using Borm.Tests.Common;
@@ -20,7 +21,7 @@ public sealed class TableTest
         // Arrange
         long initTxId = -1;
         long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );
@@ -45,7 +46,7 @@ public sealed class TableTest
     {
         // Arrange
         long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );
@@ -62,8 +63,8 @@ public sealed class TableTest
     public void Equals_ReturnsFalse_WhenTablesAreNotEqual()
     {
         // Arrange
-        Table first = _graph[typeof(AddressEntity)]!;
-        Table second = _graph[typeof(PersonEntity)]!;
+        Table first = (Table)_graph[typeof(AddressEntity)]!;
+        Table second = (Table)_graph[typeof(PersonEntity)]!;
 
         // Act
         bool equal = first.Equals(second);
@@ -92,7 +93,7 @@ public sealed class TableTest
     {
         // Arrange
         long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );
@@ -114,7 +115,7 @@ public sealed class TableTest
     {
         // Arrange
         long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns([1, DBNull.Value, DBNull.Value, "city"], table.Metadata.Columns)
         );
@@ -135,7 +136,7 @@ public sealed class TableTest
         // Arrange
         long initTxId = -1;
         long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );
@@ -157,7 +158,7 @@ public sealed class TableTest
     {
         // Arrange
         ResultSet resultSet = new();
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         long initTxId = -1;
 
         // Act
@@ -182,7 +183,7 @@ public sealed class TableTest
         };
         resultSet.AddRow(row);
         long initTxId = -1;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );
@@ -206,7 +207,7 @@ public sealed class TableTest
         // Arrange
         long initTxId = -1;
         long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );
@@ -233,7 +234,7 @@ public sealed class TableTest
         // Arrange
         long initTxId = -1;
         long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );
@@ -261,7 +262,7 @@ public sealed class TableTest
     {
         // Arrange
         long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );

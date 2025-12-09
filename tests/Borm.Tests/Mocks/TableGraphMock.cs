@@ -1,4 +1,5 @@
 ﻿using Borm.Data.Storage;
+using Borm.Data.Storage.Internal;
 
 namespace Borm.Tests.Mocks;
 
@@ -8,9 +9,9 @@ internal static class TableGraphMock
     {
         TableGraph graph = new();
 
-        Table addressesTable = new(EntityMetadataMockFactory.CreateMockAddressEntity());
-        Table personsTable = new(EntityMetadataMockFactory.CreateMockPersonEntity());
-        Table employeesTable = new(EntityMetadataMockFactory.CreateMockEmployeeEntity());
+        ITable addressesTable = new Table(EntityMetadataMockFactory.CreateMockAddressEntity());
+        ITable personsTable = new Table(EntityMetadataMockFactory.CreateMockPersonEntity());
+        ITable employeesTable = new Table(EntityMetadataMockFactory.CreateMockEmployeeEntity());
 
         graph.AddTable(addressesTable);
         graph.AddTable(personsTable);

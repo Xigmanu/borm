@@ -91,7 +91,7 @@ public sealed class DataContext
         }
 
         Type entityType = typeof(T);
-        Table table =
+        ITable table =
             TableGraph[entityType]
             ?? throw new ArgumentException(Strings.MissingTableForEntity(entityType.FullName!));
         Debug.Assert(table != null);

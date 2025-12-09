@@ -47,7 +47,7 @@ internal sealed class BufferPreProcessor
 
     private ResolvedForeignKey ResolveKey(IColumnMetadata column, object columnValue, long txId)
     {
-        Table? parent = _graph[column.Reference!];
+        ITable? parent = _graph[column.Reference!];
         Debug.Assert(parent is not null);
 
         bool changeExists;

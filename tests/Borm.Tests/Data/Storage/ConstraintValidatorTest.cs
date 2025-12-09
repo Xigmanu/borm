@@ -1,8 +1,8 @@
-﻿using System.Data;
-using Borm.Data.Storage;
+﻿using Borm.Data.Storage;
 using Borm.Data.Storage.Tracking;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
+using System.Data;
 using static Borm.Tests.Mocks.ValueBufferMockFactory;
 
 namespace Borm.Tests.Data.Storage;
@@ -15,7 +15,7 @@ public sealed class ConstraintValidatorTest
     public void ValidateBuffer_ThrowsConstraintException_WhenNullConstraintIsViolated()
     {
         // Arrange
-        Table table = _graph[typeof(AddressEntity)]!;
+        ITable table = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns([1, "address", DBNull.Value, DBNull.Value], table.Metadata.Columns)
         );
@@ -34,7 +34,7 @@ public sealed class ConstraintValidatorTest
     public void ValidateBuffer_ThrowsConstraintException_WhenUniqueConstraintIsViolated()
     {
         // Arrange
-        Table table = _graph[typeof(AddressEntity)]!;
+        ITable table = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );
@@ -55,7 +55,7 @@ public sealed class ConstraintValidatorTest
     public void ValidateBuffer_ThrowsNothing_WhenNoConstraintsAreViolated()
     {
         // Arrange
-        Table table = _graph[typeof(AddressEntity)]!;
+        ITable table = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );

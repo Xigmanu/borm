@@ -14,7 +14,7 @@ public sealed class ChangeTrackerTest
     public void AcceptPendingChanges_ConvertsPendingChangeToNormalChange()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeTracker tracker = new();
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
@@ -54,7 +54,7 @@ public sealed class ChangeTrackerTest
     public void PendChange_PendsIncomingChange_WithNoPendingConflict()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeTracker tracker = new();
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
@@ -75,7 +75,7 @@ public sealed class ChangeTrackerTest
     public void PendChange_PendsIncomingChange_WithPendingConflict()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeTracker tracker = new();
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
@@ -93,13 +93,5 @@ public sealed class ChangeTrackerTest
         Assert.True(exists);
         Assert.NotNull(actual);
         Assert.Equal(incoming1.Record, actual.Record);
-    }
-
-    private sealed class TestMerger : IMerger
-    {
-        public IChange Merge(IChange existing, IChange incoming, MergeMode mode)
-        {
-            return incoming;
-        }
     }
 }

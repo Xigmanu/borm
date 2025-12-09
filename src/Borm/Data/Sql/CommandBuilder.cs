@@ -17,7 +17,7 @@ internal sealed class CommandBuilder
         _commandCache = [];
     }
 
-    public IReadOnlyList<DbCommandDefinition> BuildUpdateCommands(Table table)
+    public IReadOnlyList<DbCommandDefinition> BuildUpdateCommands(ITable table)
     {
         IEnumerable<IChange> changes = table.Tracker.Changes;
         if (!changes.Any())

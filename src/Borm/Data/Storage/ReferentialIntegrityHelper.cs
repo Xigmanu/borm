@@ -12,11 +12,11 @@ internal sealed class ReferentialIntegrityHelper
         _graph = graph;
     }
 
-    public HashSet<Table> ApplyDeleteRules(Table table, object parentPrimaryKey, long txId)
+    public HashSet<ITable> ApplyDeleteRules(ITable table, object parentPrimaryKey, long txId)
     {
-        HashSet<Table> affectedTables = [];
-        IEnumerable<Table> children = _graph.GetChildren(table);
-        foreach (Table child in children)
+        HashSet<ITable> affectedTables = [];
+        IEnumerable<ITable> children = _graph.GetChildren(table);
+        foreach (ITable child in children)
         {
             IEnumerable<IColumnMetadata> foreignKeys = child.Metadata.Columns.Where(c =>
                 c.Reference is not null
@@ -40,7 +40,7 @@ internal sealed class ReferentialIntegrityHelper
     }
 
     private static void ExecuteOnDeleteAction(
-        Table child,
+        ITable child,
         IColumnMetadata foreignKey,
         IValueBuffer childBuffer,
         long txId
@@ -64,7 +64,7 @@ internal sealed class ReferentialIntegrityHelper
     }
 
     private static IEnumerable<IValueBuffer> FindChildrenBuffers(
-        Table child,
+        ITable child,
         IColumnMetadata foreignKey,
         object parentPrimaryKey
     )

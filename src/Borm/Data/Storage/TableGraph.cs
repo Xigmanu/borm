@@ -8,16 +8,16 @@ namespace Borm.Data.Storage;
 [DebuggerDisplay("TableCount = {TableCount}")]
 internal sealed class TableGraph
 {
-    private readonly Dictionary<Table, HashSet<Table>> _children = [];
-    private readonly Dictionary<Table, HashSet<Table>> _parents = [];
-    private readonly HashSet<Table> _tables = [];
+    private readonly Dictionary<ITable, HashSet<ITable>> _children = [];
+    private readonly Dictionary<ITable, HashSet<ITable>> _parents = [];
+    private readonly HashSet<ITable> _tables = [];
 
     public int TableCount => _tables.Count;
 
-    public Table? this[Type entityType] =>
+    public ITable? this[Type entityType] =>
         _tables.FirstOrDefault(t => t.Metadata.Type == entityType);
 
-    public void AddEdge(Table parent, Table child)
+    public void AddEdge(ITable parent, ITable child)
     {
         Debug.Assert(_tables.Contains(parent) && _tables.Contains(child) && !parent.Equals(child));
 
@@ -25,22 +25,22 @@ internal sealed class TableGraph
         InternalAddRelation(child, parent, _parents);
     }
 
-    public void AddTable(Table table)
+    public void AddTable(ITable table)
     {
         _ = _tables.Add(table);
     }
 
-    public IEnumerable<Table> GetChildren(Table table)
+    public IEnumerable<ITable> GetChildren(ITable table)
     {
         return GetEdges(table, _children);
     }
 
-    public IEnumerable<Table> GetParents(Table table)
+    public IEnumerable<ITable> GetParents(ITable table)
     {
         return GetEdges(table, _parents);
     }
 
-    public TableInfo GetTableSchema(Table table)
+    public TableInfo GetTableSchema(ITable table)
     {
         List<ColumnInfo> columns = [];
         Dictionary<ColumnInfo, TableInfo> fkRelationMap = [];
@@ -55,7 +55,12 @@ internal sealed class TableGraph
             ColumnInfo columnInfo;
             if (column.Reference == null)
             {
-                columnInfo = new ColumnInfo(columnName, column.DataType.UnderlyingType, isUnique, isNullable);
+                columnInfo = new ColumnInfo(
+                    columnName,
+                    column.DataType.UnderlyingType,
+                    isUnique,
+                    isNullable
+                );
                 columns.Add(columnInfo);
 
                 if (column.Constraints.HasFlag(Constraints.PrimaryKey))
@@ -66,7 +71,7 @@ internal sealed class TableGraph
                 continue;
             }
 
-            Table? parent = this[column.Reference!];
+            ITable? parent = this[column.Reference!];
             Debug.Assert(parent is not null);
 
             columnInfo = new ColumnInfo(
@@ -90,28 +95,28 @@ internal sealed class TableGraph
         );
     }
 
-    public IEnumerable<Table> TopSort()
+    public IEnumerable<ITable> TopSort()
     {
-        List<Table> result = [];
-        HashSet<Table> visited = [];
+        List<ITable> result = [];
+        HashSet<ITable> visited = [];
 
-        foreach (Table table in _tables)
+        foreach (ITable table in _tables)
         {
             Visit(table);
         }
 
         return result;
 
-        void Visit(Table table)
+        void Visit(ITable table)
         {
             if (!visited.Add(table))
             {
                 return;
             }
 
-            if (_parents.TryGetValue(table, out HashSet<Table>? parents))
+            if (_parents.TryGetValue(table, out HashSet<ITable>? parents))
             {
-                foreach (Table parent in parents)
+                foreach (ITable parent in parents)
                 {
                     Visit(parent);
                 }
@@ -121,9 +126,12 @@ internal sealed class TableGraph
         }
     }
 
-    private static HashSet<Table> GetEdges(Table table, Dictionary<Table, HashSet<Table>> edgeMap)
+    private static HashSet<ITable> GetEdges(
+        ITable table,
+        Dictionary<ITable, HashSet<ITable>> edgeMap
+    )
     {
-        if (edgeMap.TryGetValue(table, out HashSet<Table>? successors))
+        if (edgeMap.TryGetValue(table, out HashSet<ITable>? successors))
         {
             return successors;
         }
@@ -132,12 +140,12 @@ internal sealed class TableGraph
     }
 
     private static void InternalAddRelation(
-        Table from,
-        Table to,
-        Dictionary<Table, HashSet<Table>> edgeMap
+        ITable from,
+        ITable to,
+        Dictionary<ITable, HashSet<ITable>> edgeMap
     )
     {
-        if (edgeMap.TryGetValue(from, out HashSet<Table>? successors))
+        if (edgeMap.TryGetValue(from, out HashSet<ITable>? successors))
         {
             _ = successors.Add(to);
             return;

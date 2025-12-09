@@ -8,11 +8,11 @@ using Borm.Model.Metadata;
 using Borm.Properties;
 using Borm.Util;
 
-namespace Borm.Data.Storage;
+namespace Borm.Data.Storage.Internal;
 
 [DebuggerDisplay("Name = {Name}")]
 [DebuggerTypeProxy(typeof(TableDebugView))]
-internal sealed class Table
+internal sealed class Table : ITable
 {
     private readonly ConstraintValidator _constraintValidator;
 
@@ -22,64 +22,39 @@ internal sealed class Table
         _constraintValidator = new ConstraintValidator(this);
     }
 
+    public IEntityMetadata Metadata { get; }
     public string Name => Metadata.Name;
-    internal IEntityMetadata Metadata { get; }
+    public ChangeTracker Tracker { get; } = new();
 
-    internal ChangeTracker Tracker { get; } = new();
-
-    public void Delete(IValueBuffer buffer, long txId)
+    public void Delete(IValueBuffer record, long txId)
     {
-        AssertBufferValuesAreSimple(buffer);
+        AssertBufferValuesAreSimple(record);
 
-        object primaryKey = buffer.PrimaryKey;
+        object primaryKey = record.PrimaryKey;
 
         IChange existing = GetChangeOrThrow(txId, primaryKey);
 
-        IChange change = ChangeFactory.Delete(existing, buffer, txId);
+        IChange change = ChangeFactory.Delete(existing, record, txId);
         Tracker.PendChange(change);
     }
 
-    public override bool Equals(object? obj)
+    public void Insert(IValueBuffer record, long txId)
     {
-        return obj is Table other && other.Metadata.Equals(Metadata);
-    }
+        AssertBufferValuesAreSimple(record);
 
-    public override int GetHashCode()
-    {
-        return Metadata.GetHashCode();
-    }
-
-    public void Insert(IValueBuffer buffer, long txId)
-    {
-        AssertBufferValuesAreSimple(buffer);
-
-        object primaryKey = buffer.PrimaryKey;
+        object primaryKey = record.PrimaryKey;
         if (Tracker.TryGetChange(primaryKey, txId, out _))
         {
             throw new ConstraintException(Strings.PrimaryKeyConstraintViolation(Name, primaryKey));
         }
 
-        _constraintValidator.ValidateBuffer(buffer, txId);
+        _constraintValidator.ValidateBuffer(record, txId);
 
-        IChange change = ChangeFactory.NewChange(buffer, txId);
+        IChange change = ChangeFactory.NewChange(record, txId);
         Tracker.PendChange(change);
     }
 
-    public void Update(IValueBuffer buffer, long txId)
-    {
-        AssertBufferValuesAreSimple(buffer);
-
-        object primaryKey = buffer.PrimaryKey;
-
-        _constraintValidator.ValidateBuffer(buffer, txId);
-
-        IChange existing = GetChangeOrThrow(txId, primaryKey);
-
-        IChange change = ChangeFactory.Update(existing, buffer, txId);
-        Tracker.PendChange(change);
-    }
-
-    internal void Load(ResultSet resultSet, long txId)
+    public void Load(ResultSet resultSet, long txId)
     {
         Debug.Assert(txId == Transaction.InitId);
         if (resultSet.RowCount == 0)
@@ -116,16 +91,40 @@ internal sealed class Table
         }
     }
 
+    public void Update(IValueBuffer record, long txId)
+    {
+        AssertBufferValuesAreSimple(record);
+
+        object primaryKey = record.PrimaryKey;
+
+        _constraintValidator.ValidateBuffer(record, txId);
+
+        IChange existing = GetChangeOrThrow(txId, primaryKey);
+
+        IChange change = ChangeFactory.Update(existing, record, txId);
+        Tracker.PendChange(change);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Table other && other.Metadata.Equals(Metadata);
+    }
+
+    public override int GetHashCode()
+    {
+        return Metadata.GetHashCode();
+    }
+
     [Conditional("DEBUG")]
     [ExcludeFromCodeCoverage]
     private void AssertBufferValuesAreSimple(
-        IValueBuffer buffer,
+        IValueBuffer record,
         [CallerMemberName] string? callerName = null
     )
     {
         const string messageFormat =
-            "Incoming buffer contains illegal values. Table: '{0}', Column: '{1}', Value: '{2}', Operation: '{3}'";
-        foreach ((IColumnMetadata column, object value) in buffer)
+            "Incoming record contains illegal values. Table: '{0}', Column: '{1}', Value: '{2}', Operation: '{3}'";
+        foreach ((IColumnMetadata column, object value) in record)
         {
             Debug.Assert(
                 ColumnDataTypeHelper.IsSupported(value.GetType()) || value == DBNull.Value,

@@ -14,7 +14,7 @@ public sealed class ChangeFactoryTest
     public void Delete_ReturnsDeleteChange()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -41,7 +41,7 @@ public sealed class ChangeFactoryTest
     public void InitChange_ReturnsInitialChange()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -62,7 +62,7 @@ public sealed class ChangeFactoryTest
     public void NewChange_ReturnsInsertChange()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -83,7 +83,7 @@ public sealed class ChangeFactoryTest
     public void Update_ReturnsUpdateChange()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );

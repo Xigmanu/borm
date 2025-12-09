@@ -15,7 +15,7 @@ public sealed class ChangeSetTest
     public void Add_AddsChange_WithMatchingPrimaryKeys()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -39,7 +39,7 @@ public sealed class ChangeSetTest
     public void Add_AddsChange_WithMatchingPrimaryKeysAndNullMerge()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -61,7 +61,7 @@ public sealed class ChangeSetTest
     public void Add_AddsChange_WithNoConflict()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -81,7 +81,7 @@ public sealed class ChangeSetTest
     public void MarkAsWritten_MarksAllNonDeleteChangesAsWritten()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -103,7 +103,7 @@ public sealed class ChangeSetTest
     public void MarkAsWritten_RemovesAllDeleteChanges()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -126,7 +126,7 @@ public sealed class ChangeSetTest
     public void Merge_MergesExistingWithIncoming_WithConflict()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeSet existing = new(_testMerger);
         IValueBuffer initial = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
@@ -155,7 +155,7 @@ public sealed class ChangeSetTest
     public void Merge_MergesExistingWithIncoming_WithNoConflict()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeSet existing = new(_testMerger);
         IValueBuffer initial = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
@@ -188,7 +188,7 @@ public sealed class ChangeSetTest
     public void Merge_ThrowsInvalidOperationException_WhenNonExistingRowIsModified()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeSet existing = new(_testMerger);
         IValueBuffer initial = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)

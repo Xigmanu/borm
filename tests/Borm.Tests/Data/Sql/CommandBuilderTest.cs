@@ -27,7 +27,7 @@ public sealed class CommandBuilderTest
         const long initialTxId = -1;
         const long txId = 0;
         CommandBuilder builder = new(_graph, CommandFactory);
-        Table table = _graph[typeof(AddressEntity)]!;
+        ITable table = _graph[typeof(AddressEntity)]!;
 
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
@@ -57,7 +57,7 @@ public sealed class CommandBuilderTest
         // Arrange
         long txId = 0;
         CommandBuilder builder = new(_graph, CommandFactory);
-        Table table = _graph[typeof(AddressEntity)]!;
+        ITable table = _graph[typeof(AddressEntity)]!;
 
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
@@ -84,7 +84,7 @@ public sealed class CommandBuilderTest
         long initialTxId = -1;
         long txId = 0;
         CommandBuilder builder = new(_graph, CommandFactory);
-        Table table = _graph[typeof(AddressEntity)]!;
+        ITable table = _graph[typeof(AddressEntity)]!;
 
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
@@ -113,7 +113,7 @@ public sealed class CommandBuilderTest
     {
         // Arrange
         CommandBuilder builder = new(_graph, CommandFactory);
-        Table table = _graph[typeof(AddressEntity)]!;
+        ITable table = _graph[typeof(AddressEntity)]!;
 
         // Act
         IEnumerable<DbCommandDefinition> commands = builder.BuildUpdateCommands(table);
@@ -128,7 +128,7 @@ public sealed class CommandBuilderTest
         // Arrange
         long initialTxId = -1;
         CommandBuilder builder = new(_graph, CommandFactory);
-        Table table = _graph[typeof(AddressEntity)]!;
+        ITable table = _graph[typeof(AddressEntity)]!;
 
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)

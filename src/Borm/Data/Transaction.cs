@@ -21,10 +21,10 @@ public sealed class Transaction : IDisposable
     internal const long InitId = -1;
     private const int MaxRetries = 3;
 
-    private readonly HashSet<Table> _changedTables;
+    private readonly HashSet<ITable> _changedTables;
     private readonly TableGraph _graph;
     private readonly long _id;
-    private readonly Queue<Action<long, HashSet<Table>>> _operationQueue;
+    private readonly Queue<Action<long, HashSet<ITable>>> _operationQueue;
 
     private int _attempt;
     private Exception? _exception;
@@ -59,7 +59,7 @@ public sealed class Transaction : IDisposable
         CommitPendingChanges();
     }
 
-    internal void Execute(Action<long, HashSet<Table>> tableOperation)
+    internal void Execute(Action<long, HashSet<ITable>> tableOperation)
     {
         if (_exception != null)
         {
@@ -87,11 +87,11 @@ public sealed class Transaction : IDisposable
 
         try
         {
-            HashSet<Table> processed = [];
-            foreach (Table changedTable in _changedTables)
+            HashSet<ITable> processed = [];
+            foreach (ITable changedTable in _changedTables)
             {
-                List<Table> tables = [.. _graph.GetParents(changedTable), changedTable];
-                foreach (Table table in tables.Where(processed.Add))
+                List<ITable> tables = [.. _graph.GetParents(changedTable), changedTable];
+                foreach (ITable table in tables.Where(processed.Add))
                 {
                     table.Tracker.AcceptPendingChanges(_id);
                 }
@@ -113,7 +113,7 @@ public sealed class Transaction : IDisposable
     {
         for (int i = 0; i < _operationQueue.Count; i++)
         {
-            Action<long, HashSet<Table>> operation = _operationQueue.Dequeue();
+            Action<long, HashSet<ITable>> operation = _operationQueue.Dequeue();
             Execute(operation);
         }
     }

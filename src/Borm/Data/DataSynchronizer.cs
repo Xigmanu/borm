@@ -24,8 +24,8 @@ internal sealed class DataSynchronizer
 
     public void SaveChanges()
     {
-        IEnumerable<Table> sorted = _graph.TopSort();
-        foreach (Table table in sorted)
+        IEnumerable<ITable> sorted = _graph.TopSort();
+        foreach (ITable table in sorted)
         {
             IEnumerable<DbCommandDefinition> commands = _commandBuilder.BuildUpdateCommands(table);
             foreach (DbCommandDefinition command in commands)
@@ -39,8 +39,8 @@ internal sealed class DataSynchronizer
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        IEnumerable<Table> sorted = _graph.TopSort();
-        foreach (Table table in sorted)
+        IEnumerable<ITable> sorted = _graph.TopSort();
+        foreach (ITable table in sorted)
         {
             IEnumerable<DbCommandDefinition> commands = _commandBuilder.BuildUpdateCommands(table);
             foreach (DbCommandDefinition command in commands)
@@ -55,7 +55,7 @@ internal sealed class DataSynchronizer
     public void SyncSchemaWithDataSource()
     {
         using Transaction transaction = new(Transaction.InitId, _graph);
-        foreach (Table table in _graph.TopSort())
+        foreach (ITable table in _graph.TopSort())
         {
             TableInfo tableSchema = _graph.GetTableSchema(table);
             if (!_executor.TableExists(table.Name))

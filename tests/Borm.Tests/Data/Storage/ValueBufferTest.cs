@@ -37,7 +37,7 @@ public sealed class ValueBufferTest
     {
         // Arrange
         object[] values = [1, "address", DBNull.Value, "city"];
-        Table table = _graph[typeof(AddressEntity)]!;
+        ITable table = _graph[typeof(AddressEntity)]!;
         IReadOnlyList<IColumnMetadata> columns = table.Metadata.Columns;
         ValueBuffer buffer = new();
         for (int i = 0; i < columns.Count; i++)

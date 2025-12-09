@@ -14,8 +14,8 @@ public sealed class EntityMaterializerTest
     public void Materialize_CreatesEntityObjectFromBuffer_WithRelationalEntity()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
-        Table personsTable = _graph[typeof(PersonEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable personsTable = _graph[typeof(PersonEntity)]!;
 
         AddressEntity expectedDependency = new(1, "address", null, "city");
         IChange change = ChangeFactory.Initial(
@@ -43,7 +43,7 @@ public sealed class EntityMaterializerTest
     public void Materialize_CreatesEntityObjectFromBuffer_WithRelationalEntityAndNullDependency()
     {
         // Arrange
-        Table personsTable = _graph[typeof(PersonEntity)]!;
+        ITable personsTable = _graph[typeof(PersonEntity)]!;
 
         PersonEntity expected = new(1, "name", 42.619, null);
         IValueBuffer buffer = CreateBuffer(
@@ -64,7 +64,7 @@ public sealed class EntityMaterializerTest
     public void Materialize_CreatesEntityObjectFromBuffer_WithSimpleEntity()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );

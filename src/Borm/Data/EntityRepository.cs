@@ -11,9 +11,9 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     private readonly ReferentialIntegrityHelper _integrityHelper;
     private readonly EntityMaterializer _materializer;
     private readonly BufferPreProcessor _preProcessor;
-    private readonly Table _table;
+    private readonly ITable _table;
 
-    public EntityRepository(Table table, TableGraph graph)
+    public EntityRepository(ITable table, TableGraph graph)
     {
         _preProcessor = new BufferPreProcessor(graph);
         _graph = graph;
@@ -68,7 +68,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     }
 
     private static RecordNotFoundException NewRecordNotFoundException(
-        Table table,
+        ITable table,
         object primaryKey
     )
     {
@@ -77,7 +77,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
 
     private static void ValidateForeignKey(long txId, ResolvedForeignKey resolvedKey)
     {
-        Table parent = resolvedKey.Parent;
+        ITable parent = resolvedKey.Parent;
 
         if (resolvedKey.IsComplexRecord)
         {
@@ -92,7 +92,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         }
     }
 
-    private Action<long, HashSet<Table>> CreateDeleteClosure(object entity)
+    private Action<long, HashSet<ITable>> CreateDeleteClosure(object entity)
     {
         return (txId, affectedTables) =>
         {
@@ -105,7 +105,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             _table.Delete(preProcessed, txId);
             affectedTables.Add(_table);
 
-            HashSet<Table> affectedChildren = _integrityHelper.ApplyDeleteRules(
+            HashSet<ITable> affectedChildren = _integrityHelper.ApplyDeleteRules(
                 _table,
                 preProcessed.PrimaryKey,
                 txId
@@ -114,7 +114,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         };
     }
 
-    private Action<long, HashSet<Table>> CreateInsertClosure(object entity)
+    private Action<long, HashSet<ITable>> CreateInsertClosure(object entity)
     {
         return (txId, affectedTables) =>
         {
@@ -128,7 +128,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
         };
     }
 
-    private Action<long, HashSet<Table>> CreateUpdateClosure(object entity)
+    private Action<long, HashSet<ITable>> CreateUpdateClosure(object entity)
     {
         return (txId, affectedTables) =>
         {
@@ -155,10 +155,10 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
     }
 
     private void InsertRecursively(
-        Table table,
+        ITable table,
         IValueBuffer buffer,
         long txId,
-        HashSet<Table> affectedTables
+        HashSet<ITable> affectedTables
     )
     {
         List<ResolvedForeignKey> resolvedKeys = _preProcessor.ResolveForeignKeys(
@@ -166,7 +166,7 @@ internal sealed class EntityRepository<T> : IEntityRepository<T>
             txId,
             out IValueBuffer preProcessed
         );
-        foreach ((Table parent, object primaryKey, object rawValue, bool isComplexRecord, bool changeExists) in
+        foreach ((ITable parent, object primaryKey, object rawValue, bool isComplexRecord, bool changeExists) in
                  resolvedKeys)
         {
             if (changeExists)

@@ -37,8 +37,8 @@ public sealed class BufferPreProcessorTest
     public void ResolveForeignKeys_ReturnsResolvedKeysAndModifiedBuffer_WithComplexRelationalBuffer()
     {
         // Arrange
-        Table addressTable = _graph[typeof(AddressEntity)]!;
-        Table personTable = _graph[typeof(PersonEntity)]!;
+        ITable addressTable = _graph[typeof(AddressEntity)]!;
+        ITable personTable = _graph[typeof(PersonEntity)]!;
         long initialTxId = -1;
 
         IValueBuffer addressBuffer = CreateBuffer(
@@ -82,8 +82,8 @@ public sealed class BufferPreProcessorTest
     public void ResolveForeignKeys_ReturnsResolvedKeysAndSameBuffer_WithSimpleRelationalBuffer()
     {
         // Arrange
-        Table employeeTable = _graph[typeof(EmployeeEntity)]!;
-        Table personTable = _graph[typeof(PersonEntity)]!;
+        ITable employeeTable = _graph[typeof(EmployeeEntity)]!;
+        ITable personTable = _graph[typeof(PersonEntity)]!;
         long initialTxId = -1;
 
         IValueBuffer personBuffer = CreateBuffer(
