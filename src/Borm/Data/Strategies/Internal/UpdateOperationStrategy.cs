@@ -2,7 +2,7 @@
 using Borm.Model.Metadata;
 using Borm.Properties;
 
-namespace Borm.Data.Strategies;
+namespace Borm.Data.Strategies.Internal;
 
 internal sealed class UpdateOperationStrategy : IDataOperationStrategy
 {

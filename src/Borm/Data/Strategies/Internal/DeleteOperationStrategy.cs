@@ -1,7 +1,7 @@
 ﻿using Borm.Data.Storage;
 using Borm.Model.Metadata;
 
-namespace Borm.Data.Strategies;
+namespace Borm.Data.Strategies.Internal;
 
 internal sealed class DeleteOperationStrategy : IDataOperationStrategy
 {
