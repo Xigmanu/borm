@@ -1,27 +1,28 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Borm.Data.Storage;
 using Borm.Model.Metadata;
 
-namespace Borm.Data.Storage;
+namespace Borm.Data.Internal;
 
-internal sealed class BufferPreProcessor
+internal sealed class RecordPreProcessor : IRecordPreProcessor
 {
     private readonly TableGraph _graph;
 
-    public BufferPreProcessor(TableGraph graph)
+    public RecordPreProcessor(TableGraph graph)
     {
         _graph = graph;
     }
 
-    public List<ResolvedForeignKey> ResolveForeignKeys(
-        IValueBuffer buffer,
+    public IValueBuffer Process(
+        IValueBuffer record,
         long txId,
-        out IValueBuffer processed
+        out IEnumerable<ResolvedForeignKey> keys
     )
     {
-        processed = new ValueBuffer();
+        ValueBuffer processed = new();
         List<ResolvedForeignKey> resolvedKeys = [];
-        foreach ((IColumnMetadata column, object columnValue) in buffer)
+        foreach ((IColumnMetadata column, object columnValue) in record)
         {
             if (!IsValueSimple(column, columnValue))
             {
@@ -35,7 +36,8 @@ internal sealed class BufferPreProcessor
             processed[column] = columnValue;
         }
 
-        return resolvedKeys;
+        keys = resolvedKeys.AsReadOnly();
+        return processed;
     }
 
     [DebuggerStepThrough]
@@ -55,25 +57,13 @@ internal sealed class BufferPreProcessor
         if (column.DataType.UnderlyingType != metadata.Type)
         {
             changeExists = parent.Tracker.TryGetChange(columnValue, txId, out _);
-            return new ResolvedForeignKey(
-                parent,
-                columnValue,
-                columnValue,
-                false,
-                changeExists
-            );
+            return new ResolvedForeignKey(parent, columnValue, columnValue, false, changeExists);
         }
 
         IValueBuffer parentBuffer = metadata.Conversion.ToValueBuffer(columnValue);
         object primaryKey = parentBuffer.PrimaryKey;
 
         changeExists = parent.Tracker.TryGetChange(primaryKey, txId, out _);
-        return new ResolvedForeignKey(
-            parent,
-            primaryKey,
-            columnValue,
-            true,
-            changeExists
-        );
+        return new ResolvedForeignKey(parent, primaryKey, columnValue, true, changeExists);
     }
 }

@@ -24,7 +24,7 @@ public sealed class Transaction : IDisposable
     private readonly HashSet<ITable> _changedTables;
     private readonly TableGraph _graph;
     private readonly long _id;
-    private readonly Queue<Action<long, HashSet<ITable>>> _operationQueue;
+    private readonly Queue<TransactionOperation> _operationQueue;
 
     private int _attempt;
     private Exception? _exception;
@@ -59,7 +59,7 @@ public sealed class Transaction : IDisposable
         CommitPendingChanges();
     }
 
-    internal void Execute(Action<long, HashSet<ITable>> tableOperation)
+    internal void Execute(TransactionOperation operation)
     {
         if (_exception != null)
         {
@@ -68,8 +68,8 @@ public sealed class Transaction : IDisposable
 
         try
         {
-            _operationQueue.Enqueue(tableOperation);
-            tableOperation(_id, _changedTables);
+            _operationQueue.Enqueue(operation);
+            operation(_id, _changedTables);
         }
         catch (Exception ex)
         {
@@ -113,7 +113,7 @@ public sealed class Transaction : IDisposable
     {
         for (int i = 0; i < _operationQueue.Count; i++)
         {
-            Action<long, HashSet<ITable>> operation = _operationQueue.Dequeue();
+            TransactionOperation operation = _operationQueue.Dequeue();
             Execute(operation);
         }
     }

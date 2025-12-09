@@ -1,22 +1,22 @@
-﻿using Borm.Model;
+﻿using Borm.Data.Storage;
+using Borm.Model;
 using Borm.Model.Metadata;
 
-namespace Borm.Data.Storage;
+namespace Borm.Data.Internal;
 
-internal sealed class ReferentialIntegrityHelper
+internal sealed class DeleteRuleRunner : IReferentialActionExecutor
 {
     private readonly TableGraph _graph;
 
-    public ReferentialIntegrityHelper(TableGraph graph)
+    public DeleteRuleRunner(TableGraph graph)
     {
         _graph = graph;
     }
 
-    public HashSet<ITable> ApplyDeleteRules(ITable table, object parentPrimaryKey, long txId)
+    public ISet<ITable> Run(ITable table, object parentPk, long txId)
     {
-        HashSet<ITable> affectedTables = [];
-        IEnumerable<ITable> children = _graph.GetChildren(table);
-        foreach (ITable child in children)
+        HashSet<ITable> affected = [];
+        foreach (ITable child in _graph.GetChildren(table))
         {
             IEnumerable<IColumnMetadata> foreignKeys = child.Metadata.Columns.Where(c =>
                 c.Reference is not null
@@ -26,17 +26,17 @@ internal sealed class ReferentialIntegrityHelper
                 IEnumerable<IValueBuffer> affectedRecords = FindChildrenBuffers(
                     child,
                     foreignKey,
-                    parentPrimaryKey
+                    parentPk
                 );
                 foreach (IValueBuffer affectedBuffer in affectedRecords)
                 {
                     ExecuteOnDeleteAction(child, foreignKey, affectedBuffer, txId);
-                    affectedTables.Add(child);
+                    affected.Add(child);
                 }
             }
         }
 
-        return affectedTables;
+        return affected;
     }
 
     private static void ExecuteOnDeleteAction(
