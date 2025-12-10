@@ -3,7 +3,6 @@ using Borm.Data;
 using Borm.Data.Internal;
 using Borm.Data.Storage;
 using Borm.Model;
-using Borm.Model.Validation;
 using Borm.Properties;
 
 namespace Borm;
@@ -42,7 +41,7 @@ public sealed class DataContext
     {
         _configuration = configuration;
         TableGraph = new TableGraph();
-        _initializer = new ContextInitializer(new ModelRelationsValidator());
+        _initializer = new ContextInitializer();
         DataSynchronizer = new DataSynchronizer(
             configuration.CommandExecutor,
             TableGraph,

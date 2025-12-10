@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using Borm.Reflection;
 
-namespace Borm.Model.Metadata;
+namespace Borm.Model.Metadata.Internal;
 
 internal static class ConstructorSelector
 {

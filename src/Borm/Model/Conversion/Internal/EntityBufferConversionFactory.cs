@@ -1,13 +1,14 @@
 ﻿using Borm.Data.Storage;
 using Borm.Model.Metadata;
+using Borm.Model.Metadata.Internal;
 using Borm.Properties;
 using Borm.Reflection;
 
 namespace Borm.Model.Conversion.Internal;
 
-internal static class EntityBufferConversionFactory
+internal sealed class EntityBufferConversionFactory : IEntityBufferConversionFactory
 {
-    public static IEntityBufferConversion Create(
+    public IEntityBufferConversion Create(
         Type entityType,
         IReadOnlyList<IConstructor> constructors,
         IReadOnlyList<IColumnMetadata> columns

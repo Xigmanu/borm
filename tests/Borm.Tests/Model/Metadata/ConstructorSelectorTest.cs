@@ -1,4 +1,4 @@
-﻿using Borm.Model.Metadata;
+﻿using Borm.Model.Metadata.Internal;
 using Borm.Reflection;
 using Borm.Tests.Mocks;
 

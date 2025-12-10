@@ -2,20 +2,18 @@
 using Borm.Model;
 using Borm.Model.Conversion.Internal;
 using Borm.Model.Metadata;
+using Borm.Model.Metadata.Internal;
 using Borm.Model.Validation;
 
 namespace Borm;
 
 internal sealed class ContextInitializer
 {
-    private readonly IConfigurationValidator<IReadOnlyList<EntityInfo>> _modelValidator;
-    private bool _isInitialized;
+    private readonly MetadataFactory<EntityInfo, IEntityMetadata> _entityMetadataFactory =
+        new EntityMetadataFactory(new EntityBufferConversionFactory(), new ColumnMetadataFactory());
 
-    public ContextInitializer(IConfigurationValidator<IReadOnlyList<EntityInfo>> modelValidator)
-    {
-        _modelValidator = modelValidator;
-        _isInitialized = false;
-    }
+    private readonly ModelRelationsValidator _modelValidator = new();
+    private bool _isInitialized;
 
     public void Initialize(DataContext context)
     {
@@ -29,9 +27,7 @@ internal sealed class ContextInitializer
 
         List<IEntityMetadata> metadata =
         [
-            .. model.Select(typeInfo =>
-                EntityMetadataFactory.Create(typeInfo, EntityBufferConversionFactory.Create)
-            ),
+            .. model.Select(typeInfo => _entityMetadataFactory.Create(typeInfo))
         ];
 
         new TableGraphBuilder(metadata).Build(context.TableGraph);

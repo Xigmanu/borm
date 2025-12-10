@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using Borm.Model.Metadata;
 
-namespace Borm.Model.Conversion;
+namespace Borm.Model.Conversion.Internal;
 
 internal abstract class ConverterFactory<T>
     where T : Delegate

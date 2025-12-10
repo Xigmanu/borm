@@ -29,14 +29,14 @@ internal sealed class ValidationExpressionBuilder : IValidationExpressionBuilder
         }
 
         (Expression condition, Expression propAccess) = info.AdjustToCommonParameter(entity);
-        MemberExpression nameProperty = Expression.Property(metadata, _context.EMetaName);
+        MemberExpression nameProperty = Expression.Property(metadata, _context.MetaName);
 
         MethodCallExpression getColCall = Expression.Call(
             metadata,
             _context.EMetaGetColumn,
             Expression.Constant(property.MemberName)
         );
-        MemberExpression cName = Expression.Property(getColCall, _context.CMetaName);
+        MemberExpression cName = Expression.Property(getColCall, _context.MetaName);
 
         MethodCallExpression errorCall = Expression.Call(
             _context.ErrorMethod,

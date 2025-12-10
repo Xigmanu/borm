@@ -12,9 +12,8 @@ public sealed class ColumnValidatorFactoryContextTest
 
         // Assert
         Assert.NotNull(context.OkMethod);
-        Assert.NotNull(context.CMetaName);
+        Assert.NotNull(context.MetaName);
         Assert.NotNull(context.EMetaGetColumn);
-        Assert.NotNull(context.EMetaName);
         Assert.NotNull(context.ErrorMethod);
         Assert.NotNull(context.VResultType);
     }
