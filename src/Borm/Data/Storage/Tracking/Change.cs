@@ -7,26 +7,26 @@ internal sealed class Change : IChange
         long readTxId,
         long writeTxId,
         bool isWrittenToDataSource,
-        RowAction rowAction
+        OperationKind operation
     )
     {
         Record = record;
         ReadId = readTxId;
         WriteId = writeTxId;
         IsWrittenToDataSource = isWrittenToDataSource;
-        RowAction = rowAction;
+        Operation = operation;
     }
 
     public bool IsWrittenToDataSource { get; private set; }
     public long ReadId { get; }
     public IValueBuffer Record { get; }
-    public RowAction RowAction { get; private set; }
+    public OperationKind Operation { get; private set; }
     public long WriteId { get; }
 
     public void MarkAsWritten()
     {
         IsWrittenToDataSource = true;
-        RowAction = RowAction.None;
+        Operation = OperationKind.None;
     }
 
     public override bool Equals(object? obj)

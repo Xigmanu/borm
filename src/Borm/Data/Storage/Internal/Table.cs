@@ -137,7 +137,7 @@ internal sealed class Table : ITable
     {
         if (
             Tracker.TryGetChange(primaryKey, txId, out IChange? change)
-            && change.RowAction != RowAction.Delete
+            && change.Operation != OperationKind.Delete
         )
         {
             return change;

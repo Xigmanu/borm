@@ -69,7 +69,7 @@ internal sealed class ChangeSet : IEnumerable<IChange>
             {
                 if (
                     incoming._danglingKeys.Contains(primaryKey)
-                    || incomingChange.RowAction != RowAction.Insert
+                    || incomingChange.Operation != OperationKind.Insert
                     && incomingChange.WriteId != Transaction.InitId
                 )
                 {
@@ -117,7 +117,7 @@ internal sealed class ChangeSet : IEnumerable<IChange>
     {
         foreach ((object primaryKey, IChange change) in _changes)
         {
-            if (change.RowAction == RowAction.Delete)
+            if (change.Operation == OperationKind.Delete)
             {
                 _changes.Remove(primaryKey);
             }

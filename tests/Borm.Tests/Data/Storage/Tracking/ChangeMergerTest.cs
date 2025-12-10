@@ -36,7 +36,7 @@ public sealed class ChangeMergerTest
         Assert.Equal(incoming.Record, merged.Record);
         Assert.Equal(incoming.WriteId, merged.ReadId);
         Assert.Equal(incoming.WriteId, merged.WriteId);
-        Assert.Equal(initChange.RowAction, merged.RowAction);
+        Assert.Equal(initChange.Operation, merged.Operation);
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public sealed class ChangeMergerTest
         Assert.Equal(incoming.Record, merged.Record);
         Assert.Equal(initChange.ReadId, merged.ReadId);
         Assert.Equal(incoming.WriteId, merged.WriteId);
-        Assert.Equal(initChange.RowAction, merged.RowAction);
+        Assert.Equal(initChange.Operation, merged.Operation);
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public sealed class ChangeMergerTest
         Assert.Equal(incoming.Record, merged.Record);
         Assert.Equal(initChange.ReadId, merged.ReadId);
         Assert.Equal(incoming.WriteId, merged.WriteId);
-        Assert.Equal(incoming.RowAction, merged.RowAction);
+        Assert.Equal(incoming.Operation, merged.Operation);
     }
 
     [Fact]

@@ -12,19 +12,19 @@ internal sealed class Merger : IMerger
             throw new ConcurrencyConflictException("Record was modified by another transaction");
         }
 
-        RowAction rowAction;
+        OperationKind operation;
         if (existing.IsWrittenToDataSource)
         {
-            rowAction = incoming.RowAction;
+            operation = incoming.Operation;
         }
         else
         {
-            if (incoming.RowAction == RowAction.Delete)
+            if (incoming.Operation == OperationKind.Delete)
             {
                 return null;
             }
 
-            rowAction = existing.RowAction;
+            operation = existing.Operation;
         }
 
         return new Change(
@@ -37,7 +37,7 @@ internal sealed class Merger : IMerger
             },
             incoming.WriteId,
             existing.IsWrittenToDataSource,
-            rowAction
+            operation
         );
     }
 }

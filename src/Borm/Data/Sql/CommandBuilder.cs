@@ -6,7 +6,7 @@ namespace Borm.Data.Sql;
 
 internal sealed class CommandBuilder
 {
-    private readonly Dictionary<RowAction, DbCommandDefinition> _commandCache;
+    private readonly Dictionary<OperationKind, DbCommandDefinition> _commandCache;
     private readonly IDbCommandDefinitionFactory _commandFactory;
     private readonly TableGraph _graph;
 
@@ -29,12 +29,12 @@ internal sealed class CommandBuilder
 
         foreach (IChange change in changes)
         {
-            RowAction action = change.RowAction;
-            DbCommandDefinition? command = change.RowAction switch
+            OperationKind action = change.Operation;
+            DbCommandDefinition? command = change.Operation switch
             {
-                RowAction.Insert => GetOrCreate(schema, action, _commandFactory.Insert),
-                RowAction.Update => GetOrCreate(schema, action, _commandFactory.Update),
-                RowAction.Delete => GetOrCreate(schema, action, _commandFactory.Delete),
+                OperationKind.Insert => GetOrCreate(schema, action, _commandFactory.Insert),
+                OperationKind.Update => GetOrCreate(schema, action, _commandFactory.Update),
+                OperationKind.Delete => GetOrCreate(schema, action, _commandFactory.Delete),
                 _ => null
             };
 
@@ -53,7 +53,7 @@ internal sealed class CommandBuilder
     [DebuggerStepThrough]
     private DbCommandDefinition GetOrCreate(
         TableInfo schema,
-        RowAction action,
+        OperationKind action,
         Func<TableInfo, DbCommandDefinition> factoryMethod
     )
     {

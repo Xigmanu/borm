@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Data;
+using Borm.Data;
 using Borm.Data.Sql;
 using Borm.Data.Storage;
 using Borm.Data.Storage.Internal;
@@ -36,7 +37,7 @@ public sealed class TableTest
         ImmutableList<IChange> changes = table.Tracker.Changes;
 
         Assert.Single(changes);
-        Assert.Equal(RowAction.Delete, changes[0].RowAction);
+        Assert.Equal(OperationKind.Delete, changes[0].Operation);
         Assert.Equal(txId, changes[0].WriteId);
         Assert.Equal(buffer, changes[0].Record);
     }
@@ -106,7 +107,7 @@ public sealed class TableTest
         ImmutableList<IChange> changes = table.Tracker.Changes;
 
         Assert.Single(changes);
-        Assert.Equal(RowAction.Insert, changes[0].RowAction);
+        Assert.Equal(OperationKind.Insert, changes[0].Operation);
         Assert.Equal(buffer, changes[0].Record);
     }
 
@@ -196,7 +197,7 @@ public sealed class TableTest
         Assert.Single(table.Tracker.Changes);
 
         IChange change = table.Tracker.Changes[0];
-        Assert.Equal(RowAction.None, change.RowAction);
+        Assert.Equal(OperationKind.None, change.Operation);
         Assert.True(change.IsWrittenToDataSource);
         Assert.Equal(buffer, change.Record);
     }
@@ -224,7 +225,7 @@ public sealed class TableTest
         // Assert
         ImmutableList<IChange> changes = table.Tracker.Changes;
         Assert.Single(changes);
-        Assert.Equal(RowAction.Update, changes[0].RowAction);
+        Assert.Equal(OperationKind.Update, changes[0].Operation);
         Assert.Equal(bufferUpdate, changes[0].Record);
     }
 
@@ -253,7 +254,7 @@ public sealed class TableTest
 
         ImmutableList<IChange> changes = table.Tracker.Changes;
         Assert.Single(changes);
-        Assert.Equal(RowAction.None, changes[0].RowAction);
+        Assert.Equal(OperationKind.None, changes[0].Operation);
         Assert.Equal(buffer, changes[0].Record);
     }
 

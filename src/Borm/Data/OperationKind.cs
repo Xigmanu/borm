@@ -2,6 +2,7 @@
 
 internal enum OperationKind
 {
+    None,
     Insert,
     Update,
     Delete

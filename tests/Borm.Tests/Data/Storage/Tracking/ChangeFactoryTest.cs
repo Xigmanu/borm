@@ -1,4 +1,5 @@
-﻿using Borm.Data.Storage;
+﻿using Borm.Data;
+using Borm.Data.Storage;
 using Borm.Data.Storage.Tracking;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
@@ -32,7 +33,7 @@ public sealed class ChangeFactoryTest
         // Assert
         Assert.Equal(txId, actual.WriteId);
         Assert.Equal(initTxId, actual.ReadId);
-        Assert.Equal(RowAction.Delete, actual.RowAction);
+        Assert.Equal(OperationKind.Delete, actual.Operation);
         Assert.True(actual.IsWrittenToDataSource);
         Assert.Equal(buffer, actual.Record);
     }
@@ -53,7 +54,7 @@ public sealed class ChangeFactoryTest
         // Assert
         Assert.Equal(txId, change.WriteId);
         Assert.Equal(change.ReadId, change.WriteId);
-        Assert.Equal(RowAction.None, change.RowAction);
+        Assert.Equal(OperationKind.None, change.Operation);
         Assert.True(change.IsWrittenToDataSource);
         Assert.Equal(buffer, change.Record);
     }
@@ -74,7 +75,7 @@ public sealed class ChangeFactoryTest
         // Assert
         Assert.Equal(txId, change.WriteId);
         Assert.Equal(change.ReadId, change.WriteId);
-        Assert.Equal(RowAction.Insert, change.RowAction);
+        Assert.Equal(OperationKind.Insert, change.Operation);
         Assert.False(change.IsWrittenToDataSource);
         Assert.Equal(buffer, change.Record);
     }
@@ -101,7 +102,7 @@ public sealed class ChangeFactoryTest
         // Assert
         Assert.Equal(txId, actual.WriteId);
         Assert.Equal(initTxId, actual.ReadId);
-        Assert.Equal(RowAction.Update, actual.RowAction);
+        Assert.Equal(OperationKind.Update, actual.Operation);
         Assert.False(actual.IsWrittenToDataSource);
         Assert.Equal(buffer, actual.Record);
     }
