@@ -8,9 +8,9 @@ internal sealed class CommandBuilder
 {
     private readonly Dictionary<OperationKind, DbCommandDefinition> _commandCache;
     private readonly IDbCommandDefinitionFactory _commandFactory;
-    private readonly TableGraph _graph;
+    private readonly ITableGraph _graph;
 
-    public CommandBuilder(TableGraph graph, IDbCommandDefinitionFactory commandFactory)
+    public CommandBuilder(ITableGraph graph, IDbCommandDefinitionFactory commandFactory)
     {
         _graph = graph;
         _commandFactory = commandFactory;
@@ -25,7 +25,7 @@ internal sealed class CommandBuilder
             return [];
         }
 
-        TableInfo schema = _graph.GetTableSchema(table);
+        TableInfo schema = _graph.GetSchema(table);
 
         foreach (IChange change in changes)
         {

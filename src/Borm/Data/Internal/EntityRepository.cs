@@ -5,12 +5,12 @@ namespace Borm.Data.Internal;
 internal sealed class EntityRepository<T> : IEntityRepository<T>
     where T : class
 {
-    private readonly TableGraph _graph;
+    private readonly ITableGraph _graph;
     private readonly EntityMaterializer _materializer;
     private readonly TransactionOperationFactory _operationFactory;
     private readonly ITable _table;
 
-    public EntityRepository(ITable table, TableGraph graph)
+    public EntityRepository(ITable table, ITableGraph graph)
     {
         _graph = graph;
         _table = table;

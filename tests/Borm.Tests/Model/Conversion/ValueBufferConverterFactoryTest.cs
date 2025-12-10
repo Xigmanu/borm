@@ -9,7 +9,7 @@ namespace Borm.Tests.Model.Conversion;
 
 public sealed class ValueBufferConverterFactoryTest
 {
-    private readonly TableGraph _graph = TableGraphMock.Create();
+    private readonly ITableGraph _graph = TableGraphMock.Create();
 
     [Fact]
     public void Create_ReturnsConverterFunction_WithValidTypeAndColumns()

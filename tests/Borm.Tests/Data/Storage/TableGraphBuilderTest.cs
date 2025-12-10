@@ -8,7 +8,7 @@ namespace Borm.Tests.Data.Storage;
 
 public sealed class TableGraphBuilderTest
 {
-    private readonly TableGraph _graph = TableGraphMock.Create();
+    private readonly ITableGraph _graph = TableGraphMock.Create();
 
     [Fact]
     public void Build_BuildsTableGraph()

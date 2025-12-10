@@ -9,7 +9,7 @@ namespace Borm.Tests.Data.Storage.Tracking;
 
 public sealed class ChangeFactoryTest
 {
-    private readonly TableGraph _graph = TableGraphMock.Create();
+    private readonly ITableGraph _graph = TableGraphMock.Create();
 
     [Fact]
     public void Delete_ReturnsDeleteChange()

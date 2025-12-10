@@ -6,9 +6,9 @@ namespace Borm.Data.Internal;
 
 internal sealed class DeleteRuleRunner : IReferentialActionExecutor
 {
-    private readonly TableGraph _graph;
+    private readonly ITableGraph _graph;
 
-    public DeleteRuleRunner(TableGraph graph)
+    public DeleteRuleRunner(ITableGraph graph)
     {
         _graph = graph;
     }

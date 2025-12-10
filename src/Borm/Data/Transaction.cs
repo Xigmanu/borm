@@ -22,19 +22,19 @@ public sealed class Transaction : IDisposable
     private const int MaxRetries = 3;
 
     private readonly HashSet<ITable> _changedTables;
-    private readonly TableGraph _graph;
+    private readonly ITableGraph _graph;
     private readonly long _id;
     private readonly Queue<TransactionOperation> _operationQueue;
 
     private int _attempt;
     private Exception? _exception;
 
-    internal Transaction(TableGraph graph)
+    internal Transaction(ITableGraph graph)
         : this(IdProvider.Next(), graph)
     {
     }
 
-    internal Transaction(long id, TableGraph graph)
+    internal Transaction(long id, ITableGraph graph)
     {
         _id = id;
         _exception = null;

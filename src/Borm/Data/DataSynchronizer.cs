@@ -8,11 +8,11 @@ internal sealed class DataSynchronizer
     private readonly CommandBuilder _commandBuilder;
     private readonly IDbCommandDefinitionFactory _commandFactory;
     private readonly IDbCommandExecutor _executor;
-    private readonly TableGraph _graph;
+    private readonly ITableGraph _graph;
 
     public DataSynchronizer(
         IDbCommandExecutor executor,
-        TableGraph graph,
+        ITableGraph graph,
         IDbCommandDefinitionFactory commandFactory
     )
     {
@@ -57,7 +57,7 @@ internal sealed class DataSynchronizer
         using Transaction transaction = new(Transaction.InitId, _graph);
         foreach (ITable table in _graph.TopSort())
         {
-            TableInfo tableSchema = _graph.GetTableSchema(table);
+            TableInfo tableSchema = _graph.GetSchema(table);
             if (!_executor.TableExists(table.Name))
             {
                 DbCommandDefinition createTable = _commandFactory.CreateTable(tableSchema);

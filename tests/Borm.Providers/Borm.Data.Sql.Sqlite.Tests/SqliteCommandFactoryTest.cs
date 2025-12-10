@@ -142,10 +142,10 @@ public class SqliteCommandFactoryTest
     {
         List<ColumnInfo> columns =
         [
-            new("id", typeof(int), false, false),
-            new("name", typeof(string), true, false),
-            new("salary", typeof(double), false, false),
-            new("address", typeof(int), false, true)
+            new("id", "persons", typeof(int), false, false),
+            new("name", "persons", typeof(string), true, false),
+            new("salary", "persons", typeof(double), false, false),
+            new("address", "persons", typeof(int), false, true)
         ];
         return new TableInfo(
             "persons",
@@ -162,10 +162,10 @@ public class SqliteCommandFactoryTest
     {
         List<ColumnInfo> columns =
         [
-            new("id", typeof(int), false, false),
-            new("address", typeof(string), false, false),
-            new("address_1", typeof(string), false, true),
-            new("city", typeof(string), false, false)
+            new("id", "persons", typeof(int), false, false),
+            new("address", "persons", typeof(string), false, false),
+            new("address_1", "persons", typeof(string), false, true),
+            new("city", "persons", typeof(string), false, false)
         ];
         return new TableInfo(
             "addresses",

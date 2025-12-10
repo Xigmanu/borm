@@ -18,14 +18,15 @@ internal sealed class TransactionOperationFactory
         _executor = executor;
     }
 
-    public TransactionOperation Create(object entity, ITable table, OperationKind kind)
+    public TransactionOperation Create(object entity, ITable table, OperationKind operation)
     {
-        IDataOperationStrategy strategy = kind switch
+        IDataOperationStrategy strategy = operation switch
         {
             OperationKind.Insert => new InsertOperationStrategy(_preProcessor),
             OperationKind.Update => new UpdateOperationStrategy(_preProcessor),
             OperationKind.Delete => new DeleteOperationStrategy(_preProcessor, _executor),
-            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+            OperationKind.None => throw new NotSupportedException(),
+            _ => throw new NotSupportedException()
         };
 
         return strategy.Create(entity, table);

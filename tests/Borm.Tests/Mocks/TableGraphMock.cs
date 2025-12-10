@@ -5,7 +5,7 @@ namespace Borm.Tests.Mocks;
 
 internal static class TableGraphMock
 {
-    public static TableGraph Create()
+    public static ITableGraph Create()
     {
         TableGraph graph = new();
 

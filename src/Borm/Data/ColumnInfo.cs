@@ -11,9 +11,10 @@ public sealed class ColumnInfo
     /// <param name="dataType">Column's data type</param>
     /// <param name="isUnique">Flag that indicates whether the value in this column is unique across the entire table.</param>
     /// <param name="isNullable">Flag that indicates whether the value of a column can be null.</param>
-    public ColumnInfo(string name, Type dataType, bool isUnique, bool isNullable)
+    internal ColumnInfo(string name, string table, Type dataType, bool isUnique, bool isNullable)
     {
         Name = name;
+        Table = table;
         DataType = dataType;
         IsUnique = isUnique;
         IsNullable = isNullable;
@@ -23,10 +24,12 @@ public sealed class ColumnInfo
     public bool IsNullable { get; }
     public bool IsUnique { get; }
     public string Name { get; }
+    public string Table { get; }
 
     public override bool Equals(object? obj)
     {
         return obj is ColumnInfo other
+               && Table.Equals(other.Table)
                && Name.Equals(other.Name)
                && DataType == other.DataType
                && IsUnique == other.IsUnique
@@ -35,6 +38,6 @@ public sealed class ColumnInfo
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Name, DataType, IsUnique, IsNullable);
+        return HashCode.Combine(Name, Table, DataType, IsUnique, IsNullable);
     }
 }

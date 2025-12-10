@@ -9,7 +9,7 @@ namespace Borm.Tests.Data.Storage;
 
 public sealed class TableGraphTest
 {
-    private readonly TableGraph _graph = TableGraphMock.Create();
+    private readonly ITableGraph _graph = TableGraphMock.Create();
 
     [Fact]
     public void AddEdge_AddsParentChildAndChildParentRelations()
@@ -110,7 +110,7 @@ public sealed class TableGraphTest
     }
 
     [Fact]
-    public void GetTableSchema_ReturnsValidSchema_ForComplexTable()
+    public void GetSchema_ReturnsValidSchema_ForComplexTable()
     {
         // Arrange
         ITable table = _graph[typeof(PersonEntity)]!;
@@ -136,7 +136,7 @@ public sealed class TableGraphTest
         );
 
         // Act
-        TableInfo schema = _graph.GetTableSchema(table);
+        TableInfo schema = _graph.GetSchema(table);
 
         // Assert
         Assert.Equal(expectedSchema.Name, schema.Name);
@@ -165,7 +165,7 @@ public sealed class TableGraphTest
         );
 
         // Act
-        TableInfo schema = _graph.GetTableSchema(table);
+        TableInfo schema = _graph.GetSchema(table);
 
         // Assert
         Assert.Equal(expectedSchema.Name, schema.Name);
@@ -216,11 +216,17 @@ public sealed class TableGraphTest
     private static List<ColumnInfo> CreateTestColumns(ITable table)
     {
         List<ColumnInfo> columns = [];
-        columns.AddRange(table.Metadata.Columns.Select(columnMetadata => new ColumnInfo(columnMetadata.Name,
-            columnMetadata.DataType.UnderlyingType == columnMetadata.Reference
-                ? typeof(int)
-                : columnMetadata.DataType.UnderlyingType, columnMetadata.Constraints.HasFlag(Constraints.Unique),
-            columnMetadata.Constraints.HasFlag(Constraints.AllowDbNull))));
+        columns.AddRange(
+            table.Metadata.Columns.Select(columnMetadata => new ColumnInfo(
+                columnMetadata.Name,
+                table.Name,
+                columnMetadata.DataType.UnderlyingType == columnMetadata.Reference
+                    ? typeof(int)
+                    : columnMetadata.DataType.UnderlyingType,
+                columnMetadata.Constraints.HasFlag(Constraints.Unique),
+                columnMetadata.Constraints.HasFlag(Constraints.AllowDbNull)
+            ))
+        );
 
         return columns;
     }

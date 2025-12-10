@@ -7,9 +7,9 @@ namespace Borm.Data.Internal;
 
 internal sealed class RecordPreProcessor : IRecordPreProcessor
 {
-    private readonly TableGraph _graph;
+    private readonly ITableGraph _graph;
 
-    public RecordPreProcessor(TableGraph graph)
+    public RecordPreProcessor(ITableGraph graph)
     {
         _graph = graph;
     }

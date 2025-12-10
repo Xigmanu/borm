@@ -18,7 +18,7 @@ public sealed class CommandBuilderTest
 
     private static readonly TestDbCommandDefinitionFactory CommandFactory = new();
 
-    private readonly TableGraph _graph = TableGraphMock.Create();
+    private readonly ITableGraph _graph = TableGraphMock.Create();
 
     [Fact]
     public void BuildUpdateCommands_BuildsCommandForTable_Delete()

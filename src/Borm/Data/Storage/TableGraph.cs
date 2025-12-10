@@ -6,7 +6,7 @@ using Borm.Model.Metadata;
 namespace Borm.Data.Storage;
 
 [DebuggerDisplay("TableCount = {TableCount}")]
-internal sealed class TableGraph
+internal sealed class TableGraph : ITableGraph
 {
     private readonly Dictionary<ITable, HashSet<ITable>> _children = [];
     private readonly Dictionary<ITable, HashSet<ITable>> _parents = [];
@@ -40,7 +40,7 @@ internal sealed class TableGraph
         return GetEdges(table, _parents);
     }
 
-    public TableInfo GetTableSchema(ITable table)
+    public TableInfo GetSchema(ITable table)
     {
         List<ColumnInfo> columns = [];
         Dictionary<ColumnInfo, TableInfo> fkRelationMap = [];
@@ -57,6 +57,7 @@ internal sealed class TableGraph
             {
                 columnInfo = new ColumnInfo(
                     columnName,
+                    table.Name,
                     column.DataType.UnderlyingType,
                     isUnique,
                     isNullable
@@ -76,11 +77,12 @@ internal sealed class TableGraph
 
             columnInfo = new ColumnInfo(
                 columnName,
+                table.Name,
                 parent.Metadata.PrimaryKey.DataType.UnderlyingType,
                 isUnique,
                 isNullable
             );
-            TableInfo parentSchema = GetTableSchema(parent);
+            TableInfo parentSchema = GetSchema(parent);
 
             columns.Add(columnInfo);
             fkRelationMap[columnInfo] = parentSchema;

@@ -8,7 +8,7 @@ namespace Borm.Tests.Data.Storage.Tracking;
 
 public sealed class ChangeSetTest
 {
-    private readonly TableGraph _graph = TableGraphMock.Create();
+    private readonly ITableGraph _graph = TableGraphMock.Create();
     private readonly IMerger _testMerger = new TestMerger();
 
     [Fact]

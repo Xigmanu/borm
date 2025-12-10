@@ -6,9 +6,9 @@ namespace Borm.Data.Storage;
 
 internal sealed class EntityMaterializer
 {
-    private readonly TableGraph _graph;
+    private readonly ITableGraph _graph;
 
-    public EntityMaterializer(TableGraph graph)
+    public EntityMaterializer(ITableGraph graph)
     {
         _graph = graph;
     }

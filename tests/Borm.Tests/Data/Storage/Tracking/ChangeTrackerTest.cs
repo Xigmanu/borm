@@ -8,7 +8,7 @@ namespace Borm.Tests.Data.Storage.Tracking;
 
 public sealed class ChangeTrackerTest
 {
-    private readonly TableGraph _graph = TableGraphMock.Create();
+    private readonly ITableGraph _graph = TableGraphMock.Create();
 
     [Fact]
     public void AcceptPendingChanges_ConvertsPendingChangeToNormalChange()

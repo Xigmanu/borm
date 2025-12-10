@@ -14,7 +14,7 @@ namespace Borm.Tests.Data.Storage;
 
 public sealed class TableTest
 {
-    private readonly TableGraph _graph = TableGraphMock.Create();
+    private readonly ITableGraph _graph = TableGraphMock.Create();
 
     [Fact]
     public void Delete_PendsRecordDeletion()
