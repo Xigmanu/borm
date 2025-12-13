@@ -115,14 +115,17 @@ internal sealed class ChangeSet : IEnumerable<IChange>
 
     public void MarkAsWritten()
     {
-        foreach ((object primaryKey, IChange change) in _changes)
+        List<object> keys = _changes.Keys.ToList();
+        foreach (object primaryKey in keys)
         {
+            IChange change = _changes[primaryKey];
+            _changes.Remove(primaryKey);
             if (change.Operation == OperationKind.Delete)
             {
-                _changes.Remove(primaryKey);
+                continue;
             }
 
-            change.MarkAsWritten();
+            _changes[primaryKey] = change.MarkAsCommittedToDataSource();
         }
 
         _danglingKeys.Clear();

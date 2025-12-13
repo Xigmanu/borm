@@ -109,6 +109,36 @@ public sealed class CommandBuilderTest
     }
 
     [Fact]
+    public void BuildUpdateCommands_ReturnsCashedCommand_WhenItAlreadyExistsForTable()
+    {
+        // Arrange
+        long txId = 0;
+        CommandBuilder builder = new(_graph, CommandFactory);
+        ITable table = _graph[typeof(AddressEntity)]!;
+
+        IValueBuffer buffer0 = CreateBuffer(
+            MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
+        );
+        IValueBuffer buffer1 = CreateBuffer(
+            MapValuesToColumns([2, "address", "address_1", "city"], table.Metadata.Columns)
+        );
+        table.Tracker.PendChange(ChangeFactory.NewChange(buffer0, txId));
+        table.Tracker.PendChange(ChangeFactory.NewChange(buffer1, txId));
+        table.Tracker.AcceptPendingChanges(txId);
+
+        // Act
+        IEnumerable<DbCommandDefinition> commands = builder.BuildUpdateCommands(table);
+
+        // Assert
+        Assert.Single(commands);
+
+        DbCommandDefinition command = commands.First();
+        Assert.Equal(string.Format(InsertCmdFormat, table.Name), command.Sql);
+
+        Assert.Equal(2, command.BatchQueue.Count);
+    }
+
+    [Fact]
     public void BuildUpdateCommands_ReturnsEmptyEnumeration_WhenTableHasNoChanges()
     {
         // Arrange

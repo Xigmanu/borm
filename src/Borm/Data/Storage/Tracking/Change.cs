@@ -17,16 +17,15 @@ internal sealed class Change : IChange
         Operation = operation;
     }
 
-    public bool IsWrittenToDataSource { get; private set; }
+    public bool IsWrittenToDataSource { get; }
     public long ReadId { get; }
     public IValueBuffer Record { get; }
-    public OperationKind Operation { get; private set; }
+    public OperationKind Operation { get; }
     public long WriteId { get; }
 
-    public void MarkAsWritten()
+    public IChange MarkAsCommittedToDataSource()
     {
-        IsWrittenToDataSource = true;
-        Operation = OperationKind.None;
+        return new Change(Record, ReadId, WriteId, isWrittenToDataSource: true, OperationKind.None);
     }
 
     public override bool Equals(object? obj)

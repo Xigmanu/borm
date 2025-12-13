@@ -27,8 +27,8 @@ internal sealed class RecordPreProcessor : IRecordPreProcessor
             if (!IsValueSimple(column, columnValue))
             {
                 ResolvedForeignKey key = ResolveKey(column, columnValue, txId);
-                Debug.Assert(key.PrimaryKey != null);
-                processed[column] = key.PrimaryKey;
+                Debug.Assert(key.Value != null);
+                processed[column] = key.Value;
                 resolvedKeys.Add(key);
                 continue;
             }

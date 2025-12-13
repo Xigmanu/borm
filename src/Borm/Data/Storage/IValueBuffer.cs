@@ -4,6 +4,7 @@ namespace Borm.Data.Storage;
 
 internal interface IValueBuffer : IEnumerable<KeyValuePair<IColumnMetadata, object>>
 {
+    int Length { get; }
     object PrimaryKey { get; }
     object this[IColumnMetadata column] { get; set; }
     object this[string columnName] { get; }

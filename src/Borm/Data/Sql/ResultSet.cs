@@ -1,4 +1,4 @@
-﻿using System.Data.Common;
+﻿using System.Data;
 using System.Diagnostics;
 
 namespace Borm.Data.Sql;
@@ -21,13 +21,15 @@ public sealed class ResultSet
     /// </summary>
     public int RowCount => _rows.Count;
 
-    public static ResultSet FromReader(DbDataReader reader)
+    public static ResultSet FromReader(IDataReader reader)
     {
         Debug.Assert(!reader.IsClosed);
 
         ResultSet resultSet = new();
-        List<string> columnNames = reader.GetColumnSchema().Select(c => c.ColumnName).ToList();
+        DataTable? schemaTable = reader.GetSchemaTable();
+        Debug.Assert(schemaTable is not null, "Schema table does not exist");
 
+        List<string> columnNames = GetColumnNames(schemaTable.Columns);
         while (reader.Read())
         {
             Dictionary<string, object> row = new(StringComparer.OrdinalIgnoreCase);
@@ -57,5 +59,13 @@ public sealed class ResultSet
     internal void AddRow(IReadOnlyDictionary<string, object> row)
     {
         _rows.Add(row);
+    }
+
+    private static List<string> GetColumnNames(DataColumnCollection columns)
+    {
+        List<string> names = [];
+        names.AddRange(from DataColumn column in columns select column.ColumnName);
+
+        return names;
     }
 }

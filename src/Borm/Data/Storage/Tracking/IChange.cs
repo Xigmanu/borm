@@ -7,5 +7,5 @@ internal interface IChange
     IValueBuffer Record { get; }
     OperationKind Operation { get; }
     long WriteId { get; }
-    void MarkAsWritten();
+    IChange MarkAsCommittedToDataSource();
 }

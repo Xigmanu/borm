@@ -2,7 +2,7 @@
 
 internal sealed record ResolvedForeignKey(
     ITable Parent,
-    object PrimaryKey,
+    object Value,
     object RawValue,
     bool IsComplexRecord,
     bool ChangeExists

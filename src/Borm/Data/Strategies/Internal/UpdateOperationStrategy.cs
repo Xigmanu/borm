@@ -40,9 +40,9 @@ internal sealed class UpdateOperationStrategy : IDataOperationStrategy
     private static void ValidateForeignKey(ResolvedForeignKey key, long txId)
     {
         ITable parent = key.Parent;
-        if (!parent.Tracker.TryGetChange(key.PrimaryKey, txId, out _))
+        if (!parent.Tracker.TryGetChange(key.Value, txId, out _))
         {
-            throw new RecordNotFoundException(Strings.RowNotFound(parent.Name, key.PrimaryKey));
+            throw new RecordNotFoundException(Strings.RowNotFound(parent.Name, key.Value));
         }
     }
 }

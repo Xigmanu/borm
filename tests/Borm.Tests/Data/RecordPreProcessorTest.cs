@@ -4,7 +4,7 @@ using Borm.Tests.Common;
 using Borm.Tests.Mocks;
 using static Borm.Tests.Mocks.ValueBufferMockFactory;
 
-namespace Borm.Tests.Data.Internal;
+namespace Borm.Tests.Data;
 
 public sealed class RecordPreProcessorTest
 {
@@ -42,7 +42,7 @@ public sealed class RecordPreProcessorTest
         Assert.Single(keysList);
         ResolvedForeignKey key = keysList[0];
 
-        Assert.Equal(address.Id, key.PrimaryKey);
+        Assert.Equal(address.Id, key.Value);
         Assert.True(key.ChangeExists);
         Assert.True(key.IsComplexRecord);
         Assert.Equal(address, key.RawValue);
@@ -102,10 +102,10 @@ public sealed class RecordPreProcessorTest
         Assert.Single(keysList);
         ResolvedForeignKey key = keysList[0];
 
-        Assert.Equal(child.PrimaryKey, key.PrimaryKey);
+        Assert.Equal(child.PrimaryKey, key.Value);
         Assert.True(key.ChangeExists);
         Assert.False(key.IsComplexRecord);
-        Assert.Equal(key.PrimaryKey, key.RawValue);
+        Assert.Equal(key.Value, key.RawValue);
         Assert.Equal(personTable, key.Parent);
     }
 }
