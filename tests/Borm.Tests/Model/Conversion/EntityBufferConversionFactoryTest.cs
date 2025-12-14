@@ -9,7 +9,6 @@ namespace Borm.Tests.Model.Conversion;
 
 public sealed class EntityBufferConversionFactoryTest
 {
-    /*
     [Fact]
     public void Create_ThrowsMissingMethodException_WhenNoConstructorsAreProvided()
     {
@@ -20,10 +19,12 @@ public sealed class EntityBufferConversionFactoryTest
 
         IReadOnlyList<IConstructor> constructors = [];
 
+        EntityBufferConversionFactory factory = new();
+
 
         // Act
         Exception? exception = Record.Exception(
-            () => _ = EntityBufferConversionFactory.Create(entityType, constructors, columns)
+            () => _ = factory.Create(entityType, constructors, columns)
         );
 
         // Assert
@@ -34,5 +35,4 @@ public sealed class EntityBufferConversionFactoryTest
             exception.Message
         );
     }
-    */
 }
