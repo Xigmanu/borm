@@ -27,6 +27,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm.Tests.Common", "tests\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Borm.Data.Sql.Sqlite.Tests", "tests\Borm.Providers\Borm.Data.Sql.Sqlite.Tests\Borm.Data.Sql.Sqlite.Tests.csproj", "{05B9E1E0-61B4-5BA2-734C-0FAC269373DC}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{DE87CCB2-D58A-49CA-94C1-B0E0B6A8543D}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\build-test.yml = .github\workflows\build-test.yml
+		.github\workflows\codeql-analysis.yml = .github\workflows\codeql-analysis.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
