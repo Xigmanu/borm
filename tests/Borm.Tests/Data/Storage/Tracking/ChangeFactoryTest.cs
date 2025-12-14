@@ -1,4 +1,5 @@
-﻿using Borm.Data.Storage;
+﻿using Borm.Data;
+using Borm.Data.Storage;
 using Borm.Data.Storage.Tracking;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
@@ -8,13 +9,13 @@ namespace Borm.Tests.Data.Storage.Tracking;
 
 public sealed class ChangeFactoryTest
 {
-    private readonly TableGraph _graph = TableGraphMock.Create();
+    private readonly ITableGraph _graph = TableGraphMock.Create();
 
     [Fact]
     public void Delete_ReturnsDeleteChange()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -32,7 +33,7 @@ public sealed class ChangeFactoryTest
         // Assert
         Assert.Equal(txId, actual.WriteId);
         Assert.Equal(initTxId, actual.ReadId);
-        Assert.Equal(RowAction.Delete, actual.RowAction);
+        Assert.Equal(OperationKind.Delete, actual.Operation);
         Assert.True(actual.IsWrittenToDataSource);
         Assert.Equal(buffer, actual.Record);
     }
@@ -41,7 +42,7 @@ public sealed class ChangeFactoryTest
     public void InitChange_ReturnsInitialChange()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -53,7 +54,7 @@ public sealed class ChangeFactoryTest
         // Assert
         Assert.Equal(txId, change.WriteId);
         Assert.Equal(change.ReadId, change.WriteId);
-        Assert.Equal(RowAction.None, change.RowAction);
+        Assert.Equal(OperationKind.None, change.Operation);
         Assert.True(change.IsWrittenToDataSource);
         Assert.Equal(buffer, change.Record);
     }
@@ -62,7 +63,7 @@ public sealed class ChangeFactoryTest
     public void NewChange_ReturnsInsertChange()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -74,7 +75,7 @@ public sealed class ChangeFactoryTest
         // Assert
         Assert.Equal(txId, change.WriteId);
         Assert.Equal(change.ReadId, change.WriteId);
-        Assert.Equal(RowAction.Insert, change.RowAction);
+        Assert.Equal(OperationKind.Insert, change.Operation);
         Assert.False(change.IsWrittenToDataSource);
         Assert.Equal(buffer, change.Record);
     }
@@ -83,7 +84,7 @@ public sealed class ChangeFactoryTest
     public void Update_ReturnsUpdateChange()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -101,7 +102,7 @@ public sealed class ChangeFactoryTest
         // Assert
         Assert.Equal(txId, actual.WriteId);
         Assert.Equal(initTxId, actual.ReadId);
-        Assert.Equal(RowAction.Update, actual.RowAction);
+        Assert.Equal(OperationKind.Update, actual.Operation);
         Assert.False(actual.IsWrittenToDataSource);
         Assert.Equal(buffer, actual.Record);
     }

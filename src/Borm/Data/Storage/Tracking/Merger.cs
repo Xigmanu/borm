@@ -1,18 +1,8 @@
 ﻿namespace Borm.Data.Storage.Tracking;
 
-internal static class Merger
+internal sealed class Merger : IMerger
 {
-    public static IChange? CommitMerge(IChange existing, IChange incoming)
-    {
-        return MergeInternal(existing, incoming, true);
-    }
-
-    public static IChange? Merge(IChange existing, IChange incoming)
-    {
-        return MergeInternal(existing, incoming, false);
-    }
-
-    private static Change? MergeInternal(IChange existing, IChange incoming, bool isCommit)
+    public IChange? Merge(IChange existing, IChange incoming, MergeMode mode)
     {
         // Normally, if the read IDs of both changes are equal,
         // it means that the row was not modified by another transaction while the incoming transaction was open.
@@ -22,27 +12,32 @@ internal static class Merger
             throw new ConcurrencyConflictException("Record was modified by another transaction");
         }
 
-        RowAction rowAction;
+        OperationKind operation;
         if (existing.IsWrittenToDataSource)
         {
-            rowAction = incoming.RowAction;
+            operation = incoming.Operation;
         }
         else
         {
-            if (incoming.RowAction == RowAction.Delete)
+            if (incoming.Operation == OperationKind.Delete)
             {
                 return null;
             }
 
-            rowAction = existing.RowAction;
+            operation = existing.Operation;
         }
 
         return new Change(
             incoming.Record,
-            isCommit ? incoming.WriteId : existing.ReadId,
+            mode switch
+            {
+                MergeMode.Normal => existing.ReadId,
+                MergeMode.Commit => incoming.WriteId,
+                _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
+            },
             incoming.WriteId,
             existing.IsWrittenToDataSource,
-            rowAction
+            operation
         );
     }
 }

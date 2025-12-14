@@ -7,39 +7,45 @@ namespace Borm.Model.Construction;
 public sealed class EntityBuilder<TEntity>
     where TEntity : class
 {
-    private readonly IConfigurationValidator<IReadOnlyList<MappingMember>> _configValidator;
+    private readonly IConfigurationValidator<IReadOnlyList<IMappable>> _configValidator;
+    private readonly Type _entityType;
     private readonly ColumnValidatorFactoryContext _factoryContext;
-    private readonly List<MappingMember> _properties = [];
+    private readonly List<IMappable> _properties = [];
 
     private ObjectValidator? _entityValidator;
     private string? _name;
 
     internal EntityBuilder(
-        IConfigurationValidator<IReadOnlyList<MappingMember>> configValidator,
+        IConfigurationValidator<IReadOnlyList<IMappable>> configValidator,
         ColumnValidatorFactoryContext factoryContext
     )
     {
         _configValidator = configValidator;
         _factoryContext = factoryContext;
+        _entityType = typeof(TEntity);
     }
 
     internal EntityInfo Build()
     {
         _configValidator.Validate(_properties);
 
-        IReadOnlyList<Constructor> constructors = ConstructorParser.ParseAll(typeof(TEntity));
+        List<IConstructor> constructors = _entityType
+            .GetConstructors()
+            .Select(ConstructorParser.Parse)
+            .ToList();
 
+        ColumnValidatorFactory validatorFactory = new(
+            _factoryContext,
+            new ValidationExpressionBuilder(_factoryContext),
+            _entityType,
+            _properties
+        );
         return new EntityInfo(
             _name,
-            typeof(TEntity),
+            _entityType,
             _properties.AsReadOnly(),
             constructors,
-            _entityValidator
-            ?? new ColumnValidatorFactory(
-                _factoryContext,
-                typeof(TEntity),
-                _properties
-            ).Create()
+            _entityValidator ?? validatorFactory.Create()
         );
     }
 
@@ -51,7 +57,7 @@ public sealed class EntityBuilder<TEntity>
             new ColumnBuilder<TEntity>(new ColumnConfigurationValidator<TEntity>())
         );
 
-        MappingMember column = builder.Build();
+        IMappable column = builder.Build();
         if (_properties.Any(c => c.MemberName == column.MemberName))
         {
             throw new ArgumentException(

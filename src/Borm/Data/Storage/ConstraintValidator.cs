@@ -8,9 +8,9 @@ namespace Borm.Data.Storage;
 
 internal class ConstraintValidator
 {
-    private readonly Table _table;
+    private readonly ITable _table;
 
-    public ConstraintValidator(Table table)
+    public ConstraintValidator(ITable table)
     {
         _table = table;
     }

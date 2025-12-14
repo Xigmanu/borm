@@ -10,7 +10,7 @@ public abstract class ValidWhenAttribute : Attribute
 {
     protected abstract Expression<Func<object, bool>> ValidWhen { get; }
 
-    internal ValidatorExpressionInfo GetValidatorInfo<TEntity>(PropertyInfo property)
+    internal ValidationInfo GetValidatorInfo<TEntity>(PropertyInfo property)
     {
         ParameterExpression parameter = Expression.Parameter(typeof(TEntity), "e");
         MemberExpression propAccess = Expression.Property(parameter, property);
@@ -20,6 +20,6 @@ public abstract class ValidWhenAttribute : Attribute
             parameter
         );
 
-        return new ValidatorExpressionInfo(lambda, propAccess);
+        return new ValidationInfo(lambda, propAccess);
     }
 }

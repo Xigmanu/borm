@@ -81,7 +81,7 @@ public sealed class NullableTypeTest
         NullableType result = NullableType.WrapMemberType(property);
 
         // Assert
-        Assert.Equal(typeof(string), result.Type);
+        Assert.Equal(typeof(string), result.RawType);
         Assert.False(result.IsNullable);
     }
 
@@ -95,7 +95,7 @@ public sealed class NullableTypeTest
         NullableType result = NullableType.WrapMemberType(property);
 
         // Assert
-        Assert.Equal(typeof(string), result.Type);
+        Assert.Equal(typeof(string), result.RawType);
         Assert.True(result.IsNullable);
     }
 
@@ -109,7 +109,7 @@ public sealed class NullableTypeTest
         NullableType result = NullableType.WrapMemberType(property);
 
         // Assert
-        Assert.Equal(typeof(int), result.Type);
+        Assert.Equal(typeof(int), result.RawType);
         Assert.False(result.IsNullable);
     }
 

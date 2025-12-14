@@ -9,14 +9,14 @@ namespace Borm.Tests.Data.Storage;
 
 public sealed class TableGraphTest
 {
-    private readonly TableGraph _graph = TableGraphMock.Create();
+    private readonly ITableGraph _graph = TableGraphMock.Create();
 
     [Fact]
     public void AddEdge_AddsParentChildAndChildParentRelations()
     {
         // Arrange
-        Table parent = _graph[typeof(AddressEntity)]!;
-        Table child = _graph[typeof(PersonEntity)]!;
+        ITable parent = _graph[typeof(AddressEntity)]!;
+        ITable child = _graph[typeof(PersonEntity)]!;
         TableGraph graph = new();
 
         graph.AddTable(parent);
@@ -26,10 +26,10 @@ public sealed class TableGraphTest
         graph.AddEdge(parent, child);
 
         // Assert
-        IEnumerable<Table> children0 = graph.GetChildren(parent);
-        IEnumerable<Table> children1 = graph.GetChildren(child);
-        IEnumerable<Table> parents0 = graph.GetParents(child);
-        IEnumerable<Table> parents1 = graph.GetParents(parent);
+        IEnumerable<ITable> children0 = graph.GetChildren(parent);
+        IEnumerable<ITable> children1 = graph.GetChildren(child);
+        IEnumerable<ITable> parents0 = graph.GetParents(child);
+        IEnumerable<ITable> parents1 = graph.GetParents(parent);
 
         Assert.Empty(children1);
         Assert.Empty(parents1);
@@ -42,7 +42,7 @@ public sealed class TableGraphTest
     public void AddTable_InsertsTableAndMapsItToEntityType_IfTableNotExists()
     {
         // Arrange
-        Table table = _graph[typeof(AddressEntity)]!;
+        ITable table = _graph[typeof(AddressEntity)]!;
         TableGraph graph = new();
 
         // Act
@@ -57,10 +57,10 @@ public sealed class TableGraphTest
     public void GetChildren_ReturnsEmptyEnumeration_WhenNoChildrenExist()
     {
         // Arrange
-        Table table = _graph[typeof(EmployeeEntity)]!;
+        ITable table = _graph[typeof(EmployeeEntity)]!;
 
         // Act
-        IEnumerable<Table> children = _graph.GetChildren(table);
+        IEnumerable<ITable> children = _graph.GetChildren(table);
 
         // Assert
         Assert.Empty(children);
@@ -70,11 +70,11 @@ public sealed class TableGraphTest
     public void GetChildren_ReturnsTableChildren()
     {
         // Arrange
-        Table table = _graph[typeof(AddressEntity)]!;
-        Table expectedChild = _graph[typeof(PersonEntity)]!;
+        ITable table = _graph[typeof(AddressEntity)]!;
+        ITable expectedChild = _graph[typeof(PersonEntity)]!;
 
         // Act
-        List<Table> children = _graph.GetChildren(table).ToList();
+        List<ITable> children = _graph.GetChildren(table).ToList();
 
         // Assert
         Assert.Single(children);
@@ -85,10 +85,10 @@ public sealed class TableGraphTest
     public void GetParents_ReturnsEmptyEnumeration_WhenNoParentsExist()
     {
         // Arrange
-        Table table = _graph[typeof(AddressEntity)]!;
+        ITable table = _graph[typeof(AddressEntity)]!;
 
         // Act
-        IEnumerable<Table> children = _graph.GetParents(table);
+        IEnumerable<ITable> children = _graph.GetParents(table);
 
         // Assert
         Assert.Empty(children);
@@ -98,11 +98,11 @@ public sealed class TableGraphTest
     public void GetParents_ReturnsTableParents()
     {
         // Arrange
-        Table table = _graph[typeof(PersonEntity)]!;
-        Table expectedParent = _graph[typeof(AddressEntity)]!;
+        ITable table = _graph[typeof(PersonEntity)]!;
+        ITable expectedParent = _graph[typeof(AddressEntity)]!;
 
         // Act
-        List<Table> parents = _graph.GetParents(table).ToList();
+        List<ITable> parents = _graph.GetParents(table).ToList();
 
         // Assert
         Assert.Single(parents);
@@ -110,11 +110,11 @@ public sealed class TableGraphTest
     }
 
     [Fact]
-    public void GetTableSchema_ReturnsValidSchema_ForComplexTable()
+    public void GetSchema_ReturnsValidSchema_ForComplexTable()
     {
         // Arrange
-        Table table = _graph[typeof(PersonEntity)]!;
-        Table addressTable = _graph[typeof(AddressEntity)]!;
+        ITable table = _graph[typeof(PersonEntity)]!;
+        ITable addressTable = _graph[typeof(AddressEntity)]!;
         List<ColumnInfo> addressColumns = CreateTestColumns(addressTable);
         List<ColumnInfo> tableColumns = CreateTestColumns(table);
 
@@ -136,7 +136,7 @@ public sealed class TableGraphTest
         );
 
         // Act
-        TableInfo schema = _graph.GetTableSchema(table);
+        TableInfo schema = _graph.GetSchema(table);
 
         // Assert
         Assert.Equal(expectedSchema.Name, schema.Name);
@@ -154,7 +154,7 @@ public sealed class TableGraphTest
     public void GetTableSchema_ReturnsValidSchema_ForSimpleTable()
     {
         // Arrange
-        Table table = _graph[typeof(AddressEntity)]!;
+        ITable table = _graph[typeof(AddressEntity)]!;
         List<ColumnInfo> columns = CreateTestColumns(table);
 
         TableInfo expectedSchema = new(
@@ -165,7 +165,7 @@ public sealed class TableGraphTest
         );
 
         // Act
-        TableInfo schema = _graph.GetTableSchema(table);
+        TableInfo schema = _graph.GetSchema(table);
 
         // Assert
         Assert.Equal(expectedSchema.Name, schema.Name);
@@ -178,7 +178,7 @@ public sealed class TableGraphTest
     public void Indexer_ReturnsNull_IfTableNotExists()
     {
         // Act
-        Table? actual = _graph[typeof(int)];
+        ITable? actual = _graph[typeof(int)];
 
         // Assert
         Assert.Null(actual);
@@ -188,10 +188,10 @@ public sealed class TableGraphTest
     public void Indexer_ReturnsTable_IfTableExists()
     {
         // Arrange
-        Table table = _graph[typeof(AddressEntity)]!;
+        ITable table = _graph[typeof(AddressEntity)]!;
 
         // Act
-        Table? actual = _graph[table.Metadata.Type];
+        ITable? actual = _graph[table.Metadata.Type];
 
         // Assert
         Assert.NotNull(actual);
@@ -202,25 +202,31 @@ public sealed class TableGraphTest
     public void TopSort_ReturnsTopologicallySortedRangeOfTables()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
-        Table personsTable = _graph[typeof(PersonEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable personsTable = _graph[typeof(PersonEntity)]!;
 
         // Act
-        Table[] sorted = [.. _graph.TopSort()];
+        ITable[] sorted = [.. _graph.TopSort()];
 
         // Assert
         Assert.Equal(addressesTable, sorted[0]);
         Assert.Equal(personsTable, sorted[1]);
     }
 
-    private static List<ColumnInfo> CreateTestColumns(Table table)
+    private static List<ColumnInfo> CreateTestColumns(ITable table)
     {
         List<ColumnInfo> columns = [];
-        columns.AddRange(table.Metadata.Columns.Select(columnMetadata => new ColumnInfo(columnMetadata.Name,
-            columnMetadata.DataType.UnderlyingType == columnMetadata.Reference
-                ? typeof(int)
-                : columnMetadata.DataType.UnderlyingType, columnMetadata.Constraints.HasFlag(Constraints.Unique),
-            columnMetadata.Constraints.HasFlag(Constraints.AllowDbNull))));
+        columns.AddRange(
+            table.Metadata.Columns.Select(columnMetadata => new ColumnInfo(
+                columnMetadata.Name,
+                table.Name,
+                columnMetadata.DataType.UnderlyingType == columnMetadata.Reference
+                    ? typeof(int)
+                    : columnMetadata.DataType.UnderlyingType,
+                columnMetadata.Constraints.HasFlag(Constraints.Unique),
+                columnMetadata.Constraints.HasFlag(Constraints.AllowDbNull)
+            ))
+        );
 
         return columns;
     }

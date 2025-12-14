@@ -5,10 +5,10 @@ using Borm.Reflection;
 namespace Borm.Model.Validation;
 
 internal sealed class EntityConfigurationValidator<TEntity>
-    : IConfigurationValidator<IReadOnlyList<MappingMember>>
+    : IConfigurationValidator<IReadOnlyList<IMappable>>
     where TEntity : class
 {
-    public void Validate(IReadOnlyList<MappingMember> properties)
+    public void Validate(IReadOnlyList<IMappable> properties)
     {
         ArgumentNullException.ThrowIfNull(properties);
 
@@ -18,7 +18,7 @@ internal sealed class EntityConfigurationValidator<TEntity>
             throw new ArgumentException(Strings.EmptyColumnCollection(entityName));
         }
 
-        List<MappingMember> primaryKeys =
+        List<IMappable> primaryKeys =
         [
             .. properties.Where(c => c.Mapping?.IsPrimaryKey == true)
         ];
@@ -34,7 +34,7 @@ internal sealed class EntityConfigurationValidator<TEntity>
     }
 
     private static void ValidateColumnIdentifiers(
-        IReadOnlyList<MappingMember> properties,
+        IReadOnlyList<IMappable> properties,
         string entityName
     )
     {

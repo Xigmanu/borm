@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Borm.Data.Storage.Internal;
 using Borm.Model.Metadata;
 using Borm.Properties;
 
@@ -22,15 +23,15 @@ internal sealed class TableGraphBuilder
         }
     }
 
-    private Table BuildTableRecursive(IEntityMetadata entityMetadata, TableGraph graph)
+    private ITable BuildTableRecursive(IEntityMetadata entityMetadata, TableGraph graph)
     {
-        Table? cached = graph[entityMetadata.Type];
+        ITable? cached = graph[entityMetadata.Type];
         if (cached != null)
         {
             return cached;
         }
 
-        Table table = new(entityMetadata);
+        ITable table = new Table(entityMetadata);
         graph.AddTable(table);
 
         foreach (Type? reference in entityMetadata.Columns.Select(column => column.Reference))
@@ -47,7 +48,7 @@ internal sealed class TableGraphBuilder
                 );
             }
 
-            Table parent = BuildTableRecursive(dependency, graph);
+            ITable parent = BuildTableRecursive(dependency, graph);
             graph.AddTable(parent);
             graph.AddEdge(parent, table);
         }

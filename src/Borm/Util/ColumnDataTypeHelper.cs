@@ -29,13 +29,11 @@ internal static class ColumnDataTypeHelper
         }
     }
 
-    public static object Parse(string value, Type targetType)
-    {
-        return targetType switch
+    public static object Parse(string value, Type targetType) =>
+        targetType switch
         {
             not null when targetType == typeof(Guid) => Guid.Parse(value),
             not null when targetType == typeof(DateTime) => Convert.ToDateTime(value),
             _ => value
         };
-    }
 }

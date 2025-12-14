@@ -83,7 +83,7 @@ public sealed class InMemoryCommandDefinitionFactoryTest
         return new TableInfo(
             string.Empty,
             ReadOnlyCollection<ColumnInfo>.Empty,
-            new ColumnInfo(string.Empty, typeof(int), false, false),
+            new ColumnInfo(string.Empty, string.Empty, typeof(int), false, false),
             ReadOnlyDictionary<ColumnInfo, TableInfo>.Empty
         );
     }

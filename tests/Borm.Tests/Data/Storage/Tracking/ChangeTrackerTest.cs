@@ -8,13 +8,13 @@ namespace Borm.Tests.Data.Storage.Tracking;
 
 public sealed class ChangeTrackerTest
 {
-    private readonly TableGraph _graph = TableGraphMock.Create();
+    private readonly ITableGraph _graph = TableGraphMock.Create();
 
     [Fact]
     public void AcceptPendingChanges_ConvertsPendingChangeToNormalChange()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeTracker tracker = new();
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
@@ -54,7 +54,7 @@ public sealed class ChangeTrackerTest
     public void PendChange_PendsIncomingChange_WithNoPendingConflict()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeTracker tracker = new();
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
@@ -75,7 +75,7 @@ public sealed class ChangeTrackerTest
     public void PendChange_PendsIncomingChange_WithPendingConflict()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         ChangeTracker tracker = new();
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)

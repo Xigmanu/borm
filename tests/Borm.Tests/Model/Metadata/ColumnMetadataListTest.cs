@@ -1,5 +1,6 @@
 ﻿using Borm.Data.Storage;
 using Borm.Model.Metadata;
+using Borm.Model.Metadata.Internal;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
 
@@ -7,7 +8,7 @@ namespace Borm.Tests.Model.Metadata;
 
 public class ColumnMetadataListTest
 {
-    private readonly TableGraph _graph = TableGraphMock.Create();
+    private readonly ITableGraph _graph = TableGraphMock.Create();
 
     [Fact]
     public void Contains_ReturnsIfColumnExistsInList()

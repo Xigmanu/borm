@@ -46,6 +46,12 @@ internal sealed class ColumnMetadataImplBuilder
         return this;
     }
 
+    public ColumnMetadataImplBuilder OnDelete(ReferentialAction action)
+    {
+        _mock.SetupGet(c => c.OnDelete).Returns(action);
+        return this;
+    }
+
     public ColumnMetadataImplBuilder PrimaryKey()
     {
         if (_constraints.HasFlag(Constraints.AllowDbNull))

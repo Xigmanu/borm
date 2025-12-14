@@ -4,22 +4,24 @@ using Borm.Reflection;
 
 namespace Borm.Model.Validation.Expressions;
 
-// TODO Merge conditional expressions on the same property
 internal sealed class ColumnValidatorFactory
 {
+    private readonly IValidationExpressionBuilder _builder;
     private readonly ColumnValidatorFactoryContext _context;
     private readonly Type _entityType;
-    private readonly IReadOnlyList<MappingMember> _properties;
+    private readonly IReadOnlyList<IMappable> _properties;
 
     public ColumnValidatorFactory(
         ColumnValidatorFactoryContext context,
+        IValidationExpressionBuilder builder,
         Type entityType,
-        IReadOnlyList<MappingMember> properties
+        IReadOnlyList<IMappable> properties
     )
     {
         _entityType = entityType;
         _properties = properties;
         _context = context;
+        _builder = builder;
     }
 
     public ObjectValidator? Create()
@@ -27,35 +29,22 @@ internal sealed class ColumnValidatorFactory
         ParameterExpression boxedEntity = Expression.Parameter(typeof(object), "obj");
         ParameterExpression metadata = Expression.Parameter(typeof(IEntityMetadata), "meta");
 
-        ParameterExpression unboxedEntity = Expression.Variable(_entityType, "e");
-        ParameterExpression ret = Expression.Variable(_context.VResultType, "result");
+        ParameterExpression entity = Expression.Variable(_entityType, "e");
+        ParameterExpression result = Expression.Variable(_context.VResultType, "result");
 
         List<Expression> expressions =
         [
-            Expression.Assign(unboxedEntity, Expression.Convert(boxedEntity, _entityType)),
-            Expression.Assign(
-                ret,
-                Expression.Field(null, _context.VResultType, nameof(ValidationResult.Ok))
-            )
+            Expression.Assign(entity, Expression.Convert(boxedEntity, _entityType)),
+            Expression.Assign(result, Expression.Call(null, _context.OkMethod))
         ];
         int initialCount = expressions.Count;
 
-        foreach (MappingMember property in _properties)
+        foreach (IMappable property in _properties)
         {
-            ValidatorExpressionInfo? validation = property.Validation;
-            if (validation == null)
+            if (_builder.TryBuild(property, entity, metadata, result, out Expression? validation))
             {
-                continue;
+                expressions.Add(validation);
             }
-
-            ConditionalExpression ifThen = CreateIfThenExpression(
-                validation,
-                property.MemberName,
-                unboxedEntity,
-                metadata,
-                ret
-            );
-            expressions.Add(ifThen);
         }
 
         if (expressions.Count == initialCount)
@@ -63,47 +52,14 @@ internal sealed class ColumnValidatorFactory
             return null;
         }
 
-        expressions.Add(ret);
+        expressions.Add(result);
 
         return Expression
             .Lambda<ObjectValidator>(
-                Expression.Block([unboxedEntity, ret], expressions),
+                Expression.Block([entity, result], expressions),
                 boxedEntity,
                 metadata
             )
             .Compile();
-    }
-
-    private ConditionalExpression CreateIfThenExpression(
-        ValidatorExpressionInfo validation,
-        string memberName,
-        ParameterExpression unboxedEntity,
-        ParameterExpression metadata,
-        ParameterExpression ret
-    )
-    {
-        (Expression conditionBody, Expression propAccess) =
-            ValidatorExpressionInfo.AdjustToCommonParameter(validation, unboxedEntity);
-
-        MemberExpression nameProp = Expression.Property(metadata, _context.EMetaName);
-        MethodCallExpression getColCall = Expression.Call(
-            metadata,
-            _context.EMetaGetColumn,
-            Expression.Constant(memberName)
-        );
-        MemberExpression cName = Expression.Property(getColCall, _context.CMetaName);
-
-        MethodCallExpression errMethodCall = Expression.Call(
-            _context.ErrorMethod,
-            Expression.Convert(propAccess, typeof(object)),
-            nameProp,
-            cName
-        );
-
-        ConditionalExpression ifThen = Expression.IfThen(
-            Expression.Not(conditionBody),
-            Expression.Assign(ret, errMethodCall)
-        );
-        return ifThen;
     }
 }

@@ -6,14 +6,14 @@ namespace Borm.Data.Storage;
 
 internal sealed class EntityMaterializer
 {
-    private readonly TableGraph _graph;
+    private readonly ITableGraph _graph;
 
-    public EntityMaterializer(TableGraph graph)
+    public EntityMaterializer(ITableGraph graph)
     {
         _graph = graph;
     }
 
-    public object Materialize(IValueBuffer buffer, Table table)
+    public object Materialize(IValueBuffer buffer, ITable table)
     {
         ValueBuffer tempBuffer = new();
 
@@ -36,7 +36,7 @@ internal sealed class EntityMaterializer
                || columnValue.Equals(DBNull.Value);
     }
 
-    private object MaterializeParent(Table parent, object columnValue)
+    private object MaterializeParent(ITable parent, object columnValue)
     {
         Debug.Assert(parent is not null);
         // The initial TX ID is used to ensure that I only read committed changes

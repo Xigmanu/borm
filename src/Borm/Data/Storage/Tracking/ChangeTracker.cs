@@ -11,7 +11,7 @@ internal sealed class ChangeTracker
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private static readonly object Lock = new();
 
-    private readonly ChangeSet _changeSet = [];
+    private readonly ChangeSet _changeSet = new(new Merger());
     private readonly Dictionary<long, ChangeSet> _txChangeSets = [];
 
     public ImmutableList<IChange> Changes
@@ -36,7 +36,7 @@ internal sealed class ChangeTracker
         {
             lock (Lock)
             {
-                ChangeSet merged = ChangeSet.Merge(_changeSet, pendingSet);
+                ChangeSet merged = _changeSet.MergeWith(pendingSet);
                 _changeSet.ReplaceRange(merged);
             }
         }

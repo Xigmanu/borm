@@ -2,6 +2,7 @@
 using Borm.Model.Construction;
 using Borm.Model.Validation;
 using Borm.Model.Validation.Expressions;
+using Borm.Properties;
 using Borm.Reflection;
 using Borm.Tests.Common;
 
@@ -9,10 +10,29 @@ namespace Borm.Tests.Model.Construction;
 
 public sealed class EntityFactoryTest
 {
-    private static readonly IConfigurationValidator<IReadOnlyList<MappingMember>> TestValidator =
+    private static readonly ColumnValidatorFactoryContext FactoryContext = new();
+
+    private static readonly IConfigurationValidator<IReadOnlyList<IMappable>> TestValidator =
         new TestPropertyValidator();
 
-    private static readonly ColumnValidatorFactoryContext FactoryContext = new();
+    [Fact]
+    public void Constructor_ThrowsInvalidOperationException_WhenEntityTypeIsAbstract()
+    {
+        // Act
+        Exception? exception =
+            Record.Exception(() => _ = new EntityFactory<AbstractEntity>(TestValidator, FactoryContext)
+            );
+
+        // Assert
+        Assert.NotNull(exception);
+        Assert.IsType<InvalidOperationException>(exception);
+        Assert.Equal(
+            Strings.EntityTypeCannotBeAbstract(
+                typeof(AbstractEntity).FullName ?? nameof(AbstractEntity)
+            ),
+            exception.Message
+        );
+    }
 
     [Fact]
     public void Create_ReturnsEntityInfo_WithValidEntityType()
@@ -29,24 +49,11 @@ public sealed class EntityFactoryTest
         Assert.Single(entity.Constructors);
     }
 
-    [Fact(Skip = "Will be fixed during a major test rework")]
-    public void Create_ThrowsMemberException_WithInvalidEntityType()
+    private abstract class AbstractEntity;
+
+    private sealed class TestPropertyValidator : IConfigurationValidator<IReadOnlyList<IMappable>>
     {
-        // Arrange
-        EntityFactory<AddressEntity> factory = new(TestValidator, FactoryContext);
-
-        // Act
-        Exception? exception = Record.Exception(() => _ = factory.Create()
-        );
-
-        // Assert
-        Assert.NotNull(exception);
-        Assert.IsType<MemberAccessException>(exception);
-    }
-
-    private sealed class TestPropertyValidator : IConfigurationValidator<IReadOnlyList<MappingMember>>
-    {
-        public void Validate(IReadOnlyList<MappingMember> value)
+        public void Validate(IReadOnlyList<IMappable> value)
         {
         }
     }

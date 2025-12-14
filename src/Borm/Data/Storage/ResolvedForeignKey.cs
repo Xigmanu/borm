@@ -1,8 +1,8 @@
 ﻿namespace Borm.Data.Storage;
 
 internal sealed record ResolvedForeignKey(
-    Table Parent,
-    object PrimaryKey,
+    ITable Parent,
+    object Value,
     object RawValue,
     bool IsComplexRecord,
     bool ChangeExists

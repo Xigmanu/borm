@@ -2,11 +2,10 @@
 
 namespace Borm.Model.Metadata;
 
-internal interface IEntityMetadata
+internal interface IEntityMetadata : IMetadata
 {
     IReadOnlyList<IColumnMetadata> Columns { get; }
     IEntityBufferConversion Conversion { get; }
-    string Name { get; }
     IColumnMetadata PrimaryKey { get; }
     Type Type { get; }
 

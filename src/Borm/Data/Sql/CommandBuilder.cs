@@ -6,18 +6,16 @@ namespace Borm.Data.Sql;
 
 internal sealed class CommandBuilder
 {
-    private readonly Dictionary<RowAction, DbCommandDefinition> _commandCache;
     private readonly IDbCommandDefinitionFactory _commandFactory;
-    private readonly TableGraph _graph;
+    private readonly ITableGraph _graph;
 
-    public CommandBuilder(TableGraph graph, IDbCommandDefinitionFactory commandFactory)
+    public CommandBuilder(ITableGraph graph, IDbCommandDefinitionFactory commandFactory)
     {
         _graph = graph;
         _commandFactory = commandFactory;
-        _commandCache = [];
     }
 
-    public IReadOnlyList<DbCommandDefinition> BuildUpdateCommands(Table table)
+    public IReadOnlyList<DbCommandDefinition> BuildUpdateCommands(ITable table)
     {
         IEnumerable<IChange> changes = table.Tracker.Changes;
         if (!changes.Any())
@@ -25,16 +23,32 @@ internal sealed class CommandBuilder
             return [];
         }
 
-        TableInfo schema = _graph.GetTableSchema(table);
+        TableInfo schema = _graph.GetSchema(table);
+        Dictionary<OperationKind, DbCommandDefinition> commandCache = [];
 
         foreach (IChange change in changes)
         {
-            RowAction action = change.RowAction;
-            DbCommandDefinition? command = change.RowAction switch
+            OperationKind operation = change.Operation;
+            DbCommandDefinition? command = change.Operation switch
             {
-                RowAction.Insert => GetOrCreate(schema, action, _commandFactory.Insert),
-                RowAction.Update => GetOrCreate(schema, action, _commandFactory.Update),
-                RowAction.Delete => GetOrCreate(schema, action, _commandFactory.Delete),
+                OperationKind.Insert => GetOrCreate(
+                    schema,
+                    operation,
+                    commandCache,
+                    _commandFactory.Insert
+                ),
+                OperationKind.Update => GetOrCreate(
+                    schema,
+                    operation,
+                    commandCache,
+                    _commandFactory.Update
+                ),
+                OperationKind.Delete => GetOrCreate(
+                    schema,
+                    operation,
+                    commandCache,
+                    _commandFactory.Delete
+                ),
                 _ => null
             };
 
@@ -47,21 +61,24 @@ internal sealed class CommandBuilder
             command.BatchQueue.Enqueue(change.Record);
         }
 
-        return _commandCache.Values.ToList();
+        return commandCache.Values.ToList();
     }
 
     [DebuggerStepThrough]
-    private DbCommandDefinition GetOrCreate(
+    private static DbCommandDefinition GetOrCreate(
         TableInfo schema,
-        RowAction action,
+        OperationKind operation,
+        Dictionary<OperationKind, DbCommandDefinition> commandCache,
         Func<TableInfo, DbCommandDefinition> factoryMethod
     )
     {
-        if (!_commandCache.TryGetValue(action, out DbCommandDefinition? command))
+        if (commandCache.TryGetValue(operation, out DbCommandDefinition? command))
         {
-            command = factoryMethod(schema);
-            _commandCache[action] = command;
+            return command;
         }
+
+        command = factoryMethod(schema);
+        commandCache[operation] = command;
 
         return command;
     }

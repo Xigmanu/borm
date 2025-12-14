@@ -5,25 +5,25 @@ namespace Borm.Reflection;
 
 public sealed class NullableType
 {
-    public NullableType(Type type, bool isNullable)
+    public NullableType(Type rawType, bool isNullable)
     {
-        Type = type;
+        RawType = rawType;
         IsNullable = isNullable;
     }
 
     public bool IsNullable { get; }
-    public Type Type { get; }
+    public Type RawType { get; }
 
     public Type UnderlyingType
     {
         get
         {
-            if (!Type.IsValueType || !IsNullable)
+            if (!RawType.IsValueType || !IsNullable)
             {
-                return Type;
+                return RawType;
             }
 
-            Type? underlying = Nullable.GetUnderlyingType(Type);
+            Type? underlying = Nullable.GetUnderlyingType(RawType);
             Debug.Assert(underlying != null);
             return underlying;
         }
@@ -54,13 +54,13 @@ public sealed class NullableType
     public override bool Equals(object? obj)
     {
         return obj is NullableType other
-            && Type == other.Type
+            && RawType == other.RawType
             && UnderlyingType == other.UnderlyingType
             && IsNullable == other.IsNullable;
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Type, UnderlyingType, IsNullable);
+        return HashCode.Combine(RawType, UnderlyingType, IsNullable);
     }
 }

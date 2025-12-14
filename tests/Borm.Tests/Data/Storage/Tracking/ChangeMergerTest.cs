@@ -8,13 +8,13 @@ namespace Borm.Tests.Data.Storage.Tracking;
 
 public sealed class ChangeMergerTest
 {
-    private readonly TableGraph _graph = TableGraphMock.Create();
+    private readonly ITableGraph _graph = TableGraphMock.Create();
 
     [Fact]
     public void CommitMerge_ReturnsCommittedMergedChange()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -26,23 +26,24 @@ public sealed class ChangeMergerTest
             MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         IChange incoming = ChangeFactory.Update(initChange, buffer, txId);
+        Merger merger = new();
 
         // Act
-        IChange? merged = Merger.CommitMerge(initChange, incoming);
+        IChange? merged = merger.Merge(initChange, incoming, MergeMode.Commit);
 
         // Assert
         Assert.NotNull(merged);
         Assert.Equal(incoming.Record, merged.Record);
         Assert.Equal(incoming.WriteId, merged.ReadId);
         Assert.Equal(incoming.WriteId, merged.WriteId);
-        Assert.Equal(initChange.RowAction, merged.RowAction);
+        Assert.Equal(initChange.Operation, merged.Operation);
     }
 
     [Fact]
     public void Merge_ReturnsExistingChange_WhenExistingAndIncomingReadTxIdsMatch()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -53,9 +54,10 @@ public sealed class ChangeMergerTest
             MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         IChange incoming = ChangeFactory.Update(initChange, buffer, initTxId);
+        Merger merger = new();
 
         // Act
-        IChange? merged = Merger.Merge(initChange, incoming);
+        IChange? merged = merger.Merge(initChange, incoming, MergeMode.Normal);
 
         // Assert
         Assert.NotNull(merged);
@@ -66,7 +68,7 @@ public sealed class ChangeMergerTest
     public void Merge_ReturnsMergedChange_WhenExistingChangeWasNotWrittenToDataSource()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -78,23 +80,24 @@ public sealed class ChangeMergerTest
             MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         IChange incoming = ChangeFactory.Update(initChange, buffer, txId);
+        Merger merger = new();
 
         // Act
-        IChange? merged = Merger.Merge(initChange, incoming);
+        IChange? merged = merger.Merge(initChange, incoming, MergeMode.Normal);
 
         // Assert
         Assert.NotNull(merged);
         Assert.Equal(incoming.Record, merged.Record);
         Assert.Equal(initChange.ReadId, merged.ReadId);
         Assert.Equal(incoming.WriteId, merged.WriteId);
-        Assert.Equal(initChange.RowAction, merged.RowAction);
+        Assert.Equal(initChange.Operation, merged.Operation);
     }
 
     [Fact]
     public void Merge_ReturnsMergedChange_WhenExistingChangeWasWrittenToDataSource()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -106,23 +109,24 @@ public sealed class ChangeMergerTest
             MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         IChange incoming = ChangeFactory.Update(initChange, buffer, txId);
+        Merger merger = new();
 
         // Act
-        IChange? merged = Merger.Merge(initChange, incoming);
+        IChange? merged = merger.Merge(initChange, incoming, MergeMode.Normal);
 
         // Assert
         Assert.NotNull(merged);
         Assert.Equal(incoming.Record, merged.Record);
         Assert.Equal(initChange.ReadId, merged.ReadId);
         Assert.Equal(incoming.WriteId, merged.WriteId);
-        Assert.Equal(incoming.RowAction, merged.RowAction);
+        Assert.Equal(incoming.Operation, merged.Operation);
     }
 
     [Fact]
     public void Merge_ReturnsNull_WhenNewChangeDeletesExistingChangeThatWasNotWrittenToDataSource()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -131,9 +135,10 @@ public sealed class ChangeMergerTest
 
         const long txId = 1;
         IChange incoming = ChangeFactory.Delete(initChange, initBuffer, txId);
+        Merger merger = new();
 
         // Act
-        IChange? merged = Merger.Merge(initChange, incoming);
+        IChange? merged = merger.Merge(initChange, incoming, MergeMode.Normal);
 
         // Assert
         Assert.Null(merged);
@@ -143,7 +148,7 @@ public sealed class ChangeMergerTest
     public void Merge_ThrowsTransactionMismatchException_WhenExistingAndIncomingReadTxIdsDoNotMatch()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer initBuffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -155,9 +160,11 @@ public sealed class ChangeMergerTest
             MapValuesToColumns([1, "address", "address_1", "city"], addressesTable.Metadata.Columns)
         );
         IChange incoming = ChangeFactory.Initial(buffer, txId);
+        Merger merger = new();
 
         // Act
-        Exception? exception = Record.Exception(() => _ = Merger.Merge(initChange, incoming));
+        Exception? exception = Record.Exception(() => _ = merger.Merge(initChange, incoming, MergeMode.Normal)
+        );
 
         // Assert
         Assert.NotNull(exception);

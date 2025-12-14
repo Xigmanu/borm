@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 using Borm.Properties;
 
 namespace Borm.Model.Validation;
@@ -13,10 +12,10 @@ public sealed class InvalidObjectException : InvalidOperationException
 
     private static string BuildMessage(ValidationResult result)
     {
-        Debug.Assert(
-            result.IsError,
-            "Attempting to build an exception for an OK validation result."
-        );
+        if (!result.IsError)
+        {
+            throw new ArgumentException("Attempting to build an exception for an OK validation result.");
+        }
 
         StringBuilder messageBuilder = new();
         if (!string.IsNullOrWhiteSpace(result.Column) && !string.IsNullOrWhiteSpace(result.Entity))

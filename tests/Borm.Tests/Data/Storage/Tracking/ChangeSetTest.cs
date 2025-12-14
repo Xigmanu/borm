@@ -8,20 +8,20 @@ namespace Borm.Tests.Data.Storage.Tracking;
 
 public sealed class ChangeSetTest
 {
-    private readonly TableGraph _graph = TableGraphMock.Create();
+    private readonly ITableGraph _graph = TableGraphMock.Create();
+    private readonly IMerger _testMerger = new TestMerger();
 
     [Fact]
     public void Add_AddsChange_WithMatchingPrimaryKeys()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         IChange initial = ChangeFactory.Initial(buffer, -1);
 
-        ChangeSet changes = [];
-        changes.Add(initial);
+        ChangeSet changes = new(_testMerger) { initial };
 
         long txId = 0;
         IChange incoming = ChangeFactory.Update(initial, buffer, txId);
@@ -39,17 +39,14 @@ public sealed class ChangeSetTest
     public void Add_AddsChange_WithMatchingPrimaryKeysAndNullMerge()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         const long txId = 0;
         IChange newChange = ChangeFactory.NewChange(buffer, txId);
 
-        ChangeSet changes =
-        [
-            newChange
-        ];
+        ChangeSet changes = new(new Merger()) { newChange };
 
         IChange incoming = ChangeFactory.Delete(newChange, buffer, txId);
 
@@ -64,7 +61,7 @@ public sealed class ChangeSetTest
     public void Add_AddsChange_WithNoConflict()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -72,10 +69,7 @@ public sealed class ChangeSetTest
         IChange incoming = ChangeFactory.NewChange(buffer, txId);
 
         // Act
-        ChangeSet changes =
-        [
-            incoming
-        ];
+        ChangeSet changes = new(_testMerger) { incoming };
 
         // Assert
         Assert.Single(changes);
@@ -87,17 +81,14 @@ public sealed class ChangeSetTest
     public void MarkAsWritten_MarksAllNonDeleteChangesAsWritten()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         const long txId = 0;
         IChange incoming = ChangeFactory.NewChange(buffer, txId);
 
-        ChangeSet changes =
-        [
-            incoming
-        ];
+        ChangeSet changes = new(_testMerger) { incoming };
 
         // Act
         changes.MarkAsWritten();
@@ -112,16 +103,13 @@ public sealed class ChangeSetTest
     public void MarkAsWritten_RemovesAllDeleteChanges()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         IChange initial = ChangeFactory.Initial(buffer, -1);
 
-        ChangeSet changes =
-        [
-            initial
-        ];
+        ChangeSet changes = new(_testMerger) { initial };
 
         const long txId = 0;
         IChange incoming = ChangeFactory.Delete(initial, buffer, txId);
@@ -138,15 +126,15 @@ public sealed class ChangeSetTest
     public void Merge_MergesExistingWithIncoming_WithConflict()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ChangeSet existing = [];
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
+        ChangeSet existing = new(_testMerger);
         IValueBuffer initial = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         IChange initialChange = ChangeFactory.Initial(initial, -1);
         existing.Add(initialChange);
 
-        ChangeSet incoming = [];
+        ChangeSet incoming = new(_testMerger);
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
@@ -154,7 +142,7 @@ public sealed class ChangeSetTest
         incoming.Add(updateChange);
 
         // Act
-        ChangeSet merged = ChangeSet.Merge(existing, incoming);
+        ChangeSet merged = existing.MergeWith(incoming);
 
         // Assert
         Assert.Single(merged);
@@ -164,45 +152,18 @@ public sealed class ChangeSetTest
     }
 
     [Fact]
-    public void Merge_MergesExistingWithIncoming_WithConflictAndNullMerge()
-    {
-        // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ChangeSet existing = [];
-        IValueBuffer initial = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
-        );
-        const long txId = 0;
-        IChange initialChange = ChangeFactory.NewChange(initial, txId);
-        existing.Add(initialChange);
-
-        ChangeSet incoming = [];
-        IValueBuffer buffer = CreateBuffer(
-            MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
-        );
-        IChange deleteChange = ChangeFactory.Delete(initialChange, buffer, txId);
-        incoming.Add(deleteChange);
-
-        // Act
-        ChangeSet merged = ChangeSet.Merge(existing, incoming);
-
-        // Assert
-        Assert.Empty(merged);
-    }
-
-    [Fact]
     public void Merge_MergesExistingWithIncoming_WithNoConflict()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ChangeSet existing = [];
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
+        ChangeSet existing = new(_testMerger);
         IValueBuffer initial = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         IChange initialChange = ChangeFactory.Initial(initial, -1);
         existing.Add(initialChange);
 
-        ChangeSet incoming = [];
+        ChangeSet incoming = new(_testMerger);
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(
                 [2, "address", DBNull.Value, "city"],
@@ -213,7 +174,7 @@ public sealed class ChangeSetTest
         incoming.Add(newChange);
 
         // Act
-        ChangeSet merged = ChangeSet.Merge(existing, incoming);
+        ChangeSet merged = existing.MergeWith(incoming);
 
         // Assert
         Assert.Equal(2, merged.Count);
@@ -227,15 +188,15 @@ public sealed class ChangeSetTest
     public void Merge_ThrowsInvalidOperationException_WhenNonExistingRowIsModified()
     {
         // Arrange
-        Table addressesTable = _graph[typeof(AddressEntity)]!;
-        ChangeSet existing = [];
+        ITable addressesTable = _graph[typeof(AddressEntity)]!;
+        ChangeSet existing = new(_testMerger);
         IValueBuffer initial = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, addressesTable.Metadata.Columns)
         );
         IChange initialChange = ChangeFactory.Initial(initial, -1);
         existing.Add(initialChange);
 
-        ChangeSet incoming = [];
+        ChangeSet incoming = new(_testMerger);
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(
                 [2, "address", DBNull.Value, "city"],
@@ -246,10 +207,18 @@ public sealed class ChangeSetTest
         incoming.Add(newChange);
 
         // Act
-        Exception? exception = Record.Exception(() => _ = ChangeSet.Merge(existing, incoming));
+        Exception? exception = Record.Exception(() => _ = existing.MergeWith(incoming));
 
         // Assert
         Assert.NotNull(exception);
         Assert.IsType<InvalidOperationException>(exception);
+    }
+
+    private sealed class TestMerger : IMerger
+    {
+        public IChange Merge(IChange existing, IChange incoming, MergeMode mode)
+        {
+            return incoming;
+        }
     }
 }

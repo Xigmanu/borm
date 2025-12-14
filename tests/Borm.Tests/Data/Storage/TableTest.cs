@@ -1,7 +1,9 @@
 ﻿using System.Collections.Immutable;
 using System.Data;
+using Borm.Data;
 using Borm.Data.Sql;
 using Borm.Data.Storage;
+using Borm.Data.Storage.Internal;
 using Borm.Data.Storage.Tracking;
 using Borm.Model.Metadata;
 using Borm.Tests.Common;
@@ -12,7 +14,7 @@ namespace Borm.Tests.Data.Storage;
 
 public sealed class TableTest
 {
-    private readonly TableGraph _graph = TableGraphMock.Create();
+    private readonly ITableGraph _graph = TableGraphMock.Create();
 
     [Fact]
     public void Delete_PendsRecordDeletion()
@@ -20,7 +22,7 @@ public sealed class TableTest
         // Arrange
         long initTxId = -1;
         long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );
@@ -35,7 +37,7 @@ public sealed class TableTest
         ImmutableList<IChange> changes = table.Tracker.Changes;
 
         Assert.Single(changes);
-        Assert.Equal(RowAction.Delete, changes[0].RowAction);
+        Assert.Equal(OperationKind.Delete, changes[0].Operation);
         Assert.Equal(txId, changes[0].WriteId);
         Assert.Equal(buffer, changes[0].Record);
     }
@@ -45,7 +47,7 @@ public sealed class TableTest
     {
         // Arrange
         long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );
@@ -62,8 +64,8 @@ public sealed class TableTest
     public void Equals_ReturnsFalse_WhenTablesAreNotEqual()
     {
         // Arrange
-        Table first = _graph[typeof(AddressEntity)]!;
-        Table second = _graph[typeof(PersonEntity)]!;
+        Table first = (Table)_graph[typeof(AddressEntity)]!;
+        Table second = (Table)_graph[typeof(PersonEntity)]!;
 
         // Act
         bool equal = first.Equals(second);
@@ -92,7 +94,7 @@ public sealed class TableTest
     {
         // Arrange
         long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );
@@ -105,7 +107,7 @@ public sealed class TableTest
         ImmutableList<IChange> changes = table.Tracker.Changes;
 
         Assert.Single(changes);
-        Assert.Equal(RowAction.Insert, changes[0].RowAction);
+        Assert.Equal(OperationKind.Insert, changes[0].Operation);
         Assert.Equal(buffer, changes[0].Record);
     }
 
@@ -114,7 +116,7 @@ public sealed class TableTest
     {
         // Arrange
         long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns([1, DBNull.Value, DBNull.Value, "city"], table.Metadata.Columns)
         );
@@ -135,7 +137,7 @@ public sealed class TableTest
         // Arrange
         long initTxId = -1;
         long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );
@@ -157,7 +159,7 @@ public sealed class TableTest
     {
         // Arrange
         ResultSet resultSet = new();
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         long initTxId = -1;
 
         // Act
@@ -182,7 +184,7 @@ public sealed class TableTest
         };
         resultSet.AddRow(row);
         long initTxId = -1;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );
@@ -195,7 +197,7 @@ public sealed class TableTest
         Assert.Single(table.Tracker.Changes);
 
         IChange change = table.Tracker.Changes[0];
-        Assert.Equal(RowAction.None, change.RowAction);
+        Assert.Equal(OperationKind.None, change.Operation);
         Assert.True(change.IsWrittenToDataSource);
         Assert.Equal(buffer, change.Record);
     }
@@ -206,7 +208,7 @@ public sealed class TableTest
         // Arrange
         long initTxId = -1;
         long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );
@@ -223,7 +225,7 @@ public sealed class TableTest
         // Assert
         ImmutableList<IChange> changes = table.Tracker.Changes;
         Assert.Single(changes);
-        Assert.Equal(RowAction.Update, changes[0].RowAction);
+        Assert.Equal(OperationKind.Update, changes[0].Operation);
         Assert.Equal(bufferUpdate, changes[0].Record);
     }
 
@@ -233,7 +235,7 @@ public sealed class TableTest
         // Arrange
         long initTxId = -1;
         long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );
@@ -252,7 +254,7 @@ public sealed class TableTest
 
         ImmutableList<IChange> changes = table.Tracker.Changes;
         Assert.Single(changes);
-        Assert.Equal(RowAction.None, changes[0].RowAction);
+        Assert.Equal(OperationKind.None, changes[0].Operation);
         Assert.Equal(buffer, changes[0].Record);
     }
 
@@ -261,7 +263,7 @@ public sealed class TableTest
     {
         // Arrange
         long txId = 0;
-        Table table = _graph[typeof(AddressEntity)]!;
+        Table table = (Table)_graph[typeof(AddressEntity)]!;
         IValueBuffer buffer = CreateBuffer(
             MapValuesToColumns(AddressesDummyData, table.Metadata.Columns)
         );

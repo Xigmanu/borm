@@ -22,6 +22,8 @@ internal sealed class ValueBuffer : IValueBuffer
         _primaryKey = original._primaryKey;
     }
 
+    public int Length => _valueMap.Count;
+
     public object PrimaryKey
     {
         get
@@ -67,11 +69,29 @@ internal sealed class ValueBuffer : IValueBuffer
 
     public override bool Equals(object? obj)
     {
-        return obj is ValueBuffer other && other._valueMap.Equals(_valueMap);
+        return obj is ValueBuffer other
+               && other._valueMap.SequenceEqual(_valueMap, new KeyValuePairEqualityComparer());
     }
 
     public override int GetHashCode()
     {
         return _valueMap.GetHashCode();
+    }
+
+    private sealed class KeyValuePairEqualityComparer
+        : IEqualityComparer<KeyValuePair<IColumnMetadata, object>>
+    {
+        public bool Equals(
+            KeyValuePair<IColumnMetadata, object> x,
+            KeyValuePair<IColumnMetadata, object> y
+        )
+        {
+            return Equals(x.Key, y.Key) && Equals(x.Value, y.Value);
+        }
+
+        public int GetHashCode(KeyValuePair<IColumnMetadata, object> obj)
+        {
+            return HashCode.Combine(obj.Key, obj.Value);
+        }
     }
 }

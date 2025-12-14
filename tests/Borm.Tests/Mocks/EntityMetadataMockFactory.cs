@@ -1,4 +1,5 @@
-﻿using Borm.Model.Conversion;
+﻿using Borm.Model;
+using Borm.Model.Conversion;
 using Borm.Model.Metadata;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks.Builders;
@@ -100,6 +101,7 @@ internal static class EntityMetadataMockFactory
                 .DataType(typeof(int), false)
                 .Unique()
                 .Reference(typeof(PersonEntity))
+                .OnDelete(ReferentialAction.Cascade)
                 .Build(),
             new ColumnMetadataImplBuilder()
                 .Index(2)

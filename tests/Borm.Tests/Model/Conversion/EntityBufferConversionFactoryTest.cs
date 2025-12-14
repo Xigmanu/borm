@@ -1,4 +1,4 @@
-﻿using Borm.Model.Conversion;
+﻿using Borm.Model.Conversion.Internal;
 using Borm.Model.Metadata;
 using Borm.Properties;
 using Borm.Reflection;
@@ -17,11 +17,14 @@ public sealed class EntityBufferConversionFactoryTest
         IEntityMetadata entityMetadata = EntityMetadataMockFactory.CreateMockAddressEntity();
         IReadOnlyList<IColumnMetadata> columns = entityMetadata.Columns;
 
-        IReadOnlyList<Constructor> constructors = [];
+        IReadOnlyList<IConstructor> constructors = [];
+
+        EntityBufferConversionFactory factory = new();
+
 
         // Act
         Exception? exception = Record.Exception(
-            () => _ = EntityBufferConversionFactory.Create(entityType, constructors, columns)
+            () => _ = factory.Create(entityType, constructors, columns)
         );
 
         // Assert

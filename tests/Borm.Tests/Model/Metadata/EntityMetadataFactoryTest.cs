@@ -1,64 +1,129 @@
-﻿using Borm.Model;
+﻿using Borm.Data.Storage;
+using Borm.Model;
 using Borm.Model.Conversion;
 using Borm.Model.Metadata;
+using Borm.Model.Metadata.Internal;
 using Borm.Reflection;
-using Borm.Tests.Mocks;
-using Moq;
 
 namespace Borm.Tests.Model.Metadata;
 
 public sealed class EntityMetadataFactoryTest
 {
     [Fact]
-    public void Create_ReturnsEntityMetadata_WithEntityInfo()
+    public void Create_BuildsMetadata_WithDefaultName()
     {
         // Arrange
-        IEntityMetadata expected = EntityMetadataMockFactory.CreateMockAddressEntity();
-        List<MappingMember> properties =
-        [
-            new(
-                "Id",
-                new NullableType(typeof(int), false),
-                new MappingInfo(0, "id", true, false, null, ReferentialAction.NoAction), null),
-            new(
-                "Address",
-                new NullableType(typeof(string), false),
-                new MappingInfo(1, "address", false, false, null, ReferentialAction.NoAction), null),
-            new(
-                "Address_1",
-                new NullableType(typeof(string), true),
-                new MappingInfo(2, "address_1", false, false, null, ReferentialAction.NoAction), null),
-            new(
-                "City",
-                new NullableType(typeof(string), false),
-                new MappingInfo(3, "city", false, true, null, ReferentialAction.NoAction), null),
-        ];
-
-        EntityInfo typeInfo = new(expected.Name, expected.Type, properties, [], null);
-        Mock<IEntityBufferConversion> conversionMock = new();
-
-        // Act
-        IEntityMetadata actual = EntityMetadataFactory.Create(
-            typeInfo,
-            (_, _, _) => conversionMock.Object
+        EntityMetadataFactory factory = new(
+            new TestEntityBufferConversionFactory(),
+            new TestColumnMetadataFactory()
         );
 
-        // Assert
-        Assert.Equal(expected.Name, actual.Name);
-        Assert.Equal(expected.Type, actual.Type);
-        Assert.Equal(expected.PrimaryKey.Name, actual.PrimaryKey.Name);
-        Assert.Equal(expected.Columns.Count, actual.Columns.Count);
-        for (int i = 0; i < expected.Columns.Count; i++)
-        {
-            IColumnMetadata expectedColumn = expected.Columns[i];
-            IColumnMetadata actualColumn = actual.Columns[i];
+        TestMappable property = new(
+            "foo",
+            new NullableType(typeof(int), false),
+            new MappingInfo(0, "bar", false, false, null, ReferentialAction.NoAction),
+            null
+        );
+        EntityInfo entity = new(null, typeof(EntityMetadataFactoryTest), [property], [], null);
 
-            Assert.Equal(expectedColumn.Index, actualColumn.Index);
-            Assert.Equal(expectedColumn.Name, actualColumn.Name);
-            Assert.Equal(expectedColumn.DataType, actualColumn.DataType);
-            Assert.Equal(expectedColumn.Constraints, actualColumn.Constraints);
-            Assert.Equal(expectedColumn.PropertyName, actualColumn.PropertyName);
-            Assert.Equal(expectedColumn.OnDelete, actualColumn.OnDelete);
+        // Act
+        IEntityMetadata metadata = factory.Create(entity);
+
+        // Assert
+        Assert.Equal("entityMetadataFactoryTest", metadata.Name);
+        Assert.Single(metadata.Columns);
+        Assert.Equal(typeof(EntityMetadataFactoryTest), metadata.Type);
+    }
+
+    private sealed class TestColumnMetadata : IColumnMetadata
+    {
+        public TestColumnMetadata(
+            string name,
+            Constraints constraints,
+            NullableType dataType,
+            int index,
+            ReferentialAction onDelete,
+            string propertyName,
+            Type? reference
+        )
+        {
+            Name = name;
+            Constraints = constraints;
+            DataType = dataType;
+            Index = index;
+            OnDelete = onDelete;
+            PropertyName = propertyName;
+            Reference = reference;
         }
+
+        public Constraints Constraints { get; }
+        public NullableType DataType { get; }
+        public int Index { get; }
+        public string Name { get; }
+        public ReferentialAction OnDelete { get; }
+        public string PropertyName { get; }
+        public Type? Reference { get; }
+    }
+
+    private sealed class TestColumnMetadataFactory : MetadataFactory<IMappable, IColumnMetadata>
+    {
+        public override IColumnMetadata Create(IMappable source)
+        {
+            return new TestColumnMetadata(
+                source.MemberName,
+                Constraints.None,
+                source.DataType,
+                source.Mapping!.ColumnIndex,
+                ReferentialAction.NoAction,
+                source.MemberName,
+                null
+            );
+        }
+    }
+
+    private sealed class TestEntityBufferConversion : IEntityBufferConversion
+    {
+        public object MaterializeEntity(IValueBuffer buffer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IValueBuffer ToValueBuffer(object entity)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    private sealed class TestEntityBufferConversionFactory : IEntityBufferConversionFactory
+    {
+        public IEntityBufferConversion Create(
+            Type entityType,
+            IReadOnlyList<IConstructor> constructors,
+            IReadOnlyList<IColumnMetadata> columns
+        )
+        {
+            return new TestEntityBufferConversion();
+        }
+    }
+
+    private sealed class TestMappable : IMappable
+    {
+        public TestMappable(
+            string memberName,
+            NullableType dataType,
+            MappingInfo? mapping,
+            ValidationInfo? validationInfo
+        )
+        {
+            MemberName = memberName;
+            DataType = dataType;
+            Mapping = mapping;
+            ValidationInfo = validationInfo;
+        }
+
+        public NullableType DataType { get; }
+        public MappingInfo? Mapping { get; }
+        public string MemberName { get; }
+        public ValidationInfo? ValidationInfo { get; }
     }
 }

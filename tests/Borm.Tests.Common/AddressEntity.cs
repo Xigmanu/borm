@@ -47,7 +47,7 @@ public sealed class AddressEntity(int id, string address, string? address_1, str
         {
             return string.IsNullOrWhiteSpace(entity.Address)
                 ? ValidationResult.Error(entity.Address)
-                : ValidationResult.Ok;
+                : ValidationResult.Ok();
         }
     }
 }

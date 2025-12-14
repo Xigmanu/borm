@@ -7,8 +7,8 @@ public sealed class EntityInfo
 {
     internal EntityInfo(string? name,
         Type type,
-        IReadOnlyList<MappingMember> properties,
-        IReadOnlyList<Constructor> constructors,
+        IReadOnlyList<IMappable> properties,
+        IReadOnlyList<IConstructor> constructors,
         ObjectValidator? validate)
     {
         Name = name;
@@ -18,9 +18,9 @@ public sealed class EntityInfo
         Validate = validate;
     }
 
-    public IReadOnlyList<Constructor> Constructors { get; }
+    public IReadOnlyList<IConstructor> Constructors { get; }
     public string? Name { get; }
-    public IReadOnlyList<MappingMember> Properties { get; }
+    public IReadOnlyList<IMappable> Properties { get; }
     public Type Type { get; }
     internal ObjectValidator? Validate { get; }
 }

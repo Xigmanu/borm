@@ -1,6 +1,6 @@
-﻿using System.Linq.Expressions;
-using Borm.Model.Metadata;
+﻿using Borm.Model.Metadata.Internal;
 using Borm.Reflection;
+using Borm.Tests.Mocks;
 
 namespace Borm.Tests.Model.Metadata;
 
@@ -11,12 +11,12 @@ public sealed class ConstructorSelectorTest
     {
         // Arrange
         const string mappingName = "foo";
-        MappingMember parameter = new(mappingName, new NullableType(typeof(int), false), null, null);
-        Constructor constructor = new(false, [parameter], _ => Expression.Empty());
+        IMappable parameter = new TestParameter(mappingName, new NullableType(typeof(int), false));
+        IConstructor constructor = new TestConstructor(false, [parameter]);
         HashSet<string> columnNames = [mappingName];
 
         // Act
-        Constructor? actual = ConstructorSelector.FindMappingCtor([constructor], columnNames);
+        IConstructor? actual = ConstructorSelector.FindMappingCtor([constructor], columnNames);
 
         // Assert
         Assert.NotNull(actual);
@@ -27,11 +27,11 @@ public sealed class ConstructorSelectorTest
     public void FindMappingCtor_ReturnsDefaultConstructor_WhenCollectionContainsOnlyImplicitConstructor()
     {
         // Arrange
-        Constructor constructor = new(true, [], _ => Expression.Empty());
+        IConstructor constructor = new TestConstructor(true, []);
         HashSet<string> columnNames = ["foo"];
 
         // Act
-        Constructor? actual = ConstructorSelector.FindMappingCtor([constructor], columnNames);
+        IConstructor? actual = ConstructorSelector.FindMappingCtor([constructor], columnNames);
 
         // Assert
         Assert.NotNull(actual);
@@ -42,12 +42,12 @@ public sealed class ConstructorSelectorTest
     public void FindMappingCtor_ReturnsNull_WhenNoMappingConstructorWasFound()
     {
         // Arrange
-        MappingMember parameter = new("bar", new NullableType(typeof(int), false), null, null);
-        Constructor constructor = new(false, [parameter], _ => Expression.Empty());
+        IMappable parameter = new TestParameter("bar", new NullableType(typeof(int), false));
+        IConstructor constructor = new TestConstructor(false, [parameter]);
         HashSet<string> columnNames = ["foo"];
 
         // Act
-        Constructor? actual = ConstructorSelector.FindMappingCtor([constructor], columnNames);
+        IConstructor? actual = ConstructorSelector.FindMappingCtor([constructor], columnNames);
 
         // Assert
         Assert.Null(actual);
@@ -57,11 +57,11 @@ public sealed class ConstructorSelectorTest
     public void FindMappingCtor_ReturnsNull_WhenNoMappingParameterAndColumnCountsMismatch()
     {
         // Arrange
-        Constructor constructor = new(false, [], _ => Expression.Empty());
+        IConstructor constructor = new TestConstructor(false, []);
         HashSet<string> columnNames = ["foo"];
 
         // Act
-        Constructor? actual = ConstructorSelector.FindMappingCtor([constructor], columnNames);
+        IConstructor? actual = ConstructorSelector.FindMappingCtor([constructor], columnNames);
 
         // Assert
         Assert.Null(actual);
@@ -71,13 +71,13 @@ public sealed class ConstructorSelectorTest
     public void FindMappingCtor_ThrowsArgumentException_WhenColumnsAreEmpty()
     {
         // Arrange
-        Constructor constructor = new(true, [], _ => Expression.Empty());
+        IConstructor constructor = new TestConstructor(true, []);
         HashSet<string> columnNames = [];
 
         // Act
-        Exception? exception = Record.Exception(
-            () => _ = ConstructorSelector.FindMappingCtor([constructor], columnNames)
-        );
+        Exception? exception =
+            Record.Exception(() => _ = ConstructorSelector.FindMappingCtor([constructor], columnNames)
+            );
 
         // Assert
         Assert.NotNull(exception);

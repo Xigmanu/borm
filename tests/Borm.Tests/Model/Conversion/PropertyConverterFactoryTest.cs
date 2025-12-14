@@ -1,5 +1,5 @@
 ﻿using Borm.Data.Storage;
-using Borm.Model.Conversion;
+using Borm.Model.Conversion.Internal;
 using Borm.Model.Metadata;
 using Borm.Tests.Common;
 using Borm.Tests.Mocks;
@@ -9,7 +9,7 @@ namespace Borm.Tests.Model.Conversion;
 
 public sealed class PropertyConverterFactoryTest
 {
-    private readonly TableGraph _graph = TableGraphMock.Create();
+    private readonly ITableGraph _graph = TableGraphMock.Create();
 
     [Fact]
     public void Constructor_ThrowsArgumentException_WhenColumnsAreEmpty()
