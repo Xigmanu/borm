@@ -58,13 +58,6 @@ internal sealed class DataSynchronizer
         foreach (ITable table in _graph.TopSort())
         {
             TableInfo tableSchema = _graph.GetSchema(table);
-            if (!_executor.TableExists(table.Name))
-            {
-                DbCommandDefinition createTable = _commandFactory.CreateTable(tableSchema);
-                _executor.ExecuteBatch(createTable);
-                continue;
-            }
-
             DbCommandDefinition selectAll = _commandFactory.SelectAll(tableSchema);
             ResultSet resultSet = _executor.Query(selectAll);
 

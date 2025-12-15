@@ -7,12 +7,6 @@ public interface IDbCommandDefinitionFactory
 {
     /// <summary>
     ///     Creates a <see cref="DbCommandDefinition" /> that defines
-    ///     the command to create a new table according to the specified schema.
-    /// </summary>
-    DbCommandDefinition CreateTable(TableInfo tableSchema);
-
-    /// <summary>
-    ///     Creates a <see cref="DbCommandDefinition" /> that defines
     ///     the command to delete records from the specified table.
     /// </summary>
     DbCommandDefinition Delete(TableInfo tableSchema);

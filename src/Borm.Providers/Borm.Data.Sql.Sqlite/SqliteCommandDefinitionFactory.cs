@@ -6,42 +6,10 @@ namespace Borm.Data.Sql.Sqlite;
 
 public sealed class SqliteCommandDefinitionFactory : IDbCommandDefinitionFactory
 {
-    private const string CreateTableStatementFormat = "CREATE TABLE {0}({1});";
     private const string DeleteStatementFormat = "DELETE FROM {0} WHERE {1};";
     private const string InsertStatementFormat = "INSERT INTO {0} VALUES({1});";
     private const string SelectAllStatementFormat = "SELECT * FROM {0};";
     private const string UpdateStatementFormat = "UPDATE {0} SET {1} WHERE {2};";
-
-    public DbCommandDefinition CreateTable(TableInfo tableSchema)
-    {
-        string tableName = tableSchema.Name;
-        IEnumerable<ColumnInfo> columns = tableSchema.Columns;
-
-        List<string> columnDefinitions = new(columns.Count());
-        foreach (ColumnInfo column in columns)
-        {
-            StringBuilder columnDefinitionBuilder = new StringBuilder().AppendFormat(
-                "{0} ",
-                column.Name
-            );
-            string sqliteType = SqliteTypeHelper
-                .ToSqliteType(column.DataType)
-                .ToString()
-                .ToUpperInvariant();
-            columnDefinitionBuilder.AppendFormat("{0} ", sqliteType);
-
-            AppendConstraints(tableSchema, column, columnDefinitionBuilder);
-
-            columnDefinitions.Add(columnDefinitionBuilder.ToString());
-        }
-
-        string columnDefinitionsStr = new StringBuilder()
-            .AppendJoin(',', columnDefinitions)
-            .ToString();
-
-        string sql = string.Format(CreateTableStatementFormat, tableName, columnDefinitionsStr);
-        return new DbCommandDefinition(sql, []);
-    }
 
     public DbCommandDefinition Delete(TableInfo tableSchema)
     {
@@ -92,33 +60,6 @@ public sealed class SqliteCommandDefinitionFactory : IDbCommandDefinitionFactory
             $"{primaryKey.Name} = {conditionalParam.ParameterName}"
         );
         return new DbCommandDefinition(sql, parameters);
-    }
-
-    private static void AppendConstraints(
-        TableInfo tableSchema,
-        ColumnInfo column,
-        StringBuilder columnDefinitionBuilder
-    )
-    {
-        if (tableSchema.PrimaryKey.Equals(column))
-        {
-            columnDefinitionBuilder.Append("PRIMARY KEY");
-            return;
-        }
-
-        List<string> constraints = [];
-        if (column.IsUnique)
-        {
-            constraints.Add("UNIQUE");
-        }
-
-        constraints.Add(column.IsNullable ? "NULL" : "NOT NULL");
-        if (tableSchema.ForeignKeyRelations.TryGetValue(column, out TableInfo? parentTable))
-        {
-            constraints.Add($"REFERENCES {parentTable.Name}({parentTable.PrimaryKey.Name})");
-        }
-
-        columnDefinitionBuilder.AppendJoin(' ', constraints);
     }
 
     private static SqliteParameter CreateParameterForColumn(ColumnInfo column)

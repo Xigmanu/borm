@@ -5,41 +5,6 @@ namespace Borm.Data.Sql.Sqlite.Tests;
 public class SqliteCommandFactoryTest
 {
     private static readonly TableInfo AddressesTableSchema = CreateSimpleTableSchema();
-    private static readonly TableInfo PersonsTableSchema = CreateRelationalTableSchema();
-
-    [Fact]
-    public void NewCreateTableStatement_ReturnsSqliteCreateTableStatement_WithSimpleTable()
-    {
-        // Arrange
-        const string expectedSql =
-            "CREATE TABLE addresses(id INTEGER PRIMARY KEY,address TEXT NOT NULL,address_1 TEXT NULL,city TEXT NOT NULL);";
-        TableInfo table = AddressesTableSchema;
-        SqliteCommandDefinitionFactory commandFactory = new();
-
-        // Act
-        DbCommandDefinition actual = commandFactory.CreateTable(table);
-
-        // Assert
-        Assert.Equal(expectedSql, actual.Sql);
-        Assert.Empty(actual.Parameters);
-    }
-
-    [Fact]
-    public void NewCreateTableStatement_ReturnsSqliteCreateTableStatement_WithTableWithRelation()
-    {
-        // Arrange
-        const string expectedSql =
-            "CREATE TABLE persons(id INTEGER PRIMARY KEY,name TEXT UNIQUE NOT NULL,salary REAL NOT NULL,address INTEGER NULL REFERENCES addresses(id));";
-        TableInfo table = PersonsTableSchema;
-        SqliteCommandDefinitionFactory commandFactory = new();
-
-        // Act
-        DbCommandDefinition actual = commandFactory.CreateTable(table);
-
-        // Assert
-        Assert.Equal(expectedSql, actual.Sql);
-        Assert.Empty(actual.Parameters);
-    }
 
     [Fact]
     public void NewDeleteStatement_ReturnsSqliteDeleteStatement_WithSimpleTable()
@@ -136,26 +101,6 @@ public class SqliteCommandFactoryTest
         }
 
         return res;
-    }
-
-    private static TableInfo CreateRelationalTableSchema()
-    {
-        List<ColumnInfo> columns =
-        [
-            new("id", "persons", typeof(int), false, false),
-            new("name", "persons", typeof(string), true, false),
-            new("salary", "persons", typeof(double), false, false),
-            new("address", "persons", typeof(int), false, true)
-        ];
-        return new TableInfo(
-            "persons",
-            new ReadOnlyCollection<ColumnInfo>(columns),
-            columns[0],
-            new Dictionary<ColumnInfo, TableInfo>
-            {
-                [columns[^1]] = AddressesTableSchema
-            }.AsReadOnly()
-        );
     }
 
     private static TableInfo CreateSimpleTableSchema()

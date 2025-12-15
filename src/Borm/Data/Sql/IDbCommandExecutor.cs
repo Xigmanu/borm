@@ -7,7 +7,4 @@ public interface IDbCommandExecutor
     Task ExecuteBatchAsync(DbCommandDefinition command, CancellationToken cancellationToken);
 
     ResultSet Query(DbCommandDefinition command);
-
-    // TODO Move this somewhere else for migrations
-    bool TableExists(string tableName);
 }

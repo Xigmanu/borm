@@ -1,5 +1,4 @@
 ﻿using System.Data.Common;
-using System.Diagnostics;
 using Microsoft.Data.Sqlite;
 
 namespace Borm.Data.Sql.Sqlite;
@@ -101,32 +100,5 @@ public sealed class SqliteCommandExecutor : IDbCommandExecutor
 
         using DbDataReader reader = sqliteCommand.ExecuteReader();
         return ResultSet.FromReader(reader);
-    }
-
-    public bool TableExists(string tableName)
-    {
-        const string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name='{0}'";
-        using SqliteConnection connection = new(_connectionString);
-        using SqliteCommand sqliteCommand = connection.CreateCommand();
-        sqliteCommand.CommandText = string.Format(sql, tableName);
-
-        connection.Open();
-        try
-        {
-            using DbDataReader reader = sqliteCommand.ExecuteReader();
-            ResultSet resultSet = ResultSet.FromReader(reader);
-            Debug.Assert(resultSet.RowCount < 2);
-
-            if (resultSet.MoveNext())
-            {
-                return (string)resultSet.Current["name"] == tableName;
-            }
-
-            return false;
-        }
-        finally
-        {
-            connection.Close();
-        }
     }
 }
